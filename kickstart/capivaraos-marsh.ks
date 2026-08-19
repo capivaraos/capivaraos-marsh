@@ -94,11 +94,11 @@ libreoffice-help-pt-BR
 libreoffice-kf6
 
 # ===== INTERNET =====
-thunderbird
+# Thunderbird -> OPCIONAL/onboarding na linha 2.x (dev jovem usa webmail). FEAT-89.
 
 # ===== MIDIA =====
 vlc
-gimp
+# GIMP -> OPCIONAL/onboarding na linha 2.x (nichado num foco dev). FEAT-89.
 # gwenview já incluso via @kde-media / @kde-apps
 
 # ===== CODECS (RPM Fusion) — ver FEAT-88 =====
@@ -129,6 +129,27 @@ git
 nano
 vim-enhanced
 @development-tools
+
+# ===== ESTACAO DE DEV (linha 2.x) — pacotes do Fedora oficial. FEAT-89 =====
+# NOTA: VSCodium, mise, starship e lazygit vêm de repos externos e sao
+# instalados no %post (capivaraos-post-devstation.ks) com chave GPG explicita.
+# Semgrep (pipx), extensao Continue (Open VSX) e Flathub tambem ficam no %post.
+#
+# -- Seguranca shift-left (SAST/segredos/deps) --
+gitleaks
+pre-commit
+trivy
+# -- IA local (runtime; modelo de codigo baixado sob demanda no onboarding) --
+ollama
+# -- Ambiente de desenvolvimento --
+gh
+podman
+distrobox
+# -- Gerenciador de senhas (pegada de seguranca) --
+keepassxc
+# -- Snapshots "atualize sem medo" (Btrfs nativo do Fedora) --
+btrfs-assistant
+snapper
 
 # ===== FONTES =====
 liberation-fonts
