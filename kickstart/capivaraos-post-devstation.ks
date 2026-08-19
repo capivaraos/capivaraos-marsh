@@ -76,20 +76,21 @@ echo "== [devstation] Semgrep via pipx (binario global em /usr/local/bin) =="
 PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin pipx install semgrep \
     || echo "AVISO: semgrep via pipx falhou (validar no build)"
 
-echo "== [devstation] extensao Continue no VSCodium (best-effort, headless) =="
-export HOME=/root
-if codium --install-extension Continue.continue --force 2>/dev/null; then
-    # replica no /etc/skel para o usuario criado ja receber a extensao
-    mkdir -p /etc/skel/.vscode-oss
-    cp -a /root/.vscode-oss/. /etc/skel/.vscode-oss/ 2>/dev/null || true
-else
-    echo "AVISO: pre-instalacao do Continue falhou (onboarding FEAT-90 cobre)"
-fi
+echo "== [devstation] Continue: adiado para o onboarding (FEAT-90) =="
+# NAO rodar o codium (Electron) aqui: rodar o VSCodium como root no %post cria
+# /run/user/0 e deixa processo pendurado, o que QUEBRA o unmount do
+# livemedia-creator no cleanup (novirt) -> "Image creation failed". A extensao
+# Continue e instalada no 1o login do usuario pelo onboarding (FEAT-90), que e
+# o lugar certo.
 
 echo "== [devstation] habilita Flathub =="
 flatpak remote-add --if-not-exists flathub \
     https://flathub.org/repo/flathub.flatpakrepo \
     || echo "AVISO: flathub remote-add falhou"
+
+# Defensivo: encerra qualquer sessao de usuario root que possa ter sido criada
+# e segurar /run/user/0, quebrando o unmount do livemedia-creator no cleanup.
+loginctl terminate-user root 2>/dev/null || :
 
 echo "== [devstation] concluido =="
 
