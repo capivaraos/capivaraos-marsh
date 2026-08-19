@@ -27,17 +27,10 @@
 # Gerado por ../build-all.sh (rpm/build-rpm.sh + createrepo_c) em
 # /var/tmp/capivaraos-repo. Ajuste o caminho se mover o repositório local.
 repo --name=capivaraos-local --baseurl=file:///var/tmp/capivaraos-repo
-
-# ── RPM Fusion (free + nonfree) — codecs de mídia + base para GPU ────────────
-# Habilitado na linha 2.x ("estação de dev"): resolve H.264/H.265/AAC/MP3 etc.
-# de fábrica (sem isto o VLC/navegador tropeçam em conteúdo patenteado) e dá a
-# base para a aceleração de GPU da IA local (akmod-nvidia). Os pacotes
-# rpmfusion-*-release (em %packages) deixam estes repos habilitados no SISTEMA
-# INSTALADO, para receber updates de codec pós-instalação. Ver FEAT-88.
-repo --name=rpmfusion-free --baseurl=https://download1.rpmfusion.org/free/fedora/releases/$releasever/Everything/$basearch/os/
-repo --name=rpmfusion-free-updates --baseurl=https://download1.rpmfusion.org/free/fedora/updates/$releasever/$basearch/
-repo --name=rpmfusion-nonfree --baseurl=https://download1.rpmfusion.org/nonfree/fedora/releases/$releasever/Everything/$basearch/os/
-repo --name=rpmfusion-nonfree-updates --baseurl=https://download1.rpmfusion.org/nonfree/fedora/updates/$releasever/$basearch/
+# NOTA: RPM Fusion NAO e habilitado aqui (build/payload). Habilitar no build
+# forcava a troca ffmpeg-free -> ffmpeg, que a transacao do compose nao faz
+# (sem --allowerasing) e quebrava a instalacao. RPM Fusion + codecs foram para
+# o %post com "dnf swap" -- ver capivaraos-post-devstation.ks. FEAT-88.
 
 # ── IDIOMA / TECLADO / FUSO (sobrescreve os defaults en_US do fedora-live-base) ─
 # Equivalente ao "locales=pt_BR.UTF-8 keyboard-layouts=br" do live-build
@@ -100,18 +93,9 @@ libreoffice-kf6
 vlc
 # GIMP -> OPCIONAL/onboarding na linha 2.x (nichado num foco dev). FEAT-89.
 # gwenview já incluso via @kde-media / @kde-apps
-
-# ===== CODECS (RPM Fusion) — ver FEAT-88 =====
-# Deixa os repos RPM Fusion habilitados no sistema instalado (traz as chaves
-# GPG e os .repo → updates de codec pós-instalação):
-rpmfusion-free-release
-rpmfusion-nonfree-release
-# Codecs completos de mídia (H.264/H.265/AAC/MP3/…). libavcodec-freeworld
-# adiciona codecs ao ffmpeg-free do Fedora SEM trocar o pacote (coexiste):
-gstreamer1-plugins-bad-freeworld
-gstreamer1-plugins-ugly
-gstreamer1-libav
-libavcodec-freeworld
+# Codecs (RPM Fusion) movidos para o %post com "dnf swap ffmpeg-free ffmpeg":
+# habilitar RPM Fusion no build quebrava a transacao. Ver
+# capivaraos-post-devstation.ks / FEAT-88.
 
 # ===== UTILITARIOS =====
 gparted

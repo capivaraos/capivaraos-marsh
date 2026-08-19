@@ -21,6 +21,26 @@
 # =============================================================================
 %post --log=/var/log/capivaraos-post-devstation.log
 
+# ---------------------------------------------------------------------------
+# CODECS (RPM Fusion) — movido do %packages para ca (FEAT-88). Habilitar RPM
+# Fusion no BUILD (payload) forcava a troca ffmpeg-free -> ffmpeg, que a
+# transacao do compose nao faz sozinha (sem --allowerasing) e QUEBRAVA o build
+# (PayloadInstallationError). Aqui o swap e explicito. Tolerante: se faltar
+# rede, a ISO ainda sai (so sem os codecs extras). VALIDAR no build.
+# ---------------------------------------------------------------------------
+echo "== [codecs] habilita RPM Fusion free+nonfree =="
+dnf install -y \
+    "https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm" \
+    "https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm" \
+    || echo "AVISO: rpmfusion-release falhou (sem rede no %post?)"
+
+echo "== [codecs] troca ffmpeg-free -> ffmpeg (full) =="
+dnf swap -y ffmpeg-free ffmpeg --allowerasing || echo "AVISO: swap ffmpeg falhou"
+
+echo "== [codecs] gstreamer freeworld + libav =="
+dnf install -y gstreamer1-plugins-bad-freeworld gstreamer1-plugins-ugly \
+    gstreamer1-libav || echo "AVISO: gstreamer freeworld falhou"
+
 echo "== [devstation] pre-reqs: dnf-plugins-core + pipx =="
 dnf install -y dnf-plugins-core pipx
 
