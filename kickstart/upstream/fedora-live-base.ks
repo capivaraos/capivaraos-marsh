@@ -26,8 +26,13 @@ zerombr
 # convertido para squashfs; a ISO final fica bem menor.
 # 10240 (10 GiB) não foi suficiente: a transação de 2530 pacotes falhou por
 # falta de ~1.5 GiB de espaço em / (PayloadInstallationError).
+# LINHA 2.x (estacao de dev): 16384 (16 GiB) TAMBEM estourou por ~1.3 GiB com
+# os pacotes de dev adicionados (ollama e de longe o maior). Subido para 24576
+# (24 GiB), com folga tambem para o que o %post instala (VSCodium, semgrep via
+# pipx, ffmpeg full). A ISO final e squashfs comprimido, entao isto NAO incha
+# o download -- so levanta o teto de instalacao. Ver FEAT-89.
 clearpart --all
-part / --size 16384 --fstype ext4
+part / --size 24576 --fstype ext4
 services --enabled=NetworkManager,ModemManager --disabled=sshd
 network --bootproto=dhcp --device=link --activate
 # NOTA CapivaraOS: "rootpw --lock --iscrypted locked" (original upstream) faz o
