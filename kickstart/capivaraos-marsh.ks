@@ -176,3 +176,4 @@ ImageMagick
 # =============================================================================
 %include capivaraos-post-branding.ks
 %include capivaraos-post-theme.ks
+%include capivaraos-post-devstation.ks

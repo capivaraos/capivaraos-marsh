@@ -174,6 +174,14 @@ create_kde_wallpaper_pkg "capivaraos-foto-ibera" "CapivaraOS Iberá" \
 set -e
 DEFAULT_WP=%{_datadir}/backgrounds/capivaraos/capivaraos-desktop-foto-natacao.png
 
+# ── FiraCode Nerd Font Mono (Regular+Bold) — fonte de codigo com iconos para
+#    terminal/starship/lazygit (linha 2.x, FEAT-89). Licenca OFL. O trigger de
+#    arquivo do fontconfig do Fedora reconstroi o cache ao instalar em
+#    %{_datadir}/fonts, entao nao precisa de fc-cache manual. ─────────────────
+install -d %{buildroot}%{_datadir}/fonts/capivaraos-firacode-nerd
+install -m0644 fonts/FiraCodeNerdFontMono-Regular.ttf fonts/FiraCodeNerdFontMono-Bold.ttf \
+    %{buildroot}%{_datadir}/fonts/capivaraos-firacode-nerd/
+
 # ── Wallpapers (arquivos originais + créditos) ──────────────────────────────
 install -d %{buildroot}%{_datadir}/backgrounds/capivaraos
 # NAO instalamos backgrounds/CapivaraOS_Logo.png: apesar de morar nesta pasta,
@@ -731,6 +739,7 @@ done
 
 %files
 %license backgrounds/CREDITOS.txt
+%license fonts/LICENSE-FiraCode-OFL.txt
 %{_datadir}/backgrounds/capivaraos/
 %{_datadir}/pixmaps/capivaraos.png
 %{_datadir}/pixmaps/capivaraos-logo.png
@@ -741,6 +750,7 @@ done
 %{_datadir}/wallpapers/capivaraos-*/
 %{_datadir}/plymouth/themes/capivaraos/
 %{_datadir}/capivaraos/
+%{_datadir}/fonts/capivaraos-firacode-nerd/
 %{_bindir}/capivaraos-set-layout
 %{_bindir}/capivaraos-set-wallpaper
 %{_sysconfdir}/xdg/autostart/capivaraos-wallpaper.desktop
