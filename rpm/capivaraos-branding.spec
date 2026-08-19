@@ -12,12 +12,12 @@
 # exigem git clone de repositórios externos durante o build da imagem.
 
 Name:           capivaraos-branding
-Version:        1.2.4
+Version:        2.0.0
 # Sufixo ".marsh": as tres spins constroem um pacote com este MESMO Name e
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        1%{?dist}.marsh
+Release:        0.1.alpha1%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND CC-BY-SA-3.0 AND CC-BY-SA-4.0
@@ -614,14 +614,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 1.2.4"
+VERSION="Marsh 2.0.0 (alpha1, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha1, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -634,24 +634,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 1.2.4"
+VARIANT="Marsh 2.0.0 (alpha1, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 1.2.4 \n \l
+CapivaraOS Marsh 2.0.0 (alpha1, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 1.2.4
+CapivaraOS Marsh 2.0.0 (alpha1, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 1.2.4
+Variant=Marsh 2.0.0 (alpha1, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -691,14 +691,14 @@ EOF
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 1.2.4"
+VERSION="Marsh 2.0.0 (alpha1, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha1, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -711,17 +711,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 1.2.4"
+VARIANT="Marsh 2.0.0 (alpha1, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 1.2.4 \n \l
+CapivaraOS Marsh 2.0.0 (alpha1, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 1.2.4
+CapivaraOS Marsh 2.0.0 (alpha1, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -755,6 +755,16 @@ done
 %{_sysconfdir}/anaconda/profile.d/capivaraos.conf
 
 %changelog
+* Wed Aug 19 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.1.alpha1
+- Inicio da linha 2.x ("estacao de dev da era da IA"), construida no repo
+  ISOLADO capivaraos-marsh-next. Build de teste/PREVIEW no Fedora 44 -- NAO e
+  a linha estavel 1.x (capivaraos-marsh-fedora), que segue recebendo correcoes.
+- Versionamento: 2.0.0 fica RESERVADO para o lancamento publico (no rebase p/
+  Fedora 45); os previews usam Release 0.N.<estagio> (0.1.alpha1 -> ... -> rc),
+  que ordena abaixo do 2.0.0-1 final. VERSION/VARIANT/PRETTY_NAME/issue
+  rotulados "(alpha1, preview)" para nunca confundir com release estavel.
+- (Codecs RPM Fusion entraram no kickstart via FEAT-88.)
+
 * Tue Aug 18 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 1.2.4-1
 - Instala em UEFI real: adiciona /etc/anaconda/profile.d/capivaraos.conf com
   base_profile=fedora. Sem ele o Anaconda nao casava perfil (ID=capivaraos),
