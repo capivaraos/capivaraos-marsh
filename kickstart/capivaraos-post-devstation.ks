@@ -88,9 +88,11 @@ flatpak remote-add --if-not-exists flathub \
     https://flathub.org/repo/flathub.flatpakrepo \
     || echo "AVISO: flathub remote-add falhou"
 
-# Defensivo: encerra qualquer sessao de usuario root que possa ter sido criada
-# e segurar /run/user/0, quebrando o unmount do livemedia-creator no cleanup.
-loginctl terminate-user root 2>/dev/null || :
+# NOTA: NAO usar 'loginctl terminate-user root' aqui. Em --no-virt o %post
+# compartilha o systemd/logind do HOST, entao terminate-user root MATA o
+# proprio processo do build (visto como "Terminated" no 4o build). A causa do
+# /run/user/0 pendurado era o codium (Electron), ja removido acima -- nao ha
+# necessidade de limpeza defensiva.
 
 echo "== [devstation] concluido =="
 
