@@ -66,11 +66,24 @@ gpgkey=https://mise.jdx.dev/gpg-key.pub
 EOF
 
 echo "== [devstation] COPR atim/starship + atim/lazygit =="
-dnf -y copr enable atim/starship
-dnf -y copr enable atim/lazygit
+# GOTCHA (alpha1): com ID=capivaraos no os-release, o plugin copr do dnf monta o
+# nome do chroot a partir de ID+VERSION_ID -> pediu "capivaraos-44-x86_64", que
+# NAO existe no COPR (so "fedora-44-x86_64"). Os `copr enable` falhavam em
+# silencio e starship/lazygit saiam sem repo ("No match" no install). Fix:
+# passar o chroot fedora explicito. Mesma familia do ID=capivaraos do EFI.
+COPR_CHROOT="fedora-$(rpm -E %fedora)-$(uname -m)"
+dnf -y copr enable atim/starship "$COPR_CHROOT"
+dnf -y copr enable atim/lazygit "$COPR_CHROOT"
 
-echo "== [devstation] instala VSCodium, mise, starship, lazygit (critico) =="
-dnf install -y codium mise starship lazygit
+# Instala em DOIS comandos de proposito: no alpha1 um unico `dnf install codium
+# mise starship lazygit` abortava a transacao INTEIRA por causa do "No match" de
+# starship/lazygit, levando junto codium e mise (que estavam OK). Separado, um
+# tropeco do COPR nao derruba o editor.
+echo "== [devstation] instala VSCodium + mise (repos proprios, critico) =="
+dnf install -y codium mise
+
+echo "== [devstation] instala starship + lazygit (COPR atim, critico) =="
+dnf install -y starship lazygit
 
 echo "== [devstation] Semgrep via pipx (binario global em /usr/local/bin) =="
 PIPX_HOME=/opt/pipx PIPX_BIN_DIR=/usr/local/bin pipx install semgrep \
