@@ -20,7 +20,7 @@ Version:        2.0.0
 Release:        0.3.alpha3%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
-License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND CC-BY-SA-3.0 AND CC-BY-SA-4.0
+License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
 URL:            https://capivaraos.org
 BuildArch:      noarch
 
@@ -38,8 +38,8 @@ Conflicts:      fedora-release-kde-desktop
 Conflicts:      fedora-logos
 
 %description
-Pacote de identidade visual do CapivaraOS Marsh: wallpapers (incluindo as
-fotos de capivaras do Wikimedia Commons, CC BY-SA), conjunto de ícones
+Pacote de identidade visual do CapivaraOS Marsh: wallpapers exclusivos da
+marca, conjunto de ícones
 "capivaraos-logo", "capivaraos-full-logo" e "capivaraos-head", tema Plymouth
 de boot, tela de login SDDM, /etc/os-release, /etc/issue, configuração padrão do Plasma
 (Breeze Dark + wallpaper CapivaraOS) e o layout de painéis estilo macOS
@@ -121,7 +121,7 @@ done
 mkdir -p build/wallpapers
 
 create_kde_wallpaper_pkg() {
-    local ID="$1" NAME="$2" FILE="$3" AUTHOR="${4:-CapivaraOS}"
+    local ID="$1" NAME="$2" FILE="$3" AUTHOR="${4:-CapivaraOS}" LICENSE="${5:-LicenseRef-CapivaraOS-Trademark}"
     local DIR="build/wallpapers/${ID}/contents/images"
     mkdir -p "$DIR"
     cp "$FILE" "${DIR}/1920x1080.png"
@@ -132,7 +132,7 @@ create_kde_wallpaper_pkg() {
     "KPlugin": {
         "Authors": [{"Name": "${AUTHOR}"}],
         "Id": "${ID}",
-        "License": "CC-BY-SA-4.0",
+        "License": "${LICENSE}",
         "Name": "${NAME}",
         "Version": "%{version}",
         "Website": "https://capivaraos.org"
@@ -142,44 +142,24 @@ create_kde_wallpaper_pkg() {
 METAEOF
 }
 
-create_kde_wallpaper_pkg "capivaraos-azul" "CapivaraOS Azul" \
-    backgrounds/capivaraos-desktop.png
-create_kde_wallpaper_pkg "capivaraos-verde" "CapivaraOS Verde" \
-    backgrounds/capivaraos-desktop-verde.png
-create_kde_wallpaper_pkg "capivaraos-roxo" "CapivaraOS Roxo" \
-    backgrounds/capivaraos-desktop-roxo.png
-create_kde_wallpaper_pkg "capivaraos-preto" "CapivaraOS Preto" \
-    backgrounds/capivaraos-desktop-preto.png
-create_kde_wallpaper_pkg "capivaraos-azul-branco" "CapivaraOS Azul (logo branca)" \
-    backgrounds/capivaraos-desktop-azul-branco.png
-create_kde_wallpaper_pkg "capivaraos-verde-branco" "CapivaraOS Verde (logo branca)" \
-    backgrounds/capivaraos-desktop-verde-branco.png
-create_kde_wallpaper_pkg "capivaraos-roxo-branco" "CapivaraOS Roxo (logo branca)" \
-    backgrounds/capivaraos-desktop-roxo-branco.png
-
-# Wallpapers com fotos reais de capivaras (Wikimedia Commons, CC BY-SA)
-create_kde_wallpaper_pkg "capivaraos-foto-ipe" "CapivaraOS Ipê Rosa" \
-    backgrounds/capivaraos-desktop-foto-ipe.png \
-    "Giles Laurent (Wikimedia Commons, CC BY-SA 4.0)"
-create_kde_wallpaper_pkg "capivaraos-foto-capincho" "CapivaraOS Retrato" \
-    backgrounds/capivaraos-desktop-foto-capincho.png \
-    "Gabriel Sparrenberger (Wikimedia Commons, CC BY-SA 4.0)"
-create_kde_wallpaper_pkg "capivaraos-foto-taim" "CapivaraOS Taim" \
-    backgrounds/capivaraos-desktop-foto-taim.png \
-    "Paulo Hopper (Wikimedia Commons, CC BY-SA 4.0)"
-create_kde_wallpaper_pkg "capivaraos-foto-natacao" "CapivaraOS Natação" \
-    backgrounds/capivaraos-desktop-foto-natacao.png \
-    "Giles Laurent (Wikimedia Commons, CC BY-SA 4.0)"
-create_kde_wallpaper_pkg "capivaraos-foto-salto" "CapivaraOS Rio" \
-    backgrounds/capivaraos-desktop-foto-salto.png \
-    "Giles Laurent (Wikimedia Commons, CC BY-SA 4.0)"
-create_kde_wallpaper_pkg "capivaraos-foto-ibera" "CapivaraOS Iberá" \
-    backgrounds/capivaraos-desktop-foto-ibera.png \
-    "Taragui (Wikimedia Commons, CC BY-SA 3.0)"
+# Wallpapers EXCLUSIVOS da marca CapivaraOS (linha 2.x, FEAT-105). Todos usam o
+# LICENSE default da funcao (LicenseRef-CapivaraOS-Trademark) -- arte propria,
+# NAO CC. As antigas (7 de cor solida + 6 fotos CC do Wikimedia) foram removidas:
+# o conjunto do Marsh 2.x passa a ser exatamente estes 8. As 3 cenas (luar/por-do-
+# sol/dev) levam a logo branca padronizada no canto; as abstratas ja trazem a
+# marca no proprio desenho.
+create_kde_wallpaper_pkg "capivaraos-luar"       "CapivaraOS Luar"       backgrounds/capivaraos-wp-moonlight.png
+create_kde_wallpaper_pkg "capivaraos-por-do-sol" "CapivaraOS Pôr do Sol" backgrounds/capivaraos-wp-sunset.png
+create_kde_wallpaper_pkg "capivaraos-dev"        "CapivaraOS Dev"        backgrounds/capivaraos-wp-dev.png
+create_kde_wallpaper_pkg "capivaraos-abstrato-1" "CapivaraOS Abstrato 1" backgrounds/capivaraos-wp-abstract-1.png
+create_kde_wallpaper_pkg "capivaraos-abstrato-2" "CapivaraOS Abstrato 2" backgrounds/capivaraos-wp-abstract-2.png
+create_kde_wallpaper_pkg "capivaraos-abstrato-3" "CapivaraOS Abstrato 3" backgrounds/capivaraos-wp-abstract-3.png
+create_kde_wallpaper_pkg "capivaraos-abstrato-4" "CapivaraOS Abstrato 4" backgrounds/capivaraos-wp-abstract-4.png
+create_kde_wallpaper_pkg "capivaraos-cartoon"    "CapivaraOS Cartoon"    backgrounds/capivaraos-wp-cartoon.png
 
 %install
 set -e
-DEFAULT_WP=%{_datadir}/backgrounds/capivaraos/capivaraos-desktop-foto-natacao.png
+DEFAULT_WP=%{_datadir}/backgrounds/capivaraos/capivaraos-wp-moonlight.png
 
 # ── FiraCode Nerd Font Mono (Regular+Bold) — fonte de codigo com iconos para
 #    terminal/starship/lazygit (linha 2.x, FEAT-89). Licenca OFL. O trigger de
@@ -200,7 +180,6 @@ for WP in backgrounds/*.png; do
     [ "$(basename "$WP")" = "CapivaraOS_Logo.png" ] && continue
     install -m 0644 "$WP" %{buildroot}%{_datadir}/backgrounds/capivaraos/
 done
-install -m 0644 backgrounds/CREDITOS.txt %{buildroot}%{_datadir}/backgrounds/capivaraos/
 
 # ── Pixmaps ──────────────────────────────────────────────────────────────────
 install -d %{buildroot}%{_datadir}/pixmaps
@@ -633,7 +612,7 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 install -d %{_datadir}/sddm/themes/breeze
 cat > %{_datadir}/sddm/themes/breeze/theme.conf.user << 'EOF'
 [General]
-background=%{_datadir}/backgrounds/capivaraos/capivaraos-desktop-foto-natacao.png
+background=%{_datadir}/backgrounds/capivaraos/capivaraos-wp-moonlight.png
 EOF
 
 # GRUB_DISTRIBUTOR -> "CapivaraOS" (efetivo apos grub2-mkconfig no sistema
@@ -792,7 +771,6 @@ for kver in $(ls /lib/modules 2>/dev/null); do
 done
 
 %files
-%license backgrounds/CREDITOS.txt
 %license fonts/LICENSE-FiraCode-OFL.txt
 %{_datadir}/backgrounds/capivaraos/
 %{_datadir}/pixmaps/capivaraos.png
@@ -822,6 +800,16 @@ done
 
 %changelog
 * Thu Aug 20 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.3.alpha3
+- FEAT-105: conjunto de wallpapers refeito. Removidas as 6 fotos CC BY-SA do
+  Wikimedia (assinaturas de terceiros) E as 7 de cor solida; o Marsh 2.x passa a
+  ter 8 wallpapers EXCLUSIVOS da marca (luar[default]/por-do-sol/dev + 4 abstratos
+  + cartoon), 3840x2160. As 3 cenas levam a logo branca padronizada no canto
+  (largura 9,5%, margem 5,3%/6,5%). License dos pacotes KDE agora e
+  LicenseRef-CapivaraOS-Trademark (marca propria), nao CC. Removidos CREDITOS.txt,
+  as tags CC-BY-SA da License do spec e os scripts regen-photo/regen-solid.
+- FEAT-108: tela de login (SDDM) e de bloqueio passam a usar o novo wallpaper
+  padrao (luar). Mecanismo (theme.conf.user do breeze + kscreenlockerrc no skel)
+  ja existia do 1.x; so foi repontado para capivaraos-wp-moonlight.png.
 - FEAT-104: branding visual do instalador Anaconda. Barra superior e sidebar
   passam de azul Fedora (#51a2da) para o verde da marca (#15B22C) e a sidebar
   ganha o logo (nome+capivara) branco. Via custom_stylesheet no profile.d
