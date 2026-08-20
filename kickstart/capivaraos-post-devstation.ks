@@ -103,19 +103,13 @@ flatpak remote-add --if-not-exists flathub \
 
 # ---------------------------------------------------------------------------
 # Alpaca (FEAT-103): cliente grafico do Ollama (o Ollama e CLI puro). Flatpak
-# NORMAL (sem extra-data), entao instala no compose. Comando SEPARADO do Spotify
-# de proposito: no alpha2, juntar os dois num comando so fez a falha do Spotify
-# (apply_extra, ver abaixo) abortar a transacao e derrubar o Alpaca junto.
-# Tolerante para nao quebrar a ISO por soluco de rede -- validar no live.
+# NORMAL (sem extra-data), instala no compose. Tolerante para nao quebrar a ISO
+# por soluco de rede -- validar no live.
+# (Spotify foi DESCARTADO em 2026-08-20: flatpak de extra-data nao instala no
+# chroot do compose e nao vale o oneshot de 1o boot.)
 echo "== [devstation] Flatpak: Alpaca (cliente grafico do Ollama) =="
 flatpak install -y --system flathub com.jeffser.Alpaca \
     || echo "AVISO: flatpak install Alpaca falhou (validar no build)"
-
-# Spotify NAO entra aqui: e um flatpak de "extra-data" (baixa o binario real e
-# roda um apply_extra no install, que precisa do sandbox/bwrap). No chroot do
-# compose isso falha ("apply_extra script failed", alpha2). Ele e instalado por
-# um oneshot no 1o boot do SISTEMA INSTALADO (capivaraos-firstboot-spotify no
-# capivaraos-branding), que pula o live. FEAT-103.
 
 # NOTA: NAO usar 'loginctl terminate-user root' aqui. Em --no-virt o %post
 # compartilha o systemd/logind do HOST, entao terminate-user root MATA o

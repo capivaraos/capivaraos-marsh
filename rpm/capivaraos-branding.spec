@@ -620,47 +620,9 @@ AnacondaSpokeWindow #nav-box {
     color: white;
 }
 EOF
-
-# ── Spotify no 1o boot (FEAT-103) ────────────────────────────────────────────
-# O flatpak do Spotify e "extra-data": baixa o binario real e roda apply_extra
-# no install, que precisa do sandbox/bwrap -> NAO instala no chroot do compose
-# ("apply_extra script failed", alpha2). Este oneshot o instala no 1o boot do
-# SISTEMA INSTALADO (a Condition pula o live) e se auto-desabilita ao concluir.
-install -d %{buildroot}%{_libexecdir}
-cat > %{buildroot}%{_libexecdir}/capivaraos-firstboot-spotify.sh << 'EOF'
-#!/bin/bash
-# Instala o Spotify (Flatpak) no 1o boot do sistema instalado. FEAT-103.
-if grep -qw rd.live.image /proc/cmdline; then
-    exit 0   # nao roda no live
-fi
-if flatpak install -y --noninteractive flathub com.spotify.Client; then
-    systemctl disable capivaraos-firstboot-spotify.service
-fi
-EOF
-chmod 0755 %{buildroot}%{_libexecdir}/capivaraos-firstboot-spotify.sh
-
-install -d %{buildroot}/usr/lib/systemd/system
-cat > %{buildroot}/usr/lib/systemd/system/capivaraos-firstboot-spotify.service << 'EOF'
-[Unit]
-Description=CapivaraOS: instala o Spotify (Flatpak) no primeiro boot
-After=network-online.target
-Wants=network-online.target
-ConditionPathExists=!/var/lib/flatpak/app/com.spotify.Client
-ConditionKernelCommandLine=!rd.live.image
-
-[Service]
-Type=oneshot
-ExecStart=%{_libexecdir}/capivaraos-firstboot-spotify.sh
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-# Habilita offline via symlink WantedBy (systemctl enable nao roda no chroot do
-# compose -- sem bus). O proprio servico se desabilita depois.
-install -d %{buildroot}%{_sysconfdir}/systemd/system/multi-user.target.wants
-ln -sf /usr/lib/systemd/system/capivaraos-firstboot-spotify.service \
-    %{buildroot}%{_sysconfdir}/systemd/system/multi-user.target.wants/capivaraos-firstboot-spotify.service
+# NOTA: Spotify foi DESCARTADO (decisao do usuario 2026-08-20 — nao vale o
+# esforco: flatpak de extra-data nao instala no compose e exigia oneshot de 1o
+# boot). Cliente de IA fica so o Alpaca (Ollama GUI) no %post. FEAT-103.
 
 %post
 # Splash de boot CapivaraOS
@@ -857,9 +819,6 @@ done
 %{_sysconfdir}/anaconda/profile.d/capivaraos.conf
 %{_datadir}/anaconda/pixmaps/capivaraos.css
 %{_datadir}/anaconda/pixmaps/capivaraos/
-%{_libexecdir}/capivaraos-firstboot-spotify.sh
-/usr/lib/systemd/system/capivaraos-firstboot-spotify.service
-%{_sysconfdir}/systemd/system/multi-user.target.wants/capivaraos-firstboot-spotify.service
 
 %changelog
 * Thu Aug 20 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.3.alpha3
@@ -868,9 +827,8 @@ done
   ganha o logo (nome+capivara) branco. Via custom_stylesheet no profile.d
   (sobrescreve o fedora.css herdado) + capivaraos.css + sidebar-logo.png.
 - FEAT-103 (fix flatpak): Alpaca separado num comando proprio (instala no
-  compose); Spotify migrado para oneshot de 1o boot do sistema instalado
-  (capivaraos-firstboot-spotify), pois o flatpak de extra-data nao instala no
-  chroot do compose (apply_extra falhava no alpha2).
+  compose). Spotify DESCARTADO (decisao do usuario): flatpak de extra-data nao
+  instala no compose (apply_extra falhava) e nao vale o oneshot de 1o boot.
 
 * Thu Aug 20 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.2.alpha2
 - 2a leva de testes, a partir do feedback do live boot do alpha1.
