@@ -17,7 +17,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.2.alpha2%{?dist}.marsh
+Release:        0.3.alpha3%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND CC-BY-SA-3.0 AND CC-BY-SA-4.0
@@ -95,6 +95,13 @@ convert backgrounds/CapivaraOS_Logo.png -crop 1536x600+0+0 +repage -trim +repage
 mkdir -p build/plymouth
 convert backgrounds/CapivaraOS_Logo.png -fill white -colorize 100% \
     -resize 320x320 build/plymouth/logo.png
+
+# ── 5b. Logo BRANCA (nome+capivara) para a sidebar do instalador (FEAT-104) ──
+# Mesmo truque do Plymouth: colorize 100% branco preservando o alfa. -trim tira
+# a moldura transparente; largura 200 cabe na sidebar do Anaconda (~230px).
+mkdir -p build/anaconda
+convert backgrounds/CapivaraOS_Logo.png -fill white -colorize 100% \
+    -trim +repage -resize 200x build/anaconda/sidebar-logo.png
 
 # Spinner branco (arco girando) exibido logo abaixo da logo no splash.
 # Geramos 30 quadros, cada um girado 12°, e o script do Plymouth os cicla.
@@ -568,7 +575,92 @@ base_profile = fedora
 
 [Profile Detection]
 os_id = capivaraos
+
+[User Interface]
+# Branding visual do instalador (FEAT-104): SOBRESCREVE o custom_stylesheet
+# herdado do fedora.conf (fedora.css, que pinta a barra de #51a2da azul). Sem
+# esta linha, o instalador do CapivaraOS sairia com o azul do Fedora.
+custom_stylesheet = /usr/share/anaconda/pixmaps/capivaraos.css
 EOF
+
+# ── Branding visual do Anaconda (FEAT-104): barra azul -> verde da marca +
+# logo na sidebar. Ver capivaraos.css abaixo. As classes .logo-sidebar / .logo
+# / #nav-box replicam o esquema do fedora.css, trocando cor e logo.
+install -d %{buildroot}%{_datadir}/anaconda/pixmaps/capivaraos
+install -m 0644 build/anaconda/sidebar-logo.png \
+    %{buildroot}%{_datadir}/anaconda/pixmaps/capivaraos/sidebar-logo.png
+cat > %{buildroot}%{_datadir}/anaconda/pixmaps/capivaraos.css << 'EOF'
+/* Branding do instalador CapivaraOS Marsh — verde da marca + logo (FEAT-104) */
+@define-color capivaraos_green #15B22C;
+
+/* Barra lateral: verde solido (sem a textura sidebar-bg.png do Fedora) */
+.logo-sidebar {
+    background-image: none;
+    background-color: @capivaraos_green;
+    background-repeat: no-repeat;
+}
+
+/* Logo (nome + capivara, branca) no topo da sidebar */
+.logo {
+    background-image: url('/usr/share/anaconda/pixmaps/capivaraos/sidebar-logo.png');
+    background-position: 50% 20px;
+    background-repeat: no-repeat;
+    background-color: transparent;
+}
+
+.product-logo {
+    background-image: none;
+    background-color: transparent;
+}
+
+/* Barra SUPERIOR (era azul #51a2da do Fedora) -> verde CapivaraOS */
+AnacondaSpokeWindow #nav-box {
+    background-color: @capivaraos_green;
+    background-image: none;
+    color: white;
+}
+EOF
+
+# ── Spotify no 1o boot (FEAT-103) ────────────────────────────────────────────
+# O flatpak do Spotify e "extra-data": baixa o binario real e roda apply_extra
+# no install, que precisa do sandbox/bwrap -> NAO instala no chroot do compose
+# ("apply_extra script failed", alpha2). Este oneshot o instala no 1o boot do
+# SISTEMA INSTALADO (a Condition pula o live) e se auto-desabilita ao concluir.
+install -d %{buildroot}%{_libexecdir}
+cat > %{buildroot}%{_libexecdir}/capivaraos-firstboot-spotify.sh << 'EOF'
+#!/bin/bash
+# Instala o Spotify (Flatpak) no 1o boot do sistema instalado. FEAT-103.
+if grep -qw rd.live.image /proc/cmdline; then
+    exit 0   # nao roda no live
+fi
+if flatpak install -y --noninteractive flathub com.spotify.Client; then
+    systemctl disable capivaraos-firstboot-spotify.service
+fi
+EOF
+chmod 0755 %{buildroot}%{_libexecdir}/capivaraos-firstboot-spotify.sh
+
+install -d %{buildroot}/usr/lib/systemd/system
+cat > %{buildroot}/usr/lib/systemd/system/capivaraos-firstboot-spotify.service << 'EOF'
+[Unit]
+Description=CapivaraOS: instala o Spotify (Flatpak) no primeiro boot
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=!/var/lib/flatpak/app/com.spotify.Client
+ConditionKernelCommandLine=!rd.live.image
+
+[Service]
+Type=oneshot
+ExecStart=%{_libexecdir}/capivaraos-firstboot-spotify.sh
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Habilita offline via symlink WantedBy (systemctl enable nao roda no chroot do
+# compose -- sem bus). O proprio servico se desabilita depois.
+install -d %{buildroot}%{_sysconfdir}/systemd/system/multi-user.target.wants
+ln -sf /usr/lib/systemd/system/capivaraos-firstboot-spotify.service \
+    %{buildroot}%{_sysconfdir}/systemd/system/multi-user.target.wants/capivaraos-firstboot-spotify.service
 
 %post
 # Splash de boot CapivaraOS
@@ -622,14 +714,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha2, preview)"
+VERSION="Marsh 2.0.0 (alpha3, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha2, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha3, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -642,24 +734,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha2, preview)"
+VARIANT="Marsh 2.0.0 (alpha3, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha2, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha3, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha2, preview)
+CapivaraOS Marsh 2.0.0 (alpha3, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha2, preview)
+Variant=Marsh 2.0.0 (alpha3, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -699,14 +791,14 @@ EOF
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha2, preview)"
+VERSION="Marsh 2.0.0 (alpha3, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha2, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha3, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -719,17 +811,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha2, preview)"
+VARIANT="Marsh 2.0.0 (alpha3, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha2, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha3, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha2, preview)
+CapivaraOS Marsh 2.0.0 (alpha3, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -763,8 +855,23 @@ done
 %{_sysconfdir}/skel/.face
 %{_sysconfdir}/skel/.face.icon
 %{_sysconfdir}/anaconda/profile.d/capivaraos.conf
+%{_datadir}/anaconda/pixmaps/capivaraos.css
+%{_datadir}/anaconda/pixmaps/capivaraos/
+%{_libexecdir}/capivaraos-firstboot-spotify.sh
+/usr/lib/systemd/system/capivaraos-firstboot-spotify.service
+%{_sysconfdir}/systemd/system/multi-user.target.wants/capivaraos-firstboot-spotify.service
 
 %changelog
+* Thu Aug 20 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.3.alpha3
+- FEAT-104: branding visual do instalador Anaconda. Barra superior e sidebar
+  passam de azul Fedora (#51a2da) para o verde da marca (#15B22C) e a sidebar
+  ganha o logo (nome+capivara) branco. Via custom_stylesheet no profile.d
+  (sobrescreve o fedora.css herdado) + capivaraos.css + sidebar-logo.png.
+- FEAT-103 (fix flatpak): Alpaca separado num comando proprio (instala no
+  compose); Spotify migrado para oneshot de 1o boot do sistema instalado
+  (capivaraos-firstboot-spotify), pois o flatpak de extra-data nao instala no
+  chroot do compose (apply_extra falhava no alpha2).
+
 * Thu Aug 20 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.2.alpha2
 - 2a leva de testes, a partir do feedback do live boot do alpha1.
 - FEAT-109: corrige a instalacao de VSCodium/mise/starship/lazygit no %post. O
