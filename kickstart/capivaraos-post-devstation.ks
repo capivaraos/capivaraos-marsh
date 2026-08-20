@@ -101,6 +101,19 @@ flatpak remote-add --if-not-exists flathub \
     https://flathub.org/repo/flathub.flatpakrepo \
     || echo "AVISO: flathub remote-add falhou"
 
+# ---------------------------------------------------------------------------
+# Apps Flatpak PADRAO (FEAT-103): Alpaca = cliente grafico do Ollama (o Ollama
+# e CLI puro, nao tem GUI); Spotify = sem RPM oficial no Fedora. Instalacao
+# system-wide (--system) para valer no live e no sistema instalado. TOLERANTE:
+# se faltar rede/runtime, a ISO ainda sai (sem esses apps) e a gente valida no
+# live boot -- mesmo padrao das etapas de rede acima. VALIDAR no build:
+# `flatpak install` dentro do chroot do compose (--no-virt) e um ponto novo;
+# se falhar, mover para o onboarding (FEAT-90) / oneshot de primeiro boot.
+# ---------------------------------------------------------------------------
+echo "== [devstation] Flatpaks padrao: Alpaca (Ollama GUI) + Spotify =="
+flatpak install -y --system flathub com.jeffser.Alpaca com.spotify.Client \
+    || echo "AVISO: flatpak install Alpaca/Spotify falhou (validar no build)"
+
 # NOTA: NAO usar 'loginctl terminate-user root' aqui. Em --no-virt o %post
 # compartilha o systemd/logind do HOST, entao terminate-user root MATA o
 # proprio processo do build (visto como "Terminated" no 4o build). A causa do

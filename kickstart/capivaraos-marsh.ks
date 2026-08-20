@@ -91,6 +91,10 @@ libreoffice-kf6
 
 # ===== MIDIA =====
 vlc
+# Dragon Player e K3b vêm via @kde-apps; removidos (VLC cobre mídia; gravação de
+# disco é irrelevante no foco dev/notebook moderno). Feedback alpha1 — FEAT-107.
+-dragon
+-k3b
 # GIMP -> OPCIONAL/onboarding na linha 2.x (nichado num foco dev). FEAT-89.
 # gwenview já incluso via @kde-media / @kde-apps
 # Codecs (RPM Fusion) movidos para o %post com "dnf swap ffmpeg-free ffmpeg":

@@ -17,7 +17,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.1.alpha1%{?dist}.marsh
+Release:        0.2.alpha2%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND CC-BY-SA-3.0 AND CC-BY-SA-4.0
@@ -622,14 +622,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha1, preview)"
+VERSION="Marsh 2.0.0 (alpha2, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha1, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha2, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -642,24 +642,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha1, preview)"
+VARIANT="Marsh 2.0.0 (alpha2, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha1, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha2, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha1, preview)
+CapivaraOS Marsh 2.0.0 (alpha2, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha1, preview)
+Variant=Marsh 2.0.0 (alpha2, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -699,14 +699,14 @@ EOF
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha1, preview)"
+VERSION="Marsh 2.0.0 (alpha2, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha1, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha2, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -719,17 +719,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha1, preview)"
+VARIANT="Marsh 2.0.0 (alpha2, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha1, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha2, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha1, preview)
+CapivaraOS Marsh 2.0.0 (alpha2, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -765,6 +765,17 @@ done
 %{_sysconfdir}/anaconda/profile.d/capivaraos.conf
 
 %changelog
+* Thu Aug 20 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.2.alpha2
+- 2a leva de testes, a partir do feedback do live boot do alpha1.
+- FEAT-109: corrige a instalacao de VSCodium/mise/starship/lazygit no %post. O
+  copr enable montava o chroot como "capivaraos-44" (por ID=capivaraos) e falhava
+  calado; agora passa "fedora-NN" explicito e separa o dnf install em dois.
+- FEAT-107: remove Dragon Player e K3b (-dragon -k3b).
+- FEAT-103 (apps): pre-instala Alpaca (cliente grafico do Ollama) e Spotify via
+  Flatpak/Flathub. Cliente Ollama e Spotify escolhidos pelo usuario.
+- Identidade visual (avatar liveuser, layout da dock, instalador, SDDM) e os 10
+  wallpapers exclusivos ficam para a proxima leva (alpha3).
+
 * Wed Aug 19 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.1.alpha1
 - Inicio da linha 2.x ("estacao de dev da era da IA"), construida no repo
   ISOLADO capivaraos-marsh-next. Build de teste/PREVIEW no Fedora 44 -- NAO e
