@@ -368,6 +368,13 @@ EOF
 # ── Avatar padrão (.face) para novos usuários ────────────────────────────────
 install -m 0644 build/pixmaps/capivaraos-face.png %{buildroot}%{_sysconfdir}/skel/.face
 ln -sf .face %{buildroot}%{_sysconfdir}/skel/.face.icon
+# Copia legivel-por-todos da face, num caminho do SISTEMA. O ~/.face do skel nao
+# basta para o avatar do SDDM: a home e 0700, entao o processo do SDDM (outro
+# usuario) nao consegue le-lo -> aparece o icone generico (FEAT-102). O script
+# capivaraos-set-avatar (abaixo) registra ESTE arquivo no AccountsService, cujo
+# daemon (root) o copia para /var/lib/AccountsService/icons/<user>, que o SDDM le.
+install -d %{buildroot}%{_datadir}/capivaraos
+install -m 0644 build/pixmaps/capivaraos-face.png %{buildroot}%{_datadir}/capivaraos/capivaraos-face.png
 
 # ── Layout estilo macOS: script JS do Plasma + autostarts de aplicação única ─
 install -d %{buildroot}%{_datadir}/capivaraos
@@ -531,6 +538,37 @@ touch "\$MARKER"
 EOF
 chmod 0755 %{buildroot}%{_bindir}/capivaraos-set-wallpaper
 
+# ── Avatar do usuario -> capivara (FEAT-102) ────────────────────────────────
+# Registra a face da marca no AccountsService no 1o login. O SDDM mostra o icone
+# do AccountsService; sem isto o usuario (criado pelo instalador ou o liveuser)
+# fica com o boneco generico. SetIconFile e permitido pelo polkit para o proprio
+# usuario da sessao ativa; o daemon (root) copia a imagem para
+# /var/lib/AccountsService/icons/<user>, legivel pelo SDDM (a home 0700 nao e).
+cat > %{buildroot}%{_bindir}/capivaraos-set-avatar << 'EOF'
+#!/bin/bash
+MARKER="$HOME/.config/.capivaraos-avatar-applied"
+[ -f "$MARKER" ] && exit 0
+
+FACE=/usr/share/capivaraos/capivaraos-face.png
+[ -f "$FACE" ] || exit 0
+
+USERPATH="/org/freedesktop/Accounts/User$(id -u)"
+# Espera o AccountsService responder no barramento do sistema (ate ~30s) e
+# tenta registrar a face. SetIconFile e idempotente, entao repetir nao faz mal.
+for i in $(seq 1 30); do
+    if dbus-send --system --print-reply --dest=org.freedesktop.Accounts \
+        "$USERPATH" org.freedesktop.Accounts.User.SetIconFile \
+        string:"$FACE" >/dev/null 2>&1; then
+        break
+    fi
+    sleep 1
+done
+
+mkdir -p "$HOME/.config"
+touch "$MARKER"
+EOF
+chmod 0755 %{buildroot}%{_bindir}/capivaraos-set-avatar
+
 install -d %{buildroot}%{_sysconfdir}/xdg/autostart
 cat > %{buildroot}%{_sysconfdir}/xdg/autostart/capivaraos-wallpaper.desktop << 'EOF'
 [Desktop Entry]
@@ -547,6 +585,16 @@ cat > %{buildroot}%{_sysconfdir}/xdg/autostart/capivaraos-layout.desktop << 'EOF
 Type=Application
 Name=CapivaraOS Layout
 Exec=/usr/bin/capivaraos-set-layout
+NoDisplay=true
+X-KDE-autostart-phase=2
+OnlyShowIn=KDE;
+EOF
+
+cat > %{buildroot}%{_sysconfdir}/xdg/autostart/capivaraos-avatar.desktop << 'EOF'
+[Desktop Entry]
+Type=Application
+Name=CapivaraOS Avatar
+Exec=/usr/bin/capivaraos-set-avatar
 NoDisplay=true
 X-KDE-autostart-phase=2
 OnlyShowIn=KDE;
@@ -800,8 +848,10 @@ done
 %{_datadir}/fonts/capivaraos-firacode-nerd/
 %{_bindir}/capivaraos-set-layout
 %{_bindir}/capivaraos-set-wallpaper
+%{_bindir}/capivaraos-set-avatar
 %{_sysconfdir}/xdg/autostart/capivaraos-wallpaper.desktop
 %{_sysconfdir}/xdg/autostart/capivaraos-layout.desktop
+%{_sysconfdir}/xdg/autostart/capivaraos-avatar.desktop
 %{_sysconfdir}/skel/.config/plasma-org.kde.plasma.desktop-appletsrc
 %{_sysconfdir}/skel/.config/kscreenlockerrc
 %{_sysconfdir}/skel/.config/kdeglobals
@@ -816,6 +866,15 @@ done
 %changelog
 * Fri Aug 21 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.4.alpha4
 - Leva de correcoes a partir do feedback do live boot do alpha3.
+- FEAT-105 (wallpaper): troca "CapivaraOS Cartoon" por "CapivaraOS Comics" (a
+  logo central nao e cortada pelo recorte 16:9). Pacote KDE capivaraos-cartoon ->
+  capivaraos-comics.
+- FEAT-103 (dock): fixa KeePassXC, Konsole, KAddressBook e KCalc alem dos atuais.
+  Alpaca fora (Ollama virou opcional) e Spotify fora (descartado).
+- FEAT-102 (avatar): novo capivaraos-set-avatar (autostart de 1o login) registra
+  a face da marca no AccountsService via D-Bus, para o SDDM/greeter mostrar a
+  capivara no lugar do boneco generico (o ~/.face sozinho nao basta: home 0700
+  nao e legivel pelo processo do SDDM).
 - FEAT-105 (fix): elimina a duplicata do seletor do Plasma. Cada wallpaper
   aparecia 2x -- como pacote KDE ("CapivaraOS Luar") E como arquivo solto em
   backgrounds/capivaraos/ (listado pelo nome do arquivo, "capivaraos-wp-*"), que
