@@ -17,7 +17,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.5.alpha5%{?dist}.marsh
+Release:        0.6.alpha6%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -86,9 +86,14 @@ mkdir -p build/pixmaps
 convert icons/capivaraos-logo.png -fill white -colorize 100% \
     -resize 256x256 build/pixmaps/capivaraos-white.png
 
-# ── 4. Avatar padrão (.face): recorta só a capivara, fundo branco quadrado ──
+# ── 4. Avatar padrão (.face): capivara BRANCA sobre fundo VERDE da marca ─────
+# (pedido do usuario: avatar do live user / SDDM = fundo verde + logo branca,
+# no lugar da capivara marrom sobre branco). Recorta so a capivara da arte-
+# mestre, pinta de branco (colorize preservando o alfa) e poe sobre quadrado
+# verde #15B22C. Exibido em circulo pelo greeter -> o quadrado verde preenche.
 convert backgrounds/CapivaraOS_Logo.png -crop 1536x600+0+0 +repage -trim +repage \
-    -gravity center -background white -extent 1700x1700 \
+    -colorspace sRGB -fill white -colorize 100% \
+    -gravity center -background '#15B22C' -extent 1700x1700 \
     -resize 256x256 build/pixmaps/capivaraos-face.png
 
 # ── 5. Logo BRANCA para o splash do Plymouth (boot/desligamento) ────────────
@@ -112,7 +117,13 @@ convert backgrounds/CapivaraOS_Logo.png -fill white -colorize 100% \
 # caixa da .logo; a silhueta larga da logo completa ficaria achatada. Mesmo
 # mecanismo ja usado em Pup/Snout.
 mkdir -p build/cockpit
-convert icons/capivaraos-head.png -resize 256x256 build/cockpit/logo.png
+# BRANCA: o Anaconda WebUI aplica na .logo um filter:invert(1) grayscale(1)
+# brightness(2.5) + mix-blend-mode:screen (feito para a logo SVG do Fedora). Uma
+# silhueta branca vira preta e some no screen; por isso anulamos esse filtro no
+# branding.css (bloco do Cockpit no %install) E entregamos a logo ja em branco,
+# para ela aparecer no header verde.
+convert icons/capivaraos-head.png -colorspace sRGB -fill white -colorize 100% \
+    -resize 256x256 build/cockpit/logo.png
 convert build/cockpit/logo.png -resize 32x32 build/cockpit/favicon.ico
 
 # Spinner branco (arco girando) exibido logo abaixo da logo no splash.
@@ -771,6 +782,12 @@ cat > %{buildroot}%{_datadir}/cockpit/branding/capivaraos/branding.css << 'EOF'
         background-image: url("logo.png");
         width: 2.5rem;
         height: 2.5rem;
+        /* O index.css do WebUI poe filter:invert(1) grayscale(1) brightness(2.5)
+           + mix-blend-mode:screen na .logo (para a logo SVG do Fedora). Isso
+           inverte nossa capivara branca para preta e o screen a some. Anulamos
+           os dois para a nossa logo (ja branca) aparecer como esta. */
+        filter: none;
+        mix-blend-mode: normal;
     }
 }
 
@@ -858,14 +875,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha5, preview)"
+VERSION="Marsh 2.0.0 (alpha6, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha5, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha6, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -878,24 +895,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha5, preview)"
+VARIANT="Marsh 2.0.0 (alpha6, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha5, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha6, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha5, preview)
+CapivaraOS Marsh 2.0.0 (alpha6, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha5, preview)
+Variant=Marsh 2.0.0 (alpha6, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -935,14 +952,14 @@ EOF
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha5, preview)"
+VERSION="Marsh 2.0.0 (alpha6, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha5, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha6, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -955,17 +972,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha5, preview)"
+VARIANT="Marsh 2.0.0 (alpha6, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha5, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha6, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha5, preview)
+CapivaraOS Marsh 2.0.0 (alpha6, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1006,6 +1023,20 @@ done
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Fri Aug 21 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.6.alpha6
+- Leva de correcoes a partir do 4o feedback do live (alpha5).
+- FEAT-104 (fix da logo): o instalador ficou verde no alpha5 mas SEM a logo. O
+  index.css do Anaconda WebUI aplica na .logo um filter:invert(1) grayscale(1)
+  brightness(2.5) + mix-blend-mode:screen (para a logo SVG do Fedora): isso
+  invertia nossa capivara branca para preta e o screen a sumia. Agora o branding
+  do Cockpit anula filter/mix-blend-mode na .anaconda .logo e entrega a logo ja
+  em branco -> aparece no header verde.
+- FEAT-102 (avatar): o avatar do usuario/live passa a ser a capivara BRANCA sobre
+  fundo VERDE da marca (#15B22C), no lugar da capivara marrom sobre branco.
+- FEAT-108: sem mudanca de codigo -- o fix do tema ativo (01-breeze-fedora) do
+  alpha5 esta correto (Main.qml le config.background); so aparece num sistema
+  RECEM-INSTALADO com alpha6+, nao numa instalacao antiga (alpha4-).
+
 * Fri Aug 21 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.5.alpha5
 - Leva de correcoes a partir do 3o feedback do live (alpha4).
 - FEAT-108 (fix REAL): login SDDM continuava com o fundo padrao do Fedora
