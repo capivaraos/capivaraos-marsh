@@ -814,26 +814,13 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # sistema instalado herdar o servico ligado.
 systemctl enable capivaraos-relabel-root.service >/dev/null 2>&1 || true
 
-# ── Tela de login SDDM com wallpaper + logo CapivaraOS ──────────────────────
-# CRITICO: no Fedora 44 KDE o tema ATIVO do SDDM e "01-breeze-fedora" (definido
-# em Current= no /usr/lib/sddm/sddm.conf.d/kde_settings.conf do pacote
-# kde-settings-sddm), NAO o "breeze" puro. O theme.conf desse tema traz
-# background=/usr/share/backgrounds/default.jxl (o mapa-mundi) e
-# logo=/usr/share/pixmaps/fedora_whitelogo.svg. Ate o alpha4 escreviamos o
-# theme.conf.user no tema "breeze" (inativo) -> era ignorado e o login saia com
-# o fundo padrao do Fedora. O override tem que ir no tema ATIVO. Escrevemos nos
-# dois (o ativo 01-breeze-fedora + breeze como fallback), usando o mecanismo
-# padrao theme.conf.user (nao sobrescreve o tema em si).
-SDDM_BG=%{_datadir}/wallpapers/capivaraos-luar/contents/images/1920x1080.png
-SDDM_LOGO=%{_datadir}/pixmaps/capivaraos-white.png
-for THEME in 01-breeze-fedora breeze; do
-    install -d %{_datadir}/sddm/themes/${THEME}
-    cat > %{_datadir}/sddm/themes/${THEME}/theme.conf.user << EOF
-[General]
-background=${SDDM_BG}
-logo=${SDDM_LOGO}
-EOF
-done
+# ── Tela de login SDDM: ver %posttrans ──────────────────────────────────────
+# O fundo/logo do SDDM sao aplicados no %posttrans (nao aqui), porque exige
+# editar o theme.conf do tema do sddm-breeze DEPOIS que ele foi instalado na
+# transacao. Ate o alpha5 tentavamos via theme.conf.user, mas o binario do SDDM
+# (sddm-greeter-qt6) le SO o ConfigFile do metadata (theme.conf) -- nunca um
+# ".user" (confirmado: nao ha a string ".user" no binario). Por isso o login
+# nunca mudava, em nenhuma versao. Ver o bloco SDDM no %posttrans.
 
 # GRUB_DISTRIBUTOR -> "CapivaraOS" (efetivo apos grub2-mkconfig no sistema
 # instalado; a ISO live em si usa o titulo passado ao livemedia-creator)
@@ -853,6 +840,21 @@ if [ "$1" -eq 0 ]; then
 fi
 
 %posttrans
+# ── Tela de login SDDM: fundo (luar) + logo (capivara branca) no tema ativo ──
+# O SDDM le SO o theme.conf (ConfigFile do metadata) do tema Current; nao ha
+# theme.conf.user. Editamos in-place o background/logo do tema DEPOIS que o
+# sddm-breeze foi instalado (por isso aqui no %posttrans, nao no %post -- se
+# rodasse antes do sddm-breeze na transacao, o theme.conf nem existiria).
+# type ja e "image", entao a cor nao importa. As demais chaves sao preservadas.
+for T in 01-breeze-fedora breeze; do
+    TC=%{_datadir}/sddm/themes/$T/theme.conf
+    [ -f "$TC" ] || continue
+    sed -i \
+        -e "s|^background=.*|background=%{_datadir}/wallpapers/capivaraos-luar/contents/images/1920x1080.png|" \
+        -e "s|^logo=.*|logo=%{_datadir}/pixmaps/capivaraos-white.png|" \
+        "$TC"
+done
+
 # Tema padrao do Plymouth (boot/desligamento): escrito direto aqui, em vez de
 # depender so do "plymouth-set-default-theme capivaraos" do %post, porque o
 # pacote plymouth grava /etc/plymouth/plymouthd.conf com "Theme=" comentado
@@ -990,6 +992,22 @@ for kver in $(ls /lib/modules 2>/dev/null); do
         kernel-install add "${kver}" "/lib/modules/${kver}/vmlinuz" >/dev/null 2>&1 || true
 done
 
+# Reaplica o fundo/logo do SDDM quando o sddm-breeze (dono do theme.conf do tema)
+# for atualizado: o update reescreve o theme.conf com o padrao do Fedora
+# (mapa-mundi), revertendo nossa edicao. Este trigger vigia o diretorio dos temas
+# do SDDM e reaplica o sed. Prefixo de DIRETORIO (o %transfiletriggerin so casa
+# prefixo de diretorio, nunca caminho exato -- ver a nota do os-release acima).
+%transfiletriggerin -- %{_datadir}/sddm/themes
+for T in 01-breeze-fedora breeze; do
+    TC=%{_datadir}/sddm/themes/$T/theme.conf
+    [ -f "$TC" ] || continue
+    grep -q '^background=%{_datadir}/wallpapers/capivaraos-luar' "$TC" && continue
+    sed -i \
+        -e "s|^background=.*|background=%{_datadir}/wallpapers/capivaraos-luar/contents/images/1920x1080.png|" \
+        -e "s|^logo=.*|logo=%{_datadir}/pixmaps/capivaraos-white.png|" \
+        "$TC"
+done
+
 %files
 %license fonts/LICENSE-FiraCode-OFL.txt
 %{_datadir}/pixmaps/capivaraos.png
@@ -1033,9 +1051,14 @@ done
   em branco -> aparece no header verde.
 - FEAT-102 (avatar): o avatar do usuario/live passa a ser a capivara BRANCA sobre
   fundo VERDE da marca (#15B22C), no lugar da capivara marrom sobre branco.
-- FEAT-108: sem mudanca de codigo -- o fix do tema ativo (01-breeze-fedora) do
-  alpha5 esta correto (Main.qml le config.background); so aparece num sistema
-  RECEM-INSTALADO com alpha6+, nao numa instalacao antiga (alpha4-).
+- FEAT-108 (fix DEFINITIVO): o login SDDM nunca mudou em NENHUMA versao porque
+  todas escreviam theme.conf.user -- e o binario do SDDM (sddm-greeter-qt6) le SO
+  o ConfigFile do metadata (theme.conf), nunca um ".user" (confirmado: a string
+  ".user" nao existe no binario). Agora editamos in-place o background/logo do
+  theme.conf do tema ATIVO (01-breeze-fedora) no %posttrans (depois do sddm-breeze
+  instalar) + %transfiletriggerin no diretorio dos temas para reaplicar apos
+  updates do sddm-breeze (que revertem o theme.conf). So aparece num sistema
+  RECEM-INSTALADO com alpha6+.
 
 * Fri Aug 21 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.5.alpha5
 - Leva de correcoes a partir do 3o feedback do live (alpha4).
