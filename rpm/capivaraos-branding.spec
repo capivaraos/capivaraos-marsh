@@ -17,7 +17,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.3.alpha3%{?dist}.marsh
+Release:        0.4.alpha4%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -664,14 +664,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha3, preview)"
+VERSION="Marsh 2.0.0 (alpha4, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha3, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha4, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -684,24 +684,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha3, preview)"
+VARIANT="Marsh 2.0.0 (alpha4, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha3, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha4, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha3, preview)
+CapivaraOS Marsh 2.0.0 (alpha4, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha3, preview)
+Variant=Marsh 2.0.0 (alpha4, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -741,14 +741,14 @@ EOF
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha3, preview)"
+VERSION="Marsh 2.0.0 (alpha4, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha3, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha4, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -761,17 +761,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha3, preview)"
+VARIANT="Marsh 2.0.0 (alpha4, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha3, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha4, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha3, preview)
+CapivaraOS Marsh 2.0.0 (alpha4, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -807,6 +807,22 @@ done
 %{_datadir}/anaconda/pixmaps/capivaraos/
 
 %changelog
+* Fri Aug 21 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.4.alpha4
+- Leva de correcoes a partir do feedback do live boot do alpha3.
+- FEAT-105 (fix): elimina a duplicata do seletor do Plasma. Cada wallpaper
+  aparecia 2x -- como pacote KDE ("CapivaraOS Luar") E como arquivo solto em
+  backgrounds/capivaraos/ (listado pelo nome do arquivo, "capivaraos-wp-*"), que
+  ainda era copia identica da imagem ja contida no pacote. Os 8 passam a existir
+  SO como pacote KDE; login/bloqueio/desktop apontam para o diretorio do pacote
+  luar e SDDM/script para a imagem interna. Cada wallpaper 1x + os padrao do KDE
+  (nenhum removido). Bonus: some a copia duplicada de ~69 MB.
+- FEAT-89/90: ollama passa de PADRAO para OPCIONAL (instalado no onboarding /
+  Central do Desenvolvedor no 1o boot). O ollama + suas deps obrigatorias de GPU
+  (rocblas ~974 MB + rocm-hip) somam ~1,9 GB e eram o unico motivo de a raiz do
+  live ter subido de 16->24 GiB. Removido do %packages; o cliente Alpaca saiu do
+  %post junto (segue o ollama). Raiz baixada para 18 GiB -> requisito de disco do
+  instalador cai de ~27 para ~21 GB. Decisao do usuario (reverte a de 19/08).
+
 * Thu Aug 20 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.3.alpha3
 - FEAT-105: conjunto de wallpapers refeito. Removidas as 6 fotos CC BY-SA do
   Wikimedia (assinaturas de terceiros) E as 7 de cor solida; o Marsh 2.x passa a
@@ -817,13 +833,7 @@ done
   as tags CC-BY-SA da License do spec e os scripts regen-photo/regen-solid.
 - FEAT-108: tela de login (SDDM) e de bloqueio passam a usar o novo wallpaper
   padrao (luar). Mecanismo (theme.conf.user do breeze + kscreenlockerrc no skel)
-  ja existia do 1.x; so foi repontado para o wallpaper luar.
-- FEAT-105 (fix): elimina a duplicata do seletor do Plasma. Os 8 wallpapers
-  deixam de ser instalados como arquivos soltos em backgrounds/capivaraos/ (que
-  o seletor listava pelo nome do arquivo, em cima do pacote KDE homonimo) e
-  passam a existir SO como pacote KDE. Cada wallpaper aparece 1x + os padrao do
-  KDE. Login/bloqueio/desktop/SDDM apontam para a imagem dentro do pacote luar.
-  Bonus: some a copia identica de ~69 MB que os soltos duplicavam.
+  ja existia do 1.x; so foi repontado para capivaraos-wp-moonlight.png.
 - FEAT-104: branding visual do instalador Anaconda. Barra superior e sidebar
   passam de azul Fedora (#51a2da) para o verde da marca (#15B22C) e a sidebar
   ganha o logo (nome+capivara) branco. Via custom_stylesheet no profile.d

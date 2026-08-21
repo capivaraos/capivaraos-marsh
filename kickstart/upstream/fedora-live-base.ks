@@ -26,13 +26,18 @@ zerombr
 # convertido para squashfs; a ISO final fica bem menor.
 # 10240 (10 GiB) não foi suficiente: a transação de 2530 pacotes falhou por
 # falta de ~1.5 GiB de espaço em / (PayloadInstallationError).
-# LINHA 2.x (estacao de dev): 16384 (16 GiB) TAMBEM estourou por ~1.3 GiB com
-# os pacotes de dev adicionados (ollama e de longe o maior). Subido para 24576
-# (24 GiB), com folga tambem para o que o %post instala (VSCodium, semgrep via
-# pipx, ffmpeg full). A ISO final e squashfs comprimido, entao isto NAO incha
-# o download -- so levanta o teto de instalacao. Ver FEAT-89.
+# LINHA 2.x (estacao de dev): 16384 (16 GiB) estourou por ~1.3 GiB — e o ollama
+# (runtime + rocblas/rocm-hip, ~1.9 GiB) era de longe o maior. Foi subido para
+# 24576 (24 GiB) enquanto o ollama era PADRAO. Em 2026-08-21 o ollama passou a
+# OPCIONAL (instalado no onboarding, ver capivaraos-marsh.ks), o que tira ~1.9
+# GiB do %packages; com isso a raiz volta para 18432 (18 GiB) — cabe o dev stack
+# (@development-tools + KDE) com folga para o %post (VSCodium, semgrep via pipx,
+# ffmpeg full), sem o exagero dos 24. Como o Anaconda exige espaco de disco >=
+# tamanho desta raiz, o requisito de instalacao cai de ~27 para ~21 GB (era a
+# reclamacao do usuario). A ISO final e squashfs comprimido, entao isto NAO
+# incha o download -- so o teto de instalacao. Ver FEAT-89.
 clearpart --all
-part / --size 24576 --fstype ext4
+part / --size 18432 --fstype ext4
 services --enabled=NetworkManager,ModemManager --disabled=sshd
 network --bootproto=dhcp --device=link --activate
 # NOTA CapivaraOS: "rootpw --lock --iscrypted locked" (original upstream) faz o

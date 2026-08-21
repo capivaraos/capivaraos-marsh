@@ -127,8 +127,14 @@ vim-enhanced
 gitleaks
 pre-commit
 trivy
-# -- IA local (runtime; modelo de codigo baixado sob demanda no onboarding) --
-ollama
+# -- IA local: ollama MOVIDO para o onboarding (FEAT-90), nao vem mais no base --
+# O ollama e suas dependencias obrigatorias de GPU (rocblas ~974 MB + rocm-hip)
+# somam ~1,9 GB e eram o unico motivo de a raiz do live ter subido de 16->24 GiB
+# (ver fedora-live-base.ks). Como "GPU accel" ja e OPCIONAL e a filosofia e "ISO
+# enxuta + Central do Desenvolvedor liga os opcionais sob demanda", o pacote de
+# IA local inteiro (ollama runtime + cliente Alpaca + extensao Continue) passa a
+# ser instalado no 1o boot pelo onboarding. Requisito de disco cai de ~27 p/
+# ~21 GB. Decisao do usuario 2026-08-21 (reverte a escolha de 19/08). FEAT-89/90.
 # -- Ambiente de desenvolvimento --
 gh
 podman

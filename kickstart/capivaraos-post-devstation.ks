@@ -102,14 +102,13 @@ flatpak remote-add --if-not-exists flathub \
     || echo "AVISO: flathub remote-add falhou"
 
 # ---------------------------------------------------------------------------
-# Alpaca (FEAT-103): cliente grafico do Ollama (o Ollama e CLI puro). Flatpak
-# NORMAL (sem extra-data), instala no compose. Tolerante para nao quebrar a ISO
-# por soluco de rede -- validar no live.
-# (Spotify foi DESCARTADO em 2026-08-20: flatpak de extra-data nao instala no
-# chroot do compose e nao vale o oneshot de 1o boot.)
-echo "== [devstation] Flatpak: Alpaca (cliente grafico do Ollama) =="
-flatpak install -y --system flathub com.jeffser.Alpaca \
-    || echo "AVISO: flatpak install Alpaca falhou (validar no build)"
+# Alpaca (FEAT-103): cliente grafico do Ollama. MOVIDO para o onboarding
+# (FEAT-90) junto com o ollama (2026-08-21): como o ollama saiu do base para
+# enxugar a ISO, seu cliente grafico nao faz sentido pre-instalado (ficaria sem
+# backend) e o flatpak dele ainda puxa runtime pesado. O bundle de IA local
+# (ollama + Alpaca + Continue) e instalado no 1o login pela Central do
+# Desenvolvedor. Flathub segue habilitado acima para o onboarding usar.
+# (Spotify ja havia sido DESCARTADO em 2026-08-20.)
 
 # NOTA: NAO usar 'loginctl terminate-user root' aqui. Em --no-virt o %post
 # compartilha o systemd/logind do HOST, entao terminate-user root MATA o
