@@ -635,29 +635,36 @@ EOF
 install -d %{buildroot}%{_bindir}
 cat > %{buildroot}%{_bindir}/capivaraos-relabel-root << 'EOF'
 #!/bin/bash
-set -e
+# NAO 'set -e': um erro no relabel nao deve deixar o servico em estado 'failed'
+# sem log. Registramos tudo (echo -> journal do systemd, oneshot).
 MARK=/var/lib/capivaraos/.root-relabeled
 mkdir -p /var/lib/capivaraos
-[ -f "$MARK" ] && exit 0
+[ -f "$MARK" ] && { echo "relabel: ja executado, saindo"; exit 0; }
 # Sessao live: nao mexer (a raiz e o overlay do live)
-grep -qw rd.live.image /proc/cmdline 2>/dev/null && exit 0
+if grep -qw rd.live.image /proc/cmdline 2>/dev/null; then
+    echo "relabel: sessao live (rd.live.image), nao mexo"; exit 0
+fi
 
 SRC=$(findmnt -no SOURCE / 2>/dev/null)
 FST=$(findmnt -no FSTYPE / 2>/dev/null)
 CUR=$(findmnt -no LABEL / 2>/dev/null)
+echo "relabel: raiz SRC=$SRC FST=$FST LABEL_ATUAL='$CUR'"
 
 case "$CUR" in
-    capivaraos) touch "$MARK"; exit 0 ;;              # ja correto
+    capivaraos) echo "relabel: ja e capivaraos"; touch "$MARK"; exit 0 ;;
     fedora|anaconda|localhost-live|"" ) ;;           # generico -> reetiquetar
-    *) touch "$MARK"; exit 0 ;;                       # rotulo proprio: respeitar
+    *) echo "relabel: rotulo proprio '$CUR', respeitando"; touch "$MARK"; exit 0 ;;
 esac
 
 case "$FST" in
-    btrfs)        btrfs filesystem label / capivaraos ;;   # online, suportado
-    ext2|ext3|ext4) e2label "$SRC" capivaraos ;;           # online, suportado
-    *)            : ;;                                     # xfs etc.: pular (precisa umount)
+    btrfs)          btrfs filesystem label / capivaraos && echo "relabel: btrfs -> capivaraos" ;;
+    ext2|ext3|ext4) e2label "$SRC" capivaraos && echo "relabel: $FST -> capivaraos" ;;
+    *)              echo "relabel: FST '$FST' nao suportado online, pulando" ;;
 esac
+# udev reprobe para o rotulo novo aparecer sem reboot
+udevadm trigger --settle "$SRC" 2>/dev/null || true
 touch "$MARK"
+echo "relabel: concluido (rotulo agora: $(findmnt -no LABEL / 2>/dev/null))"
 EOF
 chmod 0755 %{buildroot}%{_bindir}/capivaraos-relabel-root
 
@@ -667,8 +674,9 @@ cat > %{buildroot}%{_unitdir}/capivaraos-relabel-root.service << 'EOF'
 Description=Reetiqueta a raiz do CapivaraOS (rotulo do disco)
 ConditionKernelCommandLine=!rd.live.image
 ConditionPathExists=!/var/lib/capivaraos/.root-relabeled
+# local-fs.target garante a raiz montada e regravavel. Sem DefaultDependencies=no
+# (removido: causava ordenacao cedo demais) para herdar as deps padrao do systemd.
 After=local-fs.target
-DefaultDependencies=no
 
 [Service]
 Type=oneshot
@@ -813,6 +821,13 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # (nao roda na live -- ver a unit). Habilitado aqui, no compose, para o
 # sistema instalado herdar o servico ligado.
 systemctl enable capivaraos-relabel-root.service >/dev/null 2>&1 || true
+
+# Desativa o initial-setup (OOBE de 1o boot: telas de idioma/teclado/usuario).
+# E REDUNDANTE: o Anaconda WebUI ja coleta idioma, teclado, fuso, usuario e senha
+# na propria instalacao. Sem desativar, ele reaparece no 1o boot do sistema
+# instalado com o fundo padrao do Fedora (mapa 3D), antes do login. Desabilitamos
+# os dois services no compose -> o sistema instalado herda desligado.
+systemctl disable initial-setup.service initial-setup-reconfiguration.service >/dev/null 2>&1 || true
 
 # ── Tela de login SDDM: ver %posttrans ──────────────────────────────────────
 # O fundo/logo do SDDM sao aplicados no %posttrans (nao aqui), porque exige
