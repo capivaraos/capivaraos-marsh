@@ -159,7 +159,13 @@ create_kde_wallpaper_pkg "capivaraos-cartoon"    "CapivaraOS Cartoon"    backgro
 
 %install
 set -e
-DEFAULT_WP=%{_datadir}/backgrounds/capivaraos/capivaraos-wp-moonlight.png
+# O wallpaper padrao (luar) mora APENAS dentro do pacote KDE, nao mais como
+# arquivo solto em backgrounds/ -- ver a nota no bloco de wallpapers abaixo.
+# DEFAULT_WP_PKG: diretorio do pacote (forma canonica do org.kde.image, casa o
+# item "CapivaraOS Luar" no seletor). DEFAULT_WP_IMG: arquivo de imagem dentro
+# do pacote (para consumidores que querem um caminho de arquivo: SDDM, script).
+DEFAULT_WP_PKG=%{_datadir}/wallpapers/capivaraos-luar
+DEFAULT_WP_IMG=%{_datadir}/wallpapers/capivaraos-luar/contents/images/1920x1080.png
 
 # ── FiraCode Nerd Font Mono (Regular+Bold) — fonte de codigo com iconos para
 #    terminal/starship/lazygit (linha 2.x, FEAT-89). Licenca OFL. O trigger de
@@ -169,17 +175,20 @@ install -d %{buildroot}%{_datadir}/fonts/capivaraos-firacode-nerd
 install -m0644 fonts/FiraCodeNerdFontMono-Regular.ttf fonts/FiraCodeNerdFontMono-Bold.ttf \
     %{buildroot}%{_datadir}/fonts/capivaraos-firacode-nerd/
 
-# ── Wallpapers (arquivos originais + créditos) ──────────────────────────────
-install -d %{buildroot}%{_datadir}/backgrounds/capivaraos
-# NAO instalamos backgrounds/CapivaraOS_Logo.png: apesar de morar nesta pasta,
-# ela nao e um wallpaper -- e a arte-mestre (1536x1024) da qual os wallpapers
-# sao derivados. Instalada aqui, aparecia no seletor de papel de parede como
-# uma opcao escolhivel e, ao ser aplicada, saia com a logo gigante e cortada
-# pelo painel (visto na Pup 1.1.1 em 2026-07-21).
-for WP in backgrounds/*.png; do
-    [ "$(basename "$WP")" = "CapivaraOS_Logo.png" ] && continue
-    install -m 0644 "$WP" %{buildroot}%{_datadir}/backgrounds/capivaraos/
-done
+# ── Wallpapers ──────────────────────────────────────────────────────────────
+# Os 8 wallpapers da marca sao instalados APENAS como pacotes KDE (bloco
+# "Pacotes de wallpaper KDE" abaixo), em %{_datadir}/wallpapers/capivaraos-*/.
+# NAO instalamos mais os arquivos soltos em %{_datadir}/backgrounds/capivaraos/:
+# (1) o seletor do Plasma lista TANTO os pacotes KDE (com nome bonito, ex.
+#     "CapivaraOS Luar") QUANTO os arquivos soltos (pelo nome do arquivo, ex.
+#     "capivaraos-wp-moonlight") -> cada wallpaper aparecia DUPLICADO no seletor.
+# (2) o arquivo solto era uma copia identica da imagem que ja vai dentro do
+#     pacote (contents/images/1920x1080.png) -> ~69 MB duplicados no sistema.
+# Eliminando os soltos, cada wallpaper aparece 1x (o pacote) e some a duplicata,
+# mantendo os 8 do CapivaraOS + os wallpapers padrao do KDE. Login/bloqueio/
+# desktop/SDDM apontam para a imagem DENTRO do pacote (DEFAULT_WP_PKG/IMG).
+# A arte-mestre backgrounds/CapivaraOS_Logo.png nunca foi wallpaper (e a fonte
+# 1536x1024 dos icones/plymouth) e continua fora do sistema instalado.
 
 # ── Pixmaps ──────────────────────────────────────────────────────────────────
 install -d %{buildroot}%{_datadir}/pixmaps
@@ -312,13 +321,13 @@ install -d %{buildroot}%{_sysconfdir}/skel/.config
 
 cat > %{buildroot}%{_sysconfdir}/skel/.config/plasma-org.kde.plasma.desktop-appletsrc << EOF
 [Containments][1][Wallpaper][org.kde.image][General]
-Image=${DEFAULT_WP}
+Image=${DEFAULT_WP_PKG}
 FillMode=2
 EOF
 
 cat > %{buildroot}%{_sysconfdir}/skel/.config/kscreenlockerrc << EOF
 [Greeter][Wallpaper][org.kde.image][General]
-Image=${DEFAULT_WP}
+Image=${DEFAULT_WP_PKG}
 FillMode=2
 EOF
 
@@ -507,7 +516,7 @@ done
 sleep 2
 
 if command -v plasma-apply-wallpaperimage >/dev/null 2>&1; then
-    plasma-apply-wallpaperimage "${DEFAULT_WP}" >/dev/null 2>&1
+    plasma-apply-wallpaperimage "${DEFAULT_WP_IMG}" >/dev/null 2>&1
 fi
 
 mkdir -p "\$HOME/.config"
@@ -612,7 +621,7 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 install -d %{_datadir}/sddm/themes/breeze
 cat > %{_datadir}/sddm/themes/breeze/theme.conf.user << 'EOF'
 [General]
-background=%{_datadir}/backgrounds/capivaraos/capivaraos-wp-moonlight.png
+background=%{_datadir}/wallpapers/capivaraos-luar/contents/images/1920x1080.png
 EOF
 
 # GRUB_DISTRIBUTOR -> "CapivaraOS" (efetivo apos grub2-mkconfig no sistema
@@ -772,7 +781,6 @@ done
 
 %files
 %license fonts/LICENSE-FiraCode-OFL.txt
-%{_datadir}/backgrounds/capivaraos/
 %{_datadir}/pixmaps/capivaraos.png
 %{_datadir}/pixmaps/capivaraos-logo.png
 %{_datadir}/pixmaps/capivaraos-white.png
@@ -809,7 +817,13 @@ done
   as tags CC-BY-SA da License do spec e os scripts regen-photo/regen-solid.
 - FEAT-108: tela de login (SDDM) e de bloqueio passam a usar o novo wallpaper
   padrao (luar). Mecanismo (theme.conf.user do breeze + kscreenlockerrc no skel)
-  ja existia do 1.x; so foi repontado para capivaraos-wp-moonlight.png.
+  ja existia do 1.x; so foi repontado para o wallpaper luar.
+- FEAT-105 (fix): elimina a duplicata do seletor do Plasma. Os 8 wallpapers
+  deixam de ser instalados como arquivos soltos em backgrounds/capivaraos/ (que
+  o seletor listava pelo nome do arquivo, em cima do pacote KDE homonimo) e
+  passam a existir SO como pacote KDE. Cada wallpaper aparece 1x + os padrao do
+  KDE. Login/bloqueio/desktop/SDDM apontam para a imagem dentro do pacote luar.
+  Bonus: some a copia identica de ~69 MB que os soltos duplicavam.
 - FEAT-104: branding visual do instalador Anaconda. Barra superior e sidebar
   passam de azul Fedora (#51a2da) para o verde da marca (#15B22C) e a sidebar
   ganha o logo (nome+capivara) branco. Via custom_stylesheet no profile.d
