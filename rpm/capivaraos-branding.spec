@@ -103,6 +103,18 @@ mkdir -p build/anaconda
 convert backgrounds/CapivaraOS_Logo.png -fill white -colorize 100% \
     -trim +repage -resize 200x build/anaconda/sidebar-logo.png
 
+# ── 5c. Logo (cabeca da capivara) para o branding do Cockpit / Anaconda WebUI ─
+# Em Fedora 44 o instalador grafico REAL da ISO live e o Anaconda WebUI
+# (Cockpit/PatternFly), NAO o GTK -- por isso o custom_stylesheet GTK abaixo nao
+# pinta a tela (fica azul). O Cockpit escolhe a pasta
+# /usr/share/cockpit/branding/<ID do os-release> (cai p/ ID_LIKE=fedora se nao
+# existir), entao criamos "capivaraos". A cabeca (215x215, quadrada) preenche a
+# caixa da .logo; a silhueta larga da logo completa ficaria achatada. Mesmo
+# mecanismo ja usado em Pup/Snout.
+mkdir -p build/cockpit
+convert icons/capivaraos-head.png -resize 256x256 build/cockpit/logo.png
+convert build/cockpit/logo.png -resize 32x32 build/cockpit/favicon.ico
+
 # Spinner branco (arco girando) exibido logo abaixo da logo no splash.
 # Geramos 30 quadros, cada um girado 12°, e o script do Plymouth os cicla.
 mkdir -p build/plymouth/spinner
@@ -626,9 +638,12 @@ os_id = capivaraos
 custom_stylesheet = /usr/share/anaconda/pixmaps/capivaraos.css
 EOF
 
-# ── Branding visual do Anaconda (FEAT-104): barra azul -> verde da marca +
-# logo na sidebar. Ver capivaraos.css abaixo. As classes .logo-sidebar / .logo
-# / #nav-box replicam o esquema do fedora.css, trocando cor e logo.
+# ── Branding visual do Anaconda GTK (FEAT-104): barra azul -> verde da marca +
+# logo na sidebar. ATENCAO: em Fedora 44 o instalador da ISO live e o Anaconda
+# WebUI (Cockpit), que IGNORA este CSS GTK -- o branding que realmente pinta a
+# tela e o do Cockpit (bloco logo abaixo). Este bloco GTK fica como fallback
+# caso algum caminho use o frontend GTK. As classes .logo-sidebar / .logo /
+# #nav-box replicam o esquema do fedora.css, trocando cor e logo.
 install -d %{buildroot}%{_datadir}/anaconda/pixmaps/capivaraos
 install -m 0644 build/anaconda/sidebar-logo.png \
     %{buildroot}%{_datadir}/anaconda/pixmaps/capivaraos/sidebar-logo.png
@@ -661,6 +676,56 @@ AnacondaSpokeWindow #nav-box {
     background-color: @capivaraos_green;
     background-image: none;
     color: white;
+}
+EOF
+
+# ── Branding do Cockpit / Anaconda WebUI (FEAT-104) — o que REALMENTE pinta a
+# tela do instalador da ISO live (Fedora 44). O Cockpit carrega
+# /usr/share/cockpit/branding/<ID>/branding.css escolhido pelo ID do os-release
+# (capivaraos). branding.css sobrescreve as variaveis PatternFly da cor de marca
+# (--pf-t--global--color--brand--*) para o verde CapivaraOS, troca a logo do
+# topo e o texto do #brand. Mesmo mecanismo do Pup/Snout. Cockpit expande
+# ${NAME}/${VARIANT} a partir do os-release em tempo de execucao (heredoc
+# aspado de proposito, para nao expandir aqui).
+install -d %{buildroot}%{_datadir}/cockpit/branding/capivaraos
+install -m 0644 build/cockpit/logo.png %{buildroot}%{_datadir}/cockpit/branding/capivaraos/logo.png
+install -m 0644 build/cockpit/logo.png %{buildroot}%{_datadir}/cockpit/branding/capivaraos/apple-touch-icon.png
+install -m 0644 build/cockpit/favicon.ico %{buildroot}%{_datadir}/cockpit/branding/capivaraos/favicon.ico
+cat > %{buildroot}%{_datadir}/cockpit/branding/capivaraos/branding.css << 'EOF'
+/* Branding do instalador CapivaraOS Marsh — Anaconda WebUI (Cockpit) FEAT-104 */
+#badge {
+    inline-size: 225px;
+    block-size: 80px;
+    background-image: url("logo.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+#brand::before {
+    content: "${NAME} <b>${VARIANT}</b>";
+}
+
+.anaconda {
+    /* Paleta da marca CapivaraOS (verde #15B22C) */
+    --brand-default-light: #46c95b;
+    --brand-default: #15b22c;
+    --brand-default-dark: #0e7a1e;
+
+    .logo {
+        background-image: url("logo.png");
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+}
+
+:not(.pf-v6-theme-dark) .anaconda {
+    --pf-t--global--color--brand--default: var(--brand-default);
+    --pf-t--global--color--brand--hover: var(--brand-default-dark);
+}
+
+.pf-v6-theme-dark .anaconda {
+    --pf-t--global--color--brand--default: var(--brand-default-light);
+    --pf-t--global--color--brand--hover: var(--brand-default);
 }
 EOF
 # NOTA: Spotify foi DESCARTADO (decisao do usuario 2026-08-20 — nao vale o
@@ -862,6 +927,7 @@ done
 %{_sysconfdir}/anaconda/profile.d/capivaraos.conf
 %{_datadir}/anaconda/pixmaps/capivaraos.css
 %{_datadir}/anaconda/pixmaps/capivaraos/
+%{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
 * Fri Aug 21 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.4.alpha4
@@ -875,6 +941,12 @@ done
   a face da marca no AccountsService via D-Bus, para o SDDM/greeter mostrar a
   capivara no lugar do boneco generico (o ~/.face sozinho nao basta: home 0700
   nao e legivel pelo processo do SDDM).
+- FEAT-104 (fix): instalador continuava AZUL porque o CSS anterior era de
+  Anaconda GTK, mas a ISO live do Fedora 44 usa o Anaconda WebUI (Cockpit), que
+  ignora CSS GTK. Portado o mecanismo do Pup/Snout: branding do Cockpit em
+  /usr/share/cockpit/branding/capivaraos (branding.css sobrescreve as variaveis
+  PatternFly da cor de marca para o verde #15B22C + logo da capivara). O CSS GTK
+  foi mantido apenas como fallback.
 - FEAT-105 (fix): elimina a duplicata do seletor do Plasma. Cada wallpaper
   aparecia 2x -- como pacote KDE ("CapivaraOS Luar") E como arquivo solto em
   backgrounds/capivaraos/ (listado pelo nome do arquivo, "capivaraos-wp-*"), que
