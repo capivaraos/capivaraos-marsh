@@ -155,7 +155,7 @@ create_kde_wallpaper_pkg "capivaraos-abstrato-1" "CapivaraOS Abstrato 1" backgro
 create_kde_wallpaper_pkg "capivaraos-abstrato-2" "CapivaraOS Abstrato 2" backgrounds/capivaraos-wp-abstract-2.png
 create_kde_wallpaper_pkg "capivaraos-abstrato-3" "CapivaraOS Abstrato 3" backgrounds/capivaraos-wp-abstract-3.png
 create_kde_wallpaper_pkg "capivaraos-abstrato-4" "CapivaraOS Abstrato 4" backgrounds/capivaraos-wp-abstract-4.png
-create_kde_wallpaper_pkg "capivaraos-cartoon"    "CapivaraOS Cartoon"    backgrounds/capivaraos-wp-cartoon.png
+create_kde_wallpaper_pkg "capivaraos-comics"     "CapivaraOS Comics"     backgrounds/capivaraos-wp-comics.png
 
 %install
 set -e
@@ -451,11 +451,14 @@ var kickoff = dock.addWidget("org.kde.plasma.kickoff");
 kickoff.currentConfigGroup = ["General"];
 kickoff.writeConfig("icon", "capivaraos-head");
 
-// Aplicativos fixados no dock, na ordem pedida (esquerda -> direita):
-// Configuracoes do Sistema, Discover, Firefox, VLC, Dolphin, Spectacle,
-// LibreOffice. IDs .desktop conferidos no proprio sistema instalado
-// (Fedora 44): firefox = org.mozilla.firefox.desktop; configuracoes =
-// systemsettings.desktop; Discover = org.kde.discover.desktop.
+// Aplicativos fixados no dock, na ordem pedida (esquerda -> direita), FEAT-103:
+// Configuracoes, Discover, Firefox, Konsole, Dolphin, VLC, Spectacle, KeePassXC,
+// KAddressBook, KCalc, LibreOffice. Alpaca (cliente Ollama) NAO entra: o Ollama
+// passou a OPCIONAL (instalado pelo onboarding) em 2026-08-21, entao pre-fixar o
+// cliente deixaria um icone quebrado no sistema recem-instalado. Spotify tambem
+// ficou de fora (descartado). IDs .desktop do Fedora 44: KeePassXC =
+// org.keepassxc.KeePassXC; Konsole = org.kde.konsole; KAddressBook =
+// org.kde.kaddressbook; KCalc = org.kde.kcalc.
 var tasks = dock.addWidget("org.kde.plasma.icontasks");
 tasks.currentConfigGroup = ["General"];
 // IMPORTANTE: "launchers" é um StringList — precisa ser um ARRAY JS. Passar
@@ -465,9 +468,13 @@ tasks.writeConfig("launchers", [
     "applications:systemsettings.desktop",
     "applications:org.kde.discover.desktop",
     "applications:org.mozilla.firefox.desktop",
-    "applications:vlc.desktop",
+    "applications:org.kde.konsole.desktop",
     "applications:org.kde.dolphin.desktop",
+    "applications:vlc.desktop",
     "applications:org.kde.spectacle.desktop",
+    "applications:org.keepassxc.KeePassXC.desktop",
+    "applications:org.kde.kaddressbook.desktop",
+    "applications:org.kde.kcalc.desktop",
     "applications:libreoffice-writer.desktop"
 ]);
 EOF
