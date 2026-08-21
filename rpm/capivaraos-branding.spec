@@ -17,7 +17,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.7.alpha7%{?dist}.marsh
+Release:        0.8.alpha8%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -125,6 +125,14 @@ mkdir -p build/cockpit
 convert icons/capivaraos-head.png -colorspace sRGB -fill white -colorize 100% \
     -resize 256x256 build/cockpit/logo.png
 convert build/cockpit/logo.png -resize 32x32 build/cockpit/favicon.ico
+
+# ── Wallpaper padrao do sistema (default.jxl) = luar ────────────────────────
+# O /usr/share/backgrounds/default.jxl (desktop-backgrounds-compat) e o "mapa 3D"
+# que o Plasma usa como fundo da TELA DE BLOQUEIO (e fallback de varios lugares).
+# Geramos a versao JXL do luar para sobrescreve-lo no %posttrans, deixando o
+# wallpaper padrao do sistema com a marca. (magick tem suporte a escrever JXL.)
+mkdir -p build/backgrounds
+convert backgrounds/capivaraos-wp-moonlight.png build/backgrounds/capivaraos-default.jxl
 
 # Spinner branco (arco girando) exibido logo abaixo da logo no splash.
 # Geramos 30 quadros, cada um girado 12°, e o script do Plymouth os cicla.
@@ -348,9 +356,15 @@ Image=${DEFAULT_WP_PKG}
 FillMode=2
 EOF
 
+# Tela de bloqueio: usa o CAMINHO DE ARQUIVO (nao o diretorio do pacote). O
+# desktop (appletsrc acima) usa o diretorio do pacote porque o script
+# capivaraos-set-wallpaper o reaplica via plasma-apply-wallpaperimage; a tela de
+# bloqueio NAO tem script, entao precisa de um valor que renderize sozinho. Alem
+# disso, o default.jxl do sistema tambem e trocado pelo luar no %posttrans (o
+# lock cai nele quando nao ha wallpaper proprio) -- cinto e suspensorio.
 cat > %{buildroot}%{_sysconfdir}/skel/.config/kscreenlockerrc << EOF
 [Greeter][Wallpaper][org.kde.image][General]
-Image=${DEFAULT_WP_PKG}
+Image=${DEFAULT_WP_IMG}
 FillMode=2
 EOF
 
@@ -398,6 +412,8 @@ ln -sf .face %{buildroot}%{_sysconfdir}/skel/.face.icon
 # daemon (root) o copia para /var/lib/AccountsService/icons/<user>, que o SDDM le.
 install -d %{buildroot}%{_datadir}/capivaraos
 install -m 0644 build/pixmaps/capivaraos-face.png %{buildroot}%{_datadir}/capivaraos/capivaraos-face.png
+# JXL do luar (usado no %posttrans para sobrescrever o default.jxl do sistema)
+install -m 0644 build/backgrounds/capivaraos-default.jxl %{buildroot}%{_datadir}/capivaraos/capivaraos-default.jxl
 
 # ── Layout estilo macOS: script JS do Plasma + autostarts de aplicação única ─
 install -d %{buildroot}%{_datadir}/capivaraos
@@ -822,6 +838,13 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # sistema instalado herdar o servico ligado.
 systemctl enable capivaraos-relabel-root.service >/dev/null 2>&1 || true
 
+# Pula o OOBE de 1o boot do Plasma (plasma-setup.service: assistente de idioma/
+# teclado/usuario com fundo do mapa 3D, que "abre no inicio do KDE"). E
+# REDUNDANTE: o Anaconda WebUI ja coletou tudo. A unit tem
+# ConditionPathExists=!/etc/plasma-setup-done, entao criamos esse flag (mecanismo
+# oficial) -> o assistente nao roda no sistema instalado.
+touch %{_sysconfdir}/plasma-setup-done
+
 # ── Tela de login SDDM: ver %posttrans ──────────────────────────────────────
 # O fundo/logo do SDDM sao aplicados no %posttrans (nao aqui), porque exige
 # editar o theme.conf do tema do sddm-breeze DEPOIS que ele foi instalado na
@@ -863,6 +886,18 @@ for T in 01-breeze-fedora breeze; do
         "$TC"
 done
 
+# ── Wallpaper padrao do sistema (tela de bloqueio + fallbacks) -> luar ───────
+# O /usr/share/backgrounds/default.jxl (desktop-backgrounds-compat) e o mapa 3D
+# que a tela de bloqueio do Plasma mostra. Sobrescrevemos com o luar (JXL). Feito
+# no %posttrans (depois do desktop-backgrounds-compat instalar) e reaplicado por
+# %transfiletriggerin quando esse pacote atualizar (que reverteria o arquivo).
+if [ -f %{_datadir}/capivaraos/capivaraos-default.jxl ]; then
+    for BG in default.jxl default-dark.jxl; do
+        [ -e %{_datadir}/backgrounds/$BG ] && \
+            cp -f %{_datadir}/capivaraos/capivaraos-default.jxl %{_datadir}/backgrounds/$BG
+    done
+fi
+
 # Tema padrao do Plymouth (boot/desligamento): escrito direto aqui, em vez de
 # depender so do "plymouth-set-default-theme capivaraos" do %post, porque o
 # pacote plymouth grava /etc/plymouth/plymouthd.conf com "Theme=" comentado
@@ -885,14 +920,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha7, preview)"
+VERSION="Marsh 2.0.0 (alpha8, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha7, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha8, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -905,24 +940,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha7, preview)"
+VARIANT="Marsh 2.0.0 (alpha8, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha7, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha8, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha7, preview)
+CapivaraOS Marsh 2.0.0 (alpha8, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha7, preview)
+Variant=Marsh 2.0.0 (alpha8, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -962,14 +997,14 @@ EOF
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha7, preview)"
+VERSION="Marsh 2.0.0 (alpha8, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha7, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha8, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -982,17 +1017,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha7, preview)"
+VARIANT="Marsh 2.0.0 (alpha8, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha7, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha8, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha7, preview)
+CapivaraOS Marsh 2.0.0 (alpha8, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1014,6 +1049,16 @@ for T in 01-breeze-fedora breeze; do
         -e "s|^background=.*|background=%{_datadir}/wallpapers/capivaraos-luar/contents/images/1920x1080.png|" \
         -e "s|^logo=.*|logo=%{_datadir}/pixmaps/capivaraos-white.png|" \
         "$TC"
+done
+
+# Reaplica o default.jxl (luar) quando o desktop-backgrounds-compat for
+# atualizado (que reescreve o mapa do Fedora por cima). Prefixo de DIRETORIO.
+%transfiletriggerin -- %{_datadir}/backgrounds
+[ -f %{_datadir}/capivaraos/capivaraos-default.jxl ] || exit 0
+for BG in default.jxl default-dark.jxl; do
+    [ -e %{_datadir}/backgrounds/$BG ] || continue
+    cmp -s %{_datadir}/capivaraos/capivaraos-default.jxl %{_datadir}/backgrounds/$BG && continue
+    cp -f %{_datadir}/capivaraos/capivaraos-default.jxl %{_datadir}/backgrounds/$BG
 done
 
 %files
@@ -1049,6 +1094,18 @@ done
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Fri Aug 21 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.8.alpha8
+- Leva de correcoes a partir do 6o feedback do live (alpha7).
+- Tela de setup #26 identificada: e o plasma-setup.service (OOBE de 1o boot do
+  Plasma: idioma/teclado/usuario), REDUNDANTE com o Anaconda WebUI. Criamos o
+  flag /etc/plasma-setup-done no %post (a unit tem
+  ConditionPathExists=!/etc/plasma-setup-done) -> nao roda no sistema instalado.
+- Tela de BLOQUEIO com o mapa 3D: era o /usr/share/backgrounds/default.jxl
+  (desktop-backgrounds-compat). Trocado pelo luar (JXL) no %posttrans + filetrigger
+  em /usr/share/backgrounds para reaplicar apos updates. Vira tambem o wallpaper
+  padrao da marca. + kscreenlockerrc do skel passa a usar o CAMINHO DE ARQUIVO do
+  luar (nao o diretorio do pacote, que a tela de bloqueio nao renderiza sem script).
+
 * Fri Aug 21 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.7.alpha7
 - Leva de correcoes a partir do 5o feedback do live (alpha6).
 - FEAT-108 (CAUSA RAIZ do login): descoberto inspecionando a squashfs da ISO que
