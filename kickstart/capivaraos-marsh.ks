@@ -53,6 +53,16 @@ network --hostname=capivaraos
 -fedora-release-kde-desktop
 capivaraos-branding
 
+# Tema e config do greeter SDDM. sddm-breeze provê os temas QML (breeze e
+# 01-breeze-fedora) e kde-settings-sddm põe "Current=01-breeze-fedora". São
+# dependências FRACAS (Recommends) que vinham via fedora-release-kde-desktop
+# (que excluímos acima); sem elas o /usr/share/sddm/themes fica VAZIO e o
+# greeter Plasma cai no fundo padrão do Fedora (mapa-múndi), ignorando qualquer
+# customização de tema. Instalando explícito, o tema existe e o %posttrans do
+# capivaraos-branding troca o background para o wallpaper luar (FEAT-108).
+sddm-breeze
+kde-settings-sddm
+
 # Tema Plymouth do CapivaraOS (capivaraos.script) é um tema "script": precisa
 # do plugin script.so do plymouth para ser renderizado. Sem este pacote,
 # /usr/lib64/plymouth/script.so não existe e o plymouthd cai num

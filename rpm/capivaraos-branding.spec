@@ -17,7 +17,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.6.alpha6%{?dist}.marsh
+Release:        0.7.alpha7%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -822,13 +822,6 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # sistema instalado herdar o servico ligado.
 systemctl enable capivaraos-relabel-root.service >/dev/null 2>&1 || true
 
-# Desativa o initial-setup (OOBE de 1o boot: telas de idioma/teclado/usuario).
-# E REDUNDANTE: o Anaconda WebUI ja coleta idioma, teclado, fuso, usuario e senha
-# na propria instalacao. Sem desativar, ele reaparece no 1o boot do sistema
-# instalado com o fundo padrao do Fedora (mapa 3D), antes do login. Desabilitamos
-# os dois services no compose -> o sistema instalado herda desligado.
-systemctl disable initial-setup.service initial-setup-reconfiguration.service >/dev/null 2>&1 || true
-
 # ── Tela de login SDDM: ver %posttrans ──────────────────────────────────────
 # O fundo/logo do SDDM sao aplicados no %posttrans (nao aqui), porque exige
 # editar o theme.conf do tema do sddm-breeze DEPOIS que ele foi instalado na
@@ -892,14 +885,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha6, preview)"
+VERSION="Marsh 2.0.0 (alpha7, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha6, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha7, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -912,24 +905,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha6, preview)"
+VARIANT="Marsh 2.0.0 (alpha7, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha6, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha7, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha6, preview)
+CapivaraOS Marsh 2.0.0 (alpha7, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha6, preview)
+Variant=Marsh 2.0.0 (alpha7, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -969,14 +962,14 @@ EOF
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha6, preview)"
+VERSION="Marsh 2.0.0 (alpha7, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha6, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha7, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -989,17 +982,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha6, preview)"
+VARIANT="Marsh 2.0.0 (alpha7, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha6, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha7, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha6, preview)
+CapivaraOS Marsh 2.0.0 (alpha7, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1056,6 +1049,23 @@ done
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Fri Aug 21 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.7.alpha7
+- Leva de correcoes a partir do 5o feedback do live (alpha6).
+- FEAT-108 (CAUSA RAIZ do login): descoberto inspecionando a squashfs da ISO que
+  o /usr/share/sddm/themes estava VAZIO -- sddm-breeze (temas breeze/01-breeze-
+  fedora) e kde-settings-sddm (Current=) sao deps FRACAS que vinham via
+  fedora-release-kde-desktop, que EXCLUIMOS (-fedora-release-kde-desktop). Sem o
+  tema, o greeter Plasma caia no fundo padrao do Fedora e QUALQUER edicao de
+  theme.conf era inutil (por isso nunca funcionou). Fix: instala sddm-breeze +
+  kde-settings-sddm explicitos no %packages -> o tema existe, e o sed do
+  %posttrans troca o background para o wallpaper luar. (Ver kickstart.)
+- Rotulo do disco: o servico capivaraos-relabel-root estava habilitado mas tinha
+  DefaultDependencies=no, rodando cedo demais (antes da raiz regravavel) -> o
+  relabel falhava calado. Removido DefaultDependencies=no + log no journal +
+  udevadm trigger. Deve reetiquetar a raiz para "capivaraos" no 1o boot.
+- Menu de boot da midia: build-all.sh troca "CapivaraOS Marsh 44" pela versao
+  real via xorriso + implantisomd5 (so-cosmetico, na midia live).
+
 * Fri Aug 21 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.6.alpha6
 - Leva de correcoes a partir do 4o feedback do live (alpha5).
 - FEAT-104 (fix da logo): o instalador ficou verde no alpha5 mas SEM a logo. O
