@@ -17,7 +17,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.4.alpha4%{?dist}.marsh
+Release:        0.5.alpha5%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -612,6 +612,62 @@ X-KDE-autostart-phase=2
 OnlyShowIn=KDE;
 EOF
 
+# ── Rotulo da raiz do sistema instalado -> "capivaraos" ─────────────────────
+# O instalador (Anaconda/blivet) rotula o volume raiz com o "short product name"
+# derivado internamente, que acaba saindo "fedora" (visto no gerenciador de
+# arquivos como o rotulo do disco). Isso e interno do Anaconda e nao ha flag de
+# build confiavel para muda-lo. Solucao deterministica: um servico de 1o boot no
+# sistema INSTALADO reetiqueta a raiz para "capivaraos". Guardas: (1) nao roda na
+# sessao live (ConditionKernelCommandLine=!rd.live.image + checagem no script);
+# (2) so reetiqueta se o rotulo atual for generico (fedora/anaconda/vazio), nunca
+# um rotulo que o usuario tenha escolhido; (3) marcador para rodar so uma vez.
+install -d %{buildroot}%{_bindir}
+cat > %{buildroot}%{_bindir}/capivaraos-relabel-root << 'EOF'
+#!/bin/bash
+set -e
+MARK=/var/lib/capivaraos/.root-relabeled
+mkdir -p /var/lib/capivaraos
+[ -f "$MARK" ] && exit 0
+# Sessao live: nao mexer (a raiz e o overlay do live)
+grep -qw rd.live.image /proc/cmdline 2>/dev/null && exit 0
+
+SRC=$(findmnt -no SOURCE / 2>/dev/null)
+FST=$(findmnt -no FSTYPE / 2>/dev/null)
+CUR=$(findmnt -no LABEL / 2>/dev/null)
+
+case "$CUR" in
+    capivaraos) touch "$MARK"; exit 0 ;;              # ja correto
+    fedora|anaconda|localhost-live|"" ) ;;           # generico -> reetiquetar
+    *) touch "$MARK"; exit 0 ;;                       # rotulo proprio: respeitar
+esac
+
+case "$FST" in
+    btrfs)        btrfs filesystem label / capivaraos ;;   # online, suportado
+    ext2|ext3|ext4) e2label "$SRC" capivaraos ;;           # online, suportado
+    *)            : ;;                                     # xfs etc.: pular (precisa umount)
+esac
+touch "$MARK"
+EOF
+chmod 0755 %{buildroot}%{_bindir}/capivaraos-relabel-root
+
+install -d %{buildroot}%{_unitdir}
+cat > %{buildroot}%{_unitdir}/capivaraos-relabel-root.service << 'EOF'
+[Unit]
+Description=Reetiqueta a raiz do CapivaraOS (rotulo do disco)
+ConditionKernelCommandLine=!rd.live.image
+ConditionPathExists=!/var/lib/capivaraos/.root-relabeled
+After=local-fs.target
+DefaultDependencies=no
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/capivaraos-relabel-root
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
 # ── Perfil do Anaconda: faz o instalador reconhecer o CapivaraOS (BUG-38) ────
 # O Anaconda casa o perfil de instalacao pelo os_id do /etc/os-release. Como o
 # nosso ID e "capivaraos" (nao "fedora"), NENHUM perfil casava e o instalador
@@ -736,13 +792,31 @@ EOF
 # Splash de boot CapivaraOS
 plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 
-# Tela de login SDDM com wallpaper CapivaraOS (tema breeze, mecanismo
-# padrao de customizacao via theme.conf.user — nao sobrescreve o tema)
-install -d %{_datadir}/sddm/themes/breeze
-cat > %{_datadir}/sddm/themes/breeze/theme.conf.user << 'EOF'
+# Reetiquetar a raiz para "capivaraos" no 1o boot do sistema instalado
+# (nao roda na live -- ver a unit). Habilitado aqui, no compose, para o
+# sistema instalado herdar o servico ligado.
+systemctl enable capivaraos-relabel-root.service >/dev/null 2>&1 || true
+
+# ── Tela de login SDDM com wallpaper + logo CapivaraOS ──────────────────────
+# CRITICO: no Fedora 44 KDE o tema ATIVO do SDDM e "01-breeze-fedora" (definido
+# em Current= no /usr/lib/sddm/sddm.conf.d/kde_settings.conf do pacote
+# kde-settings-sddm), NAO o "breeze" puro. O theme.conf desse tema traz
+# background=/usr/share/backgrounds/default.jxl (o mapa-mundi) e
+# logo=/usr/share/pixmaps/fedora_whitelogo.svg. Ate o alpha4 escreviamos o
+# theme.conf.user no tema "breeze" (inativo) -> era ignorado e o login saia com
+# o fundo padrao do Fedora. O override tem que ir no tema ATIVO. Escrevemos nos
+# dois (o ativo 01-breeze-fedora + breeze como fallback), usando o mecanismo
+# padrao theme.conf.user (nao sobrescreve o tema em si).
+SDDM_BG=%{_datadir}/wallpapers/capivaraos-luar/contents/images/1920x1080.png
+SDDM_LOGO=%{_datadir}/pixmaps/capivaraos-white.png
+for THEME in 01-breeze-fedora breeze; do
+    install -d %{_datadir}/sddm/themes/${THEME}
+    cat > %{_datadir}/sddm/themes/${THEME}/theme.conf.user << EOF
 [General]
-background=%{_datadir}/wallpapers/capivaraos-luar/contents/images/1920x1080.png
+background=${SDDM_BG}
+logo=${SDDM_LOGO}
 EOF
+done
 
 # GRUB_DISTRIBUTOR -> "CapivaraOS" (efetivo apos grub2-mkconfig no sistema
 # instalado; a ISO live em si usa o titulo passado ao livemedia-creator)
@@ -784,14 +858,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha4, preview)"
+VERSION="Marsh 2.0.0 (alpha5, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha4, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha5, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -804,24 +878,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha4, preview)"
+VARIANT="Marsh 2.0.0 (alpha5, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha4, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha5, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha4, preview)
+CapivaraOS Marsh 2.0.0 (alpha5, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha4, preview)
+Variant=Marsh 2.0.0 (alpha5, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -861,14 +935,14 @@ EOF
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha4, preview)"
+VERSION="Marsh 2.0.0 (alpha5, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha4, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha5, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -881,17 +955,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha4, preview)"
+VARIANT="Marsh 2.0.0 (alpha5, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha4, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha5, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha4, preview)
+CapivaraOS Marsh 2.0.0 (alpha5, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -914,6 +988,8 @@ done
 %{_bindir}/capivaraos-set-layout
 %{_bindir}/capivaraos-set-wallpaper
 %{_bindir}/capivaraos-set-avatar
+%{_bindir}/capivaraos-relabel-root
+%{_unitdir}/capivaraos-relabel-root.service
 %{_sysconfdir}/xdg/autostart/capivaraos-wallpaper.desktop
 %{_sysconfdir}/xdg/autostart/capivaraos-layout.desktop
 %{_sysconfdir}/xdg/autostart/capivaraos-avatar.desktop
@@ -930,6 +1006,20 @@ done
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Fri Aug 21 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.5.alpha5
+- Leva de correcoes a partir do 3o feedback do live (alpha4).
+- FEAT-108 (fix REAL): login SDDM continuava com o fundo padrao do Fedora
+  (mapa-mundi) porque o tema ATIVO no Fedora 44 KDE e "01-breeze-fedora" (Current=
+  no kde-settings-sddm), nao "breeze" -- escreviamos o theme.conf.user no tema
+  errado. Agora escreve no tema ativo (01-breeze-fedora) + breeze como fallback,
+  com background=luar e logo=capivaraos-white (troca a fedora_whitelogo).
+- FEAT-105 (wallpaper): a logo carimbada nas 3 cenas (luar/por-do-sol/dev) subiu
+  de 6,5% para 13% da margem inferior, para a dock (que expande lateralmente) nao
+  passar por cima dela.
+- Rotulo do disco: o Anaconda rotulava a raiz como "fedora". Novo servico de 1o
+  boot capivaraos-relabel-root reetiqueta a raiz instalada para "capivaraos"
+  (btrfs/ext4 online; nao roda na live; so troca rotulo generico).
+
 * Fri Aug 21 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.4.alpha4
 - Leva de correcoes a partir do feedback do live boot do alpha3.
 - FEAT-105 (wallpaper): troca "CapivaraOS Cartoon" por "CapivaraOS Comics" (a
