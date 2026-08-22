@@ -17,7 +17,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.8.alpha8%{?dist}.marsh
+Release:        0.9.alpha9%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -664,7 +664,10 @@ fi
 SRC=$(findmnt -no SOURCE / 2>/dev/null)
 FST=$(findmnt -no FSTYPE / 2>/dev/null)
 CUR=$(findmnt -no LABEL / 2>/dev/null)
-echo "relabel: raiz SRC=$SRC FST=$FST LABEL_ATUAL='$CUR'"
+# No btrfs o SOURCE vem como "/dev/sda3[/root]" (com o subvolume). O device real
+# (para e2label e para o udevadm) e so a parte antes do "[".
+DEV=${SRC%%[*}
+echo "relabel: raiz SRC=$SRC DEV=$DEV FST=$FST LABEL_ATUAL='$CUR'"
 
 case "$CUR" in
     capivaraos) echo "relabel: ja e capivaraos"; touch "$MARK"; exit 0 ;;
@@ -674,11 +677,14 @@ esac
 
 case "$FST" in
     btrfs)          btrfs filesystem label / capivaraos && echo "relabel: btrfs -> capivaraos" ;;
-    ext2|ext3|ext4) e2label "$SRC" capivaraos && echo "relabel: $FST -> capivaraos" ;;
+    ext2|ext3|ext4) e2label "$DEV" capivaraos && echo "relabel: $FST -> capivaraos" ;;
     *)              echo "relabel: FST '$FST' nao suportado online, pulando" ;;
 esac
-# udev reprobe para o rotulo novo aparecer sem reboot
-udevadm trigger --settle "$SRC" 2>/dev/null || true
+# Forca o udev/udisks a reler o rotulo AGORA (senao o Dolphin mostra o "fedora"
+# cacheado do momento da montagem, ate o proximo reboot). Emite um evento
+# "change" no DEVICE real (sem o sufixo [subvol], que invalidava o comando).
+udevadm trigger --settle --action=change "$DEV" 2>/dev/null || true
+udevadm settle 2>/dev/null || true
 touch "$MARK"
 echo "relabel: concluido (rotulo agora: $(findmnt -no LABEL / 2>/dev/null))"
 EOF
@@ -920,14 +926,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha8, preview)"
+VERSION="Marsh 2.0.0 (alpha9, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha8, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha9, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -940,24 +946,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha8, preview)"
+VARIANT="Marsh 2.0.0 (alpha9, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha8, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha9, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha8, preview)
+CapivaraOS Marsh 2.0.0 (alpha9, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha8, preview)
+Variant=Marsh 2.0.0 (alpha9, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -997,14 +1003,14 @@ EOF
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha8, preview)"
+VERSION="Marsh 2.0.0 (alpha9, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha8, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha9, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1017,17 +1023,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha8, preview)"
+VARIANT="Marsh 2.0.0 (alpha9, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha8, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha9, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha8, preview)
+CapivaraOS Marsh 2.0.0 (alpha9, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1094,6 +1100,14 @@ done
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Fri Aug 21 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.9.alpha9
+- Rotulo do disco: no alpha8 o relabel JA FUNCIONAVA (o journal mostrava
+  "btrfs -> capivaraos" e o findmnt confirmava capivaraos), mas o Dolphin seguia
+  mostrando "fedora" cacheado do momento da montagem, porque o udevadm trigger
+  recebia "/dev/sda3[/root]" (com o sufixo de subvolume btrfs) -> comando
+  invalido, sem refresh. Fix: extrai o device real (sem [subvol]) e emite um
+  evento "change" nele para o udev/udisks relerem o rotulo ja no 1o boot.
+
 * Fri Aug 21 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.8.alpha8
 - Leva de correcoes a partir do 6o feedback do live (alpha7).
 - Tela de setup #26 identificada: e o plasma-setup.service (OOBE de 1o boot do
