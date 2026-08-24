@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Central do Desenvolvedor (primeiro boot)
+Name[pt_BR]=Central do Desenvolvedor (primeiro boot)
+Comment=Abre a Central do Desenvolvedor uma vez, no primeiro login
+Exec=capivara-central --autostart
+Icon=org.capivaraos.Central
+Terminal=false
+OnlyShowIn=KDE;
+X-KDE-autostart-phase=2
+X-GNOME-Autostart-enabled=true

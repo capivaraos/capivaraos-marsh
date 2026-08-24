@@ -149,6 +149,10 @@ trivy
 gh
 podman
 distrobox
+# -- Central do Desenvolvedor: app de onboarding pt-BR (1o boot) que instala os
+# OPCIONAIS em 1 clique (IA local etc.). Vem do repo local capivaraos-local
+# (buildado por build-all.sh). FEAT-90. Ver apps/capivara-central/.
+capivara-central
 # -- Gerenciador de senhas (pegada de seguranca) --
 keepassxc
 # -- Snapshots "atualize sem medo" (Btrfs nativo do Fedora) --

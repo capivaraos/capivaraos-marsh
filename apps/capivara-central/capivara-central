@@ -1,0 +1,19 @@
+#!/bin/bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Launcher da Central do Desenvolvedor. O código Python fica em
+# /usr/share/capivara-central (instalado pelo RPM).
+#
+# Com --autostart (usado pelo atalho de autostart de 1º boot), a Central só
+# aparece UMA vez: cria um marcador por usuário e, se ele já existir, sai sem
+# abrir. Aberta pelo menu (sem a flag), sempre roda.
+
+if [ "${1:-}" = "--autostart" ]; then
+    shift
+    FLAG="${XDG_STATE_HOME:-$HOME/.local/state}/capivara-central/shown"
+    if [ -e "$FLAG" ]; then
+        exit 0
+    fi
+    mkdir -p "$(dirname "$FLAG")" && : > "$FLAG"
+fi
+
+exec python3 /usr/share/capivara-central/capivara-central.py "$@"
