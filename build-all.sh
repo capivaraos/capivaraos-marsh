@@ -16,7 +16,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR=/var/tmp/capivaraos-repo
 RESULT_DIR=/var/tmp/capivaraos-marsh-result
-ISO_NAME=CapivaraOS-Marsh-1.2.4-x86_64.iso
+ISO_NAME=CapivaraOS-Marsh-2.0.0-alpha9-x86_64.iso
 
 echo "==> 1/4: Instalando dependências (lorax, rpm-build, ImageMagick, git, createrepo_c)..."
 sudo dnf install -y lorax rpm-build ImageMagick git createrepo_c
@@ -58,7 +58,7 @@ sudo livemedia-creator --ks="$FLAT_KS" \
     --logfile="$LIVEMEDIA_LOG" \
     --project="CapivaraOS Marsh" --make-iso --iso-only \
     --iso-name="$ISO_NAME" \
-    --volid="CapivaraOS Marsh 1.2.4" --variant="CapivaraOS Marsh" \
+    --volid="CapivaraOS Marsh 2.0.0 alpha9" --variant="CapivaraOS Marsh" \
     --releasever=44
 
 # ── TRAVA: a ISO PRECISA conter os updates do Fedora ────────────────────────
@@ -95,6 +95,37 @@ elif [ "$ISO_KERNEL" != "$LATEST_KERNEL" ]; then
     exit 1
 else
     echo "==> OK: ISO com kernel ${ISO_KERNEL} (bate com o repo updates)."
+fi
+
+# ── Título do menu de boot da mídia live (grub) ─────────────────────────────
+# O lorax gera "CapivaraOS Marsh 44" (@PRODUCT@ + @VERSION@=releasever). Trocamos
+# pela versão real (ex.: "CapivaraOS Marsh 2.0.0 (alpha6)"). Edita os dois
+# grub.cfg (BIOS em /boot/grub2, UEFI em /EFI/BOOT) dentro da ISO com xorriso e
+# reimplanta o checksum (implantisomd5) — senão a opção "Test this media" falha.
+# Só cosmético (aparece no boot do pendrive live); passo NÃO-fatal.
+ISO_PATH="${RESULT_DIR}/${ISO_NAME}"
+MENU_TITLE="CapivaraOS Marsh $(echo "$ISO_NAME" | sed -E 's/^CapivaraOS-Marsh-//; s/-x86_64\.iso$//; s/^([0-9.]+)-(.+)$/\1 (\2)/')"
+echo
+echo "==> Ajustando o título do menu de boot da mídia para: ${MENU_TITLE}"
+if command -v xorriso >/dev/null 2>&1; then
+    _GW=$(mktemp -d)
+    for GCFG in /EFI/BOOT/grub.cfg /boot/grub2/grub.cfg; do
+        _b="${_GW}/$(echo "$GCFG" | tr '/' '_')"
+        xorriso -osirrox on -indev "$ISO_PATH" -extract "$GCFG" "$_b" 2>/dev/null || continue
+        sed -i "s|CapivaraOS Marsh 44|${MENU_TITLE}|g" "$_b"
+    done
+    if xorriso -indev "$ISO_PATH" -outdev "${ISO_PATH}.new" -boot_image any replay \
+            -update "${_GW}/_EFI_BOOT_grub.cfg"   /EFI/BOOT/grub.cfg \
+            -update "${_GW}/_boot_grub2_grub.cfg" /boot/grub2/grub.cfg \
+            -commit >/dev/null 2>&1 && [ -s "${ISO_PATH}.new" ]; then
+        mv "${ISO_PATH}.new" "$ISO_PATH"
+        command -v implantisomd5 >/dev/null 2>&1 && implantisomd5 --force "$ISO_PATH" >/dev/null 2>&1
+        echo "==> Título do menu de boot ajustado."
+    else
+        rm -f "${ISO_PATH}.new"
+        echo "AVISO: não consegui reescrever o grub.cfg da ISO; o menu fica '...44' (só cosmético)." >&2
+    fi
+    rm -rf "$_GW"
 fi
 
 echo

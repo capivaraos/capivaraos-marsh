@@ -27,6 +27,10 @@
 # Gerado por ../build-all.sh (rpm/build-rpm.sh + createrepo_c) em
 # /var/tmp/capivaraos-repo. Ajuste o caminho se mover o repositório local.
 repo --name=capivaraos-local --baseurl=file:///var/tmp/capivaraos-repo
+# NOTA: RPM Fusion NAO e habilitado aqui (build/payload). Habilitar no build
+# forcava a troca ffmpeg-free -> ffmpeg, que a transacao do compose nao faz
+# (sem --allowerasing) e quebrava a instalacao. RPM Fusion + codecs foram para
+# o %post com "dnf swap" -- ver capivaraos-post-devstation.ks. FEAT-88.
 
 # ── IDIOMA / TECLADO / FUSO (sobrescreve os defaults en_US do fedora-live-base) ─
 # Equivalente ao "locales=pt_BR.UTF-8 keyboard-layouts=br" do live-build
@@ -48,6 +52,16 @@ network --hostname=capivaraos
 # tema "Sobre o Sistema" do Fedora). Ver rpm/capivaraos-branding.spec.
 -fedora-release-kde-desktop
 capivaraos-branding
+
+# Tema e config do greeter SDDM. sddm-breeze provê os temas QML (breeze e
+# 01-breeze-fedora) e kde-settings-sddm põe "Current=01-breeze-fedora". São
+# dependências FRACAS (Recommends) que vinham via fedora-release-kde-desktop
+# (que excluímos acima); sem elas o /usr/share/sddm/themes fica VAZIO e o
+# greeter Plasma cai no fundo padrão do Fedora (mapa-múndi), ignorando qualquer
+# customização de tema. Instalando explícito, o tema existe e o %posttrans do
+# capivaraos-branding troca o background para o wallpaper luar (FEAT-108).
+sddm-breeze
+kde-settings-sddm
 
 # Tema Plymouth do CapivaraOS (capivaraos.script) é um tema "script": precisa
 # do plugin script.so do plymouth para ser renderizado. Sem este pacote,
@@ -83,12 +97,19 @@ libreoffice-help-pt-BR
 libreoffice-kf6
 
 # ===== INTERNET =====
-thunderbird
+# Thunderbird -> OPCIONAL/onboarding na linha 2.x (dev jovem usa webmail). FEAT-89.
 
 # ===== MIDIA =====
 vlc
-gimp
+# Dragon Player e K3b vêm via @kde-apps; removidos (VLC cobre mídia; gravação de
+# disco é irrelevante no foco dev/notebook moderno). Feedback alpha1 — FEAT-107.
+-dragon
+-k3b
+# GIMP -> OPCIONAL/onboarding na linha 2.x (nichado num foco dev). FEAT-89.
 # gwenview já incluso via @kde-media / @kde-apps
+# Codecs (RPM Fusion) movidos para o %post com "dnf swap ffmpeg-free ffmpeg":
+# habilitar RPM Fusion no build quebrava a transacao. Ver
+# capivaraos-post-devstation.ks / FEAT-88.
 
 # ===== UTILITARIOS =====
 gparted
@@ -106,6 +127,33 @@ git
 nano
 vim-enhanced
 @development-tools
+
+# ===== ESTACAO DE DEV (linha 2.x) — pacotes do Fedora oficial. FEAT-89 =====
+# NOTA: VSCodium, mise, starship e lazygit vêm de repos externos e sao
+# instalados no %post (capivaraos-post-devstation.ks) com chave GPG explicita.
+# Semgrep (pipx), extensao Continue (Open VSX) e Flathub tambem ficam no %post.
+#
+# -- Seguranca shift-left (SAST/segredos/deps) --
+gitleaks
+pre-commit
+trivy
+# -- IA local: ollama MOVIDO para o onboarding (FEAT-90), nao vem mais no base --
+# O ollama e suas dependencias obrigatorias de GPU (rocblas ~974 MB + rocm-hip)
+# somam ~1,9 GB e eram o unico motivo de a raiz do live ter subido de 16->24 GiB
+# (ver fedora-live-base.ks). Como "GPU accel" ja e OPCIONAL e a filosofia e "ISO
+# enxuta + Central do Desenvolvedor liga os opcionais sob demanda", o pacote de
+# IA local inteiro (ollama runtime + cliente Alpaca + extensao Continue) passa a
+# ser instalado no 1o boot pelo onboarding. Requisito de disco cai de ~27 p/
+# ~21 GB. Decisao do usuario 2026-08-21 (reverte a escolha de 19/08). FEAT-89/90.
+# -- Ambiente de desenvolvimento --
+gh
+podman
+distrobox
+# -- Gerenciador de senhas (pegada de seguranca) --
+keepassxc
+# -- Snapshots "atualize sem medo" (Btrfs nativo do Fedora) --
+btrfs-assistant
+snapper
 
 # ===== FONTES =====
 liberation-fonts
@@ -132,3 +180,4 @@ ImageMagick
 # =============================================================================
 %include capivaraos-post-branding.ks
 %include capivaraos-post-theme.ks
+%include capivaraos-post-devstation.ks
