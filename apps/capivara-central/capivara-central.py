@@ -10,7 +10,7 @@ import os
 import sys
 import signal
 
-from PySide6.QtCore import QUrl, QCoreApplication, Qt
+from PySide6.QtCore import QUrl
 from PySide6.QtGui import QIcon
 from PySide6.QtQml import QQmlApplicationEngine
 
@@ -44,7 +44,6 @@ def main() -> int:
     # Ctrl+C encerra o app quando rodado no terminal (dev).
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling)
     app = QApplication(sys.argv)
     app.setApplicationName("Central do Desenvolvedor")
     app.setOrganizationName("CapivaraOS")
