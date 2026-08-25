@@ -14,7 +14,12 @@ Kirigami.ApplicationWindow {
     minimumHeight: Kirigami.Units.gridUnit * 24
 
     // Sem sidebar global: é um fluxo de onboarding, então usamos o pageStack.
+    // Coluna ÚNICA: numa janela larga o pageStack mostraria a boas-vindas e o
+    // catálogo lado a lado (2 colunas), fazendo o "Começar" parecer que não
+    // navega. Em coluna única ele desliza a tela cheia p/ o catálogo, com botão
+    // de voltar no cabeçalho.
     pageStack.globalToolBar.style: Kirigami.ApplicationHeaderStyle.ToolBar
+    pageStack.columnView.columnResizeMode: Kirigami.ColumnView.SingleColumn
     pageStack.initialPage: welcomePage
 
     WelcomePage {
