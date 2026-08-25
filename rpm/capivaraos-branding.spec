@@ -17,7 +17,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.9.alpha9%{?dist}.marsh
+Release:        0.10.alpha10%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -568,8 +568,12 @@ for i in \$(seq 1 30); do
 done
 sleep 2
 
+# Aplica o DIRETORIO do pacote (nao o arquivo): assim o Plasma marca o tile
+# "CapivaraOS Luar" como atual. Passar o arquivo (.../1920x1080.png) fazia o
+# Plasma criar um tile de imagem avulsa nomeado pela resolucao ("1920x1080"),
+# separado e duplicado do pacote.
 if command -v plasma-apply-wallpaperimage >/dev/null 2>&1; then
-    plasma-apply-wallpaperimage "${DEFAULT_WP_IMG}" >/dev/null 2>&1
+    plasma-apply-wallpaperimage "${DEFAULT_WP_PKG}" >/dev/null 2>&1
 fi
 
 mkdir -p "\$HOME/.config"
@@ -897,12 +901,30 @@ done
 # que a tela de bloqueio do Plasma mostra. Sobrescrevemos com o luar (JXL). Feito
 # no %posttrans (depois do desktop-backgrounds-compat instalar) e reaplicado por
 # %transfiletriggerin quando esse pacote atualizar (que reverteria o arquivo).
+# IMPORTANTE: default.jxl e um SYMLINK -> ./f44/default/f44-01-day.jxl (idem o
+# -dark, -> f44-01-night.jxl). Um "cp -f" escreve ATRAVES do link e sobrescreve a
+# arte REAL do Fedora (era o que fazia o wallpaper "Fedora Forty-Four" aparecer
+# com o luar). "cp --remove-destination" apaga o link antes e grava um arquivo
+# real -> os originais do Fedora ficam intactos.
 if [ -f %{_datadir}/capivaraos/capivaraos-default.jxl ]; then
     for BG in default.jxl default-dark.jxl; do
         [ -e %{_datadir}/backgrounds/$BG ] && \
-            cp -f %{_datadir}/capivaraos/capivaraos-default.jxl %{_datadir}/backgrounds/$BG
+            cp --remove-destination %{_datadir}/capivaraos/capivaraos-default.jxl \
+                %{_datadir}/backgrounds/$BG
     done
 fi
+
+# ── Remove os wallpapers de marca Fedora do seletor do Plasma ────────────────
+# O seletor deve listar so os 8 do CapivaraOS + os neutros do KDE
+# (plasma-workspace-wallpapers). As 3 entradas "Fedora KDE SIG" saem:
+# F44 ("Fedora Forty-Four"), Fedora e Default. NAO removemos os PACOTES:
+# kde-settings-plasma (dono de "Fedora") e essencial e desktop-backgrounds-kde
+# EXIGE f44-backgrounds-kde -> excluir no kickstart arrastaria dependencia. Entao
+# apagamos so os diretorios do seletor. Reaplicado por %transfiletriggerin em
+# %{_datadir}/wallpapers caso um update reinstale-os.
+for WP in F44 Fedora Default; do
+    rm -rf %{_datadir}/wallpapers/"$WP"
+done
 
 # Tema padrao do Plymouth (boot/desligamento): escrito direto aqui, em vez de
 # depender so do "plymouth-set-default-theme capivaraos" do %post, porque o
@@ -926,14 +948,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha9, preview)"
+VERSION="Marsh 2.0.0 (alpha10, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha9, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha10, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -946,24 +968,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha9, preview)"
+VARIANT="Marsh 2.0.0 (alpha10, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha9, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha10, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha9, preview)
+CapivaraOS Marsh 2.0.0 (alpha10, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha9, preview)
+Variant=Marsh 2.0.0 (alpha10, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1003,14 +1025,14 @@ EOF
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha9, preview)"
+VERSION="Marsh 2.0.0 (alpha10, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha9, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha10, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1023,17 +1045,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha9, preview)"
+VARIANT="Marsh 2.0.0 (alpha10, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha9, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha10, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha9, preview)
+CapivaraOS Marsh 2.0.0 (alpha10, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1064,7 +1086,18 @@ done
 for BG in default.jxl default-dark.jxl; do
     [ -e %{_datadir}/backgrounds/$BG ] || continue
     cmp -s %{_datadir}/capivaraos/capivaraos-default.jxl %{_datadir}/backgrounds/$BG && continue
-    cp -f %{_datadir}/capivaraos/capivaraos-default.jxl %{_datadir}/backgrounds/$BG
+    # --remove-destination: nao escrever ATRAVES do symlink para o f44 do Fedora.
+    cp --remove-destination %{_datadir}/capivaraos/capivaraos-default.jxl \
+        %{_datadir}/backgrounds/$BG
+done
+
+# Mantem os wallpapers de marca Fedora fora do seletor apos updates que
+# reinstalem os pacotes donos (f44-backgrounds-kde / kde-settings-plasma /
+# desktop-backgrounds-kde). Prefixo de DIRETORIO (o %transfiletriggerin so casa
+# prefixo de diretorio, nunca caminho exato).
+%transfiletriggerin -- %{_datadir}/wallpapers
+for WP in F44 Fedora Default; do
+    rm -rf %{_datadir}/wallpapers/"$WP"
 done
 
 %files
@@ -1100,6 +1133,19 @@ done
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Tue Aug 25 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.10.alpha10
+- Seletor de wallpaper: elimina as copias duplicadas do luar. (1) O script
+  capivaraos-set-wallpaper passa a aplicar o DIRETORIO do pacote (nao o arquivo)
+  -> some o tile de imagem avulsa "1920x1080" separado do "CapivaraOS Luar".
+  (2) O default.jxl e symlink para o f44 do Fedora: troca cp -f por
+  cp --remove-destination (%posttrans e %transfiletriggerin) para nao escrever
+  ATRAVES do link e sobrescrever a arte do Fedora com o luar.
+- Remove os wallpapers de marca Fedora do seletor (F44="Fedora Forty-Four",
+  Fedora, Default): apaga so os diretorios em %posttrans + %transfiletriggerin
+  (nao da para excluir os pacotes: kde-settings-plasma e essencial e
+  desktop-backgrounds-kde exige f44-backgrounds-kde). Fica so os 8 do CapivaraOS
+  + os neutros do plasma-workspace-wallpapers, com o luar como padrao.
+
 * Fri Aug 21 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.9.alpha9
 - Rotulo do disco: no alpha8 o relabel JA FUNCIONAVA (o journal mostrava
   "btrfs -> capivaraos" e o findmnt confirmava capivaraos), mas o Dolphin seguia
