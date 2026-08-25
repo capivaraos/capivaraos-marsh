@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-// Janela principal da Central do Desenvolvedor.
+// Janela principal da COS Dev Center.
 import QtQuick
 import QtQuick.Controls as Controls
 import org.kde.kirigami as Kirigami
@@ -7,7 +7,7 @@ import org.kde.kirigami as Kirigami
 Kirigami.ApplicationWindow {
     id: root
 
-    title: qsTr("Central do Desenvolvedor")
+    title: qsTr("COS Dev Center")
     width: Kirigami.Units.gridUnit * 44
     height: Kirigami.Units.gridUnit * 32
     minimumWidth: Kirigami.Units.gridUnit * 30

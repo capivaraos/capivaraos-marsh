@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Central do Desenvolvedor — app de onboarding pt-BR do CapivaraOS Marsh.
+# COS Dev Center — app de onboarding pt-BR do CapivaraOS Marsh.
 #
 # UI em QML/Kirigami (nativa do KDE Plasma); a lógica de instalação fica no
 # backend.py (PySide6). Ponto de entrada: carrega qml/main.qml e injeta o
@@ -45,7 +45,7 @@ def main() -> int:
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
     app = QApplication(sys.argv)
-    app.setApplicationName("Central do Desenvolvedor")
+    app.setApplicationName("COS Dev Center")
     app.setOrganizationName("CapivaraOS")
     app.setDesktopFileName(APP_ID)
     QIcon.setThemeName(QIcon.themeName() or "breeze")

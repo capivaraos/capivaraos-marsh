@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Backend da Central do Desenvolvedor (CapivaraOS Marsh).
+# Backend da COS Dev Center (CapivaraOS Marsh).
 #
 # Expõe ações de instalação ao QML e transmite o progresso linha a linha.
 # Cada ação roda um script orquestrador (em /usr/libexec/capivara-central)

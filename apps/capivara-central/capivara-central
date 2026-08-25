@@ -1,6 +1,6 @@
 #!/bin/bash
 # SPDX-License-Identifier: GPL-3.0-or-later
-# Launcher da Central do Desenvolvedor. O código Python fica em
+# Launcher da COS Dev Center. O código Python fica em
 # /usr/share/capivara-central (instalado pelo RPM).
 #
 # Com --autostart (usado pelo atalho de autostart de 1º boot), a Central só

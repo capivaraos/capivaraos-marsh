@@ -1,9 +1,9 @@
 Name:           capivara-central
-Version:        0.1.0
+Version:        0.1.1
 Release:        1%{?dist}.marsh
-Summary:        Central do Desenvolvedor — onboarding do CapivaraOS Marsh
+Summary:        COS Dev Center — onboarding do CapivaraOS Marsh
 
-# App próprio (GPLv3); a cabeça da capivara usada como ícone é marca reservada.
+# App próprio (GPLv3); o ícone "COS Dev" (tile CapivaraOS) é marca reservada.
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark
 URL:            https://capivaraos.org
 Source0:        %{name}-%{version}.tar.gz
@@ -17,7 +17,7 @@ Requires:       polkit
 Requires:       flatpak
 
 %description
-Central do Desenvolvedor é o app de onboarding em português do CapivaraOS
+COS Dev Center é o app de onboarding em português do CapivaraOS
 Marsh. No primeiro boot, oferece instalar em um clique os extras opcionais da
 estação de desenvolvimento — a começar pelo pacote de IA local (Ollama +
 Alpaca + extensão Continue no VSCodium). Interface nativa do KDE Plasma
@@ -50,8 +50,12 @@ install -Dm0644 data/org.capivaraos.central.policy \
 # --- .desktop + ícone ---
 install -Dm0644 data/org.capivaraos.Central.desktop \
     %{buildroot}%{_datadir}/applications/org.capivaraos.Central.desktop
-install -Dm0644 data/org.capivaraos.Central.png \
-    %{buildroot}%{_datadir}/icons/hicolor/256x256/apps/org.capivaraos.Central.png
+# Icone "COS Dev" (tile arredondado com fundo transparente), varios tamanhos
+# nativos para nitidez no menu/dock/barra de titulo.
+for S in 48 64 128 256 512; do
+    install -Dm0644 data/org.capivaraos.Central-${S}.png \
+        %{buildroot}%{_datadir}/icons/hicolor/${S}x${S}/apps/org.capivaraos.Central.png
+done
 
 # --- Autostart de 1º boot (via /etc/skel; a Central abre uma vez no 1º login) ---
 install -Dm0644 data/org.capivaraos.Central-autostart.desktop \
@@ -65,10 +69,16 @@ install -Dm0644 data/org.capivaraos.Central-autostart.desktop \
 %{_libexecdir}/%{name}/
 %{_datadir}/polkit-1/actions/org.capivaraos.central.policy
 %{_datadir}/applications/org.capivaraos.Central.desktop
-%{_datadir}/icons/hicolor/256x256/apps/org.capivaraos.Central.png
+%{_datadir}/icons/hicolor/*/apps/org.capivaraos.Central.png
 %{_sysconfdir}/skel/.config/autostart/org.capivaraos.Central.desktop
 
 %changelog
+* Tue Aug 25 2026 CapivaraOS Bot <capivaraos-bot@users.noreply.github.com> - 0.1.1-1.marsh
+- Renomeia o app para "COS Dev Center" (nome exibido; id tecnico segue
+  org.capivaraos.Central / capivara-central).
+- Novo icone "COS Dev" (tile arredondado com fundo transparente), instalado em
+  varios tamanhos nativos (48/64/128/256/512) no hicolor.
+
 * Mon Aug 24 2026 CapivaraOS Bot <capivaraos-bot@users.noreply.github.com> - 0.1.0-1.marsh
 - MVP: casca do onboarding (Kirigami) + card "IA local" (Ollama + Alpaca +
   extensao Continue), com etapa privilegiada via polkit. FEAT-90.

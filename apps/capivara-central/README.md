@@ -1,4 +1,4 @@
-# Central do Desenvolvedor
+# COS Dev Center
 
 App de onboarding em português do **CapivaraOS Marsh** (linha 2.x). No primeiro
 boot, oferece instalar em um clique os extras **opcionais** da estação de dev —
