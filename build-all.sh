@@ -16,7 +16,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR=/var/tmp/capivaraos-repo
 RESULT_DIR=/var/tmp/capivaraos-marsh-result
-ISO_NAME=CapivaraOS-Marsh-2.0.0-alpha10-x86_64.iso
+ISO_NAME=CapivaraOS-Marsh-2.0.0-alpha11-x86_64.iso
 
 echo "==> 1/4: Instalando dependências (lorax, rpm-build, ImageMagick, git, createrepo_c)..."
 sudo dnf install -y lorax rpm-build ImageMagick git createrepo_c
@@ -64,7 +64,7 @@ sudo livemedia-creator --ks="$FLAT_KS" \
     --logfile="$LIVEMEDIA_LOG" \
     --project="CapivaraOS Marsh" --make-iso --iso-only \
     --iso-name="$ISO_NAME" \
-    --volid="CapivaraOS Marsh 2.0.0 alpha10" --variant="CapivaraOS Marsh" \
+    --volid="CapivaraOS Marsh 2.0.0 alpha11" --variant="CapivaraOS Marsh" \
     --releasever=44
 
 # ── TRAVA: a ISO PRECISA conter os updates do Fedora ────────────────────────

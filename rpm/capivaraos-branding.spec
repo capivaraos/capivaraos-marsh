@@ -17,7 +17,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.10.alpha10%{?dist}.marsh
+Release:        0.11.alpha11%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -133,6 +133,16 @@ convert build/cockpit/logo.png -resize 32x32 build/cockpit/favicon.ico
 # wallpaper padrao do sistema com a marca. (magick tem suporte a escrever JXL.)
 mkdir -p build/backgrounds
 convert backgrounds/capivaraos-wp-moonlight.png build/backgrounds/capivaraos-default.jxl
+
+# ── Fundo do greeter do SDDM em Full HD (1920x1080) ─────────────────────────
+# A arte-fonte do luar e 4K (3840x2160). O plasma-login-greeter roda ANTES do
+# login e inicializa o proprio contexto GL; em VMs/GL degradado (ex.: ZINK sem
+# Vulkan) uma textura 3840 de largura estoura o GL_MAX_TEXTURE_SIZE do driver e
+# o fundo sai PRETO (a UI, com texturas pequenas, ainda aparece). A tela de
+# bloqueio funciona por rodar DENTRO da sessao, com GL ja inicializado. Damos ao
+# greeter uma versao 1920x1080, que cabe no limite mesmo com GL fraco.
+convert backgrounds/capivaraos-wp-moonlight.png -resize 1920x1080 \
+    build/backgrounds/capivaraos-sddm-1080.png
 
 # Spinner branco (arco girando) exibido logo abaixo da logo no splash.
 # Geramos 30 quadros, cada um girado 12°, e o script do Plymouth os cicla.
@@ -414,6 +424,8 @@ install -d %{buildroot}%{_datadir}/capivaraos
 install -m 0644 build/pixmaps/capivaraos-face.png %{buildroot}%{_datadir}/capivaraos/capivaraos-face.png
 # JXL do luar (usado no %posttrans para sobrescrever o default.jxl do sistema)
 install -m 0644 build/backgrounds/capivaraos-default.jxl %{buildroot}%{_datadir}/capivaraos/capivaraos-default.jxl
+# Fundo 1920x1080 do greeter do SDDM (evita textura 4K que fica preta em GL fraco)
+install -m 0644 build/backgrounds/capivaraos-sddm-1080.png %{buildroot}%{_datadir}/capivaraos/sddm-background.png
 
 # ── Layout estilo macOS: script JS do Plasma + autostarts de aplicação única ─
 install -d %{buildroot}%{_datadir}/capivaraos
@@ -891,7 +903,7 @@ for T in 01-breeze-fedora breeze; do
     TC=%{_datadir}/sddm/themes/$T/theme.conf
     [ -f "$TC" ] || continue
     sed -i \
-        -e "s|^background=.*|background=%{_datadir}/wallpapers/capivaraos-luar/contents/images/1920x1080.png|" \
+        -e "s|^background=.*|background=%{_datadir}/capivaraos/sddm-background.png|" \
         -e "s|^logo=.*|logo=%{_datadir}/pixmaps/capivaraos-white.png|" \
         "$TC"
 done
@@ -948,14 +960,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha10, preview)"
+VERSION="Marsh 2.0.0 (alpha11, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha10, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha11, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -968,24 +980,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha10, preview)"
+VARIANT="Marsh 2.0.0 (alpha11, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha10, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha11, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha10, preview)
+CapivaraOS Marsh 2.0.0 (alpha11, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha10, preview)
+Variant=Marsh 2.0.0 (alpha11, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1025,14 +1037,14 @@ EOF
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha10, preview)"
+VERSION="Marsh 2.0.0 (alpha11, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha10, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha11, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1045,17 +1057,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha10, preview)"
+VARIANT="Marsh 2.0.0 (alpha11, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha10, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha11, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha10, preview)
+CapivaraOS Marsh 2.0.0 (alpha11, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1072,9 +1084,9 @@ done
 for T in 01-breeze-fedora breeze; do
     TC=%{_datadir}/sddm/themes/$T/theme.conf
     [ -f "$TC" ] || continue
-    grep -q '^background=%{_datadir}/wallpapers/capivaraos-luar' "$TC" && continue
+    grep -q '^background=%{_datadir}/capivaraos/sddm-background.png$' "$TC" && continue
     sed -i \
-        -e "s|^background=.*|background=%{_datadir}/wallpapers/capivaraos-luar/contents/images/1920x1080.png|" \
+        -e "s|^background=.*|background=%{_datadir}/capivaraos/sddm-background.png|" \
         -e "s|^logo=.*|logo=%{_datadir}/pixmaps/capivaraos-white.png|" \
         "$TC"
 done
@@ -1133,6 +1145,16 @@ done
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Tue Aug 25 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.11.alpha11
+- Login SDDM preto em VM: o plasma-login-greeter roda antes do login e
+  inicializa o proprio GL; em VM/GL degradado (ZINK sem Vulkan) a textura 4K do
+  fundo (a arte do luar e 3840x2160) estoura o GL_MAX_TEXTURE_SIZE e o fundo sai
+  preto -- so a UI (texturas pequenas) aparece. A tela de bloqueio funciona por
+  rodar DENTRO da sessao. Fix: gera um fundo 1920x1080 dedicado
+  (%{_datadir}/capivaraos/sddm-background.png) e aponta o background do
+  theme.conf do SDDM para ele (%posttrans + %transfiletriggerin). Lock screen
+  segue no luar do pacote. FEAT-108.
+
 * Tue Aug 25 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.10.alpha10
 - Seletor de wallpaper: elimina as copias duplicadas do luar. (1) O script
   capivaraos-set-wallpaper passa a aplicar o DIRETORIO do pacote (nao o arquivo)
