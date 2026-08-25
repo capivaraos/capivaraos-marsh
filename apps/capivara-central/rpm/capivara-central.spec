@@ -1,5 +1,5 @@
 Name:           capivara-central
-Version:        0.1.1
+Version:        0.1.2
 Release:        1%{?dist}.marsh
 Summary:        COS Dev Center — onboarding do CapivaraOS Marsh
 
@@ -73,6 +73,10 @@ install -Dm0644 data/org.capivaraos.Central-autostart.desktop \
 %{_sysconfdir}/skel/.config/autostart/org.capivaraos.Central.desktop
 
 %changelog
+* Tue Aug 25 2026 CapivaraOS Bot <capivaraos-bot@users.noreply.github.com> - 0.1.2-1.marsh
+- Icone "COS Dev": recorte por mascara de retangulo arredondado -> os 4 cantos
+  ficam limpos por igual (a sombra deixava resto cinza nos cantos de baixo).
+
 * Tue Aug 25 2026 CapivaraOS Bot <capivaraos-bot@users.noreply.github.com> - 0.1.1-1.marsh
 - Renomeia o app para "COS Dev Center" (nome exibido; id tecnico segue
   org.capivaraos.Central / capivara-central).
