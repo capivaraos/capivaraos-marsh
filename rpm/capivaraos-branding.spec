@@ -1016,6 +1016,20 @@ Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
 
+# ── Regenera os titulos GRUB/BLS com o os-release JA branded ────────────────
+# No install do Anaconda, o kernel-install roda DURANTE a transacao (antes deste
+# %posttrans), gravando o title BLS a partir do os-release do Fedora ->
+# "Fedora Linux 44". O Anaconda usa esse title como nome do SO ja instalado, e
+# na REINSTALACAO mostra "Reinstalar Fedora"/"Instalado atualmente: Fedora Linux
+# 44" mesmo com o /etc/os-release ja como CapivaraOS. O %transfiletriggerin de
+# /usr/lib nao cobre este caso: como o %posttrans ja brandou o os-release, a
+# guarda dele (NAME="CapivaraOS") faz sair sem regenerar. Entao regeneramos aqui,
+# depois do os-release branded -> os titles passam a "CapivaraOS Marsh ...".
+for kver in $(ls /lib/modules 2>/dev/null); do
+    [ -f "/lib/modules/${kver}/vmlinuz" ] && \
+        kernel-install add "${kver}" "/lib/modules/${kver}/vmlinuz" >/dev/null 2>&1 || true
+done
+
 # ── Reaplica os-release apos qualquer atualizacao futura do sistema ────────
 # Nao declaramos /etc/os-release em %files (evita conflito na transacao da
 # ISO), so sobrescrevemos o conteudo. Logo o arquivo continua pertencendo ao
@@ -1167,6 +1181,12 @@ done
   QT_QUICK_BACKEND=software,LIBGL_ALWAYS_SOFTWARE=1). So afeta o greeter, nao a
   sessao do usuario; o fundo do login passa a renderizar em qualquer VM/hardware.
   Mantido o fundo 1920x1080. FEAT-108.
+- Anaconda dizia "Reinstalar Fedora"/"Instalado atualmente: Fedora Linux 44" ao
+  reinstalar sobre um CapivaraOS ja instalado. Causa: o titulo GRUB/BLS e gravado
+  pelo kernel-install DURANTE a transacao (os-release ainda do Fedora); o
+  %posttrans branda o os-release mas nao regenerava o BLS, e o trigger de
+  /usr/lib sai pela guarda. Fix: regenera as entradas BLS no %posttrans, depois
+  do os-release branded -> titulo vira "CapivaraOS Marsh ...".
 
 * Tue Aug 25 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.11.alpha11
 - Login SDDM preto em VM: o plasma-login-greeter roda antes do login e
