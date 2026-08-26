@@ -1,5 +1,5 @@
 Name:           capivara-central
-Version:        0.1.2
+Version:        0.1.3
 Release:        1%{?dist}.marsh
 Summary:        COS Dev Center — onboarding do CapivaraOS Marsh
 
@@ -73,6 +73,14 @@ install -Dm0644 data/org.capivaraos.Central-autostart.desktop \
 %{_sysconfdir}/skel/.config/autostart/org.capivaraos.Central.desktop
 
 %changelog
+* Wed Aug 26 2026 CapivaraOS Bot <capivaraos-bot@users.noreply.github.com> - 0.1.3-1.marsh
+- Card "IA local": botao "Abrir o Alpaca" quando instalado (abre direto, sem
+  cacar no menu). openAiLocal() no backend (flatpak run com.jeffser.Alpaca).
+- Deteccao de instalado agora exige Ollama E Alpaca (antes marcava "Instalado"
+  so pelo Ollama, mesmo se o Alpaca falhasse) -- se faltar Alpaca, o card volta
+  a oferecer instalar.
+- Helper: garante o remote Flathub (--if-not-exists) antes de instalar o Alpaca.
+
 * Tue Aug 25 2026 CapivaraOS Bot <capivaraos-bot@users.noreply.github.com> - 0.1.2-1.marsh
 - Icone "COS Dev": recorte por mascara de retangulo arredondado -> os 4 cantos
   ficam limpos por igual (a sombra deixava resto cinza nos cantos de baixo).

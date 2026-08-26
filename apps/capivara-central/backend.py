@@ -9,8 +9,12 @@
 
 import os
 import shutil
+import subprocess
 
 from PySide6.QtCore import QObject, Signal, Slot, Property, QProcess
+
+# App-id do Alpaca no Flathub (interface gráfica da IA local).
+ALPACA_APP_ID = "com.jeffser.Alpaca"
 
 # Diretório dos helpers. Em produção é /usr/libexec/capivara-central (instalado
 # pelo RPM); em desenvolvimento cai para a pasta libexec/ ao lado deste arquivo.
@@ -60,6 +64,13 @@ class Backend(QObject):
         """Instala o pacote de IA local: Ollama + Alpaca + extensão Continue."""
         self._run(_helper("setup-ai"), step="Preparando instalação da IA local…")
 
+    @Slot()
+    def openAiLocal(self):
+        """Abre o Alpaca (interface gráfica da IA local), sem caçar no menu."""
+        if not QProcess.startDetached("flatpak", ["run", ALPACA_APP_ID]):
+            # Fallback: launcher .desktop do Flatpak (system).
+            QProcess.startDetached("gtk-launch", [ALPACA_APP_ID])
+
     # ---- Execução com streaming ------------------------------------------
     def _run(self, program: str, step: str = ""):
         if self._busy:
@@ -102,5 +113,19 @@ class Backend(QObject):
     # ---- Consultas simples de estado (para os cards) ---------------------
     @Slot(result=bool)
     def isAiLocalInstalled(self) -> bool:
-        """True se o Ollama já está presente (pré-marca o card como pronto)."""
-        return shutil.which("ollama") is not None
+        """True só quando o pacote está completo: Ollama (motor) E Alpaca
+        (interface). Se o Alpaca falhou, o card volta a oferecer instalar."""
+        return shutil.which("ollama") is not None and self._alpaca_installed()
+
+    @staticmethod
+    def _alpaca_installed() -> bool:
+        """True se o Alpaca (Flatpak) está instalado no sistema."""
+        try:
+            r = subprocess.run(
+                ["flatpak", "info", "--system", ALPACA_APP_ID],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                timeout=10,
+            )
+            return r.returncode == 0
+        except (OSError, subprocess.SubprocessError):
+            return False

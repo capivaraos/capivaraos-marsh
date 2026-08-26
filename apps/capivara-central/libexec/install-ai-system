@@ -17,7 +17,10 @@ echo ">>> Ativando o serviço do Ollama"
 systemctl enable --now ollama.service || echo "AVISO: não consegui ativar o serviço ollama agora."
 
 echo ">>> Instalando o Alpaca (interface gráfica do Ollama)"
-# Flathub é adicionado no %post da ISO (capivaraos-post-devstation.ks).
+# Flathub costuma vir do %post da ISO (capivaraos-post-devstation.ks); garantimos
+# o remote aqui também (idempotente) para o card não falhar em silêncio.
+flatpak remote-add --system --if-not-exists flathub \
+    https://flathub.org/repo/flathub.flatpakrepo || true
 flatpak install --system -y --noninteractive flathub com.jeffser.Alpaca \
     || echo "AVISO: não consegui instalar o Alpaca pelo Flathub agora (verifique a conexão)."
 

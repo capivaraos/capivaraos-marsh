@@ -34,6 +34,8 @@ Kirigami.ScrollablePage {
             iconName: "system-run"
             actionText: qsTr("Instalar IA local")
             installed: page.aiInstalled
+            openable: true
+            openText: qsTr("Abrir o Alpaca")
             globalBusy: backend.busy
             onActivated: {
                 logView.clear()
@@ -41,6 +43,7 @@ Kirigami.ScrollablePage {
                 progressSheet.open()
                 backend.installAiLocal()
             }
+            onOpenRequested: backend.openAiLocal()
         }
 
         // Espaço reservado para as próximas levas (desabilitado no MVP).
