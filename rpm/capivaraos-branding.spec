@@ -17,7 +17,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.13.alpha13%{?dist}.marsh
+Release:        0.14.alpha14%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -657,19 +657,15 @@ EOF
 
 # ── Wallpaper do login (plasma-login-manager) -> luar ───────────────────────
 # O gerenciador de login da ISO e o plasma-login-manager (plasmalogin.service),
-# NAO o SDDM. O fundo do greeter dele vem de /usr/lib/plasmalogin/defaults.conf,
-# que aponta para Image=file:///usr/share/wallpapers/Fedora/ -- um pacote de
-# wallpaper que REMOVEMOS do seletor (FEAT-105). Sem o pacote, o login fica
-# PRETO. Sobrescrevemos com um drop-in em /etc/plasmalogin.conf.d/ apontando o
-# fundo do greeter para o pacote KDE do luar (que mantivemos). Nao editamos o
-# defaults.conf do Fedora (ele volta em update). Ver FEAT-108.
-install -d %{buildroot}%{_sysconfdir}/plasmalogin.conf.d
-cat > %{buildroot}%{_sysconfdir}/plasmalogin.conf.d/10-capivaraos-wallpaper.conf << 'EOF'
-[Greeter][Wallpaper][org.kde.image][General]
-Image=file:///usr/share/wallpapers/capivaraos-luar/
-PreviewImage=file:///usr/share/wallpapers/capivaraos-luar/
-EOF
-
+# NAO o SDDM. O fundo do greeter vem de /usr/lib/plasmalogin/defaults.conf, que
+# aponta para Image=file:///usr/share/wallpapers/Fedora/ -- um pacote de wallpaper
+# que REMOVEMOS do seletor (FEAT-105); sem o pacote, o login fica PRETO.
+# TESTADO: um drop-in em /etc/plasmalogin.conf.d/ NAO surte efeito (o greeter le
+# o wallpaper SO do defaults.conf do vendor, nao da cascata do /etc). O que
+# funciona (confirmado ao vivo na VM) e reescrever o proprio defaults.conf. Isso
+# e feito no %posttrans (instalacao) e reaplicado por %transfiletriggerin quando o
+# plasma-login-manager atualizar (ele reescreve o defaults.conf de volta p/
+# Fedora). Ver FEAT-108 / BUG-43.
 # ── Rotulo da raiz do sistema instalado -> "capivaraos" ─────────────────────
 # O instalador (Anaconda/blivet) rotula o volume raiz com o "short product name"
 # derivado internamente, que acaba saindo "fedora" (visto no gerenciador de
@@ -941,6 +937,21 @@ if [ -f %{_datadir}/capivaraos/capivaraos-default.jxl ]; then
     done
 fi
 
+# ── Fundo do login (plasma-login-manager) -> luar ───────────────────────────
+# O greeter le o wallpaper de /usr/lib/plasmalogin/defaults.conf (Image/
+# PreviewImage sob [Greeter][Wallpaper][org.kde.image][General]). O padrao do
+# Fedora aponta p/ .../wallpapers/Fedora/, que removemos -> login PRETO. Um
+# drop-in em /etc/plasmalogin.conf.d/ NAO funciona (o greeter nao le a cascata do
+# /etc p/ o wallpaper). Reescrevemos as duas chaves no proprio defaults.conf p/ o
+# pacote KDE do luar (mantido). Feito aqui no %posttrans (depois que o
+# plasma-login-manager instalou o defaults.conf). Confirmado ao vivo. BUG-43.
+PLD=%{_prefix}/lib/plasmalogin/defaults.conf
+if [ -f "$PLD" ]; then
+    sed -i -E \
+        's,^(Image|PreviewImage)=.*,\1=file:///usr/share/wallpapers/capivaraos-luar/,' \
+        "$PLD"
+fi
+
 # ── Remove os wallpapers de marca Fedora do seletor do Plasma ────────────────
 # O seletor deve listar so os 8 do CapivaraOS + os neutros do KDE
 # (plasma-workspace-wallpapers). As 3 entradas "Fedora KDE SIG" saem:
@@ -975,14 +986,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha13, preview)"
+VERSION="Marsh 2.0.0 (alpha14, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha13, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha14, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -995,24 +1006,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha13, preview)"
+VARIANT="Marsh 2.0.0 (alpha14, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha13, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha14, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha13, preview)
+CapivaraOS Marsh 2.0.0 (alpha14, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha13, preview)
+Variant=Marsh 2.0.0 (alpha14, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1066,14 +1077,14 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha13, preview)"
+VERSION="Marsh 2.0.0 (alpha14, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha13, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha14, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1086,17 +1097,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha13, preview)"
+VARIANT="Marsh 2.0.0 (alpha14, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha13, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha14, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha13, preview)
+CapivaraOS Marsh 2.0.0 (alpha14, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1141,6 +1152,18 @@ for WP in F44 Fedora Default; do
     rm -rf %{_datadir}/wallpapers/"$WP"
 done
 
+# Reaplica o fundo do login quando o plasma-login-manager for atualizado (o
+# update reescreve /usr/lib/plasmalogin/defaults.conf de volta p/ o wallpaper
+# Fedora -> login PRETO). Prefixo de DIRETORIO (%transfiletriggerin so casa
+# prefixo de diretorio). BUG-43.
+%transfiletriggerin -- %{_prefix}/lib/plasmalogin
+PLD=%{_prefix}/lib/plasmalogin/defaults.conf
+[ -f "$PLD" ] || exit 0
+grep -q '^Image=file:///usr/share/wallpapers/capivaraos-luar/$' "$PLD" && exit 0
+sed -i -E \
+    's,^(Image|PreviewImage)=.*,\1=file:///usr/share/wallpapers/capivaraos-luar/,' \
+    "$PLD"
+
 %files
 %license fonts/LICENSE-FiraCode-OFL.txt
 %{_datadir}/pixmaps/capivaraos.png
@@ -1161,7 +1184,6 @@ done
 %{_sysconfdir}/xdg/autostart/capivaraos-wallpaper.desktop
 %{_sysconfdir}/xdg/autostart/capivaraos-layout.desktop
 %{_sysconfdir}/xdg/autostart/capivaraos-avatar.desktop
-%config(noreplace) %{_sysconfdir}/plasmalogin.conf.d/10-capivaraos-wallpaper.conf
 %{_sysconfdir}/skel/.config/plasma-org.kde.plasma.desktop-appletsrc
 %{_sysconfdir}/skel/.config/kscreenlockerrc
 %{_sysconfdir}/skel/.config/kdeglobals
@@ -1175,6 +1197,15 @@ done
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Wed Aug 26 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.14.alpha14
+- Login PRETO (2a rodada): o drop-in em /etc/plasmalogin.conf.d/ do alpha13 NAO
+  surtiu efeito -- o greeter do plasma-login-manager le o wallpaper SO do
+  defaults.conf do vendor, nao da cascata do /etc. Fix definitivo (o que
+  funcionou ao vivo na VM): reescrever Image/PreviewImage no proprio
+  /usr/lib/plasmalogin/defaults.conf p/ o pacote KDE do luar, no %posttrans, e
+  reaplicar via %transfiletriggerin quando o plasma-login-manager atualizar.
+  Removido o drop-in inutil. BUG-43.
+
 * Tue Aug 25 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.13.alpha13
 - CAUSA RAIZ do login preto (finalmente): o gerenciador de login da ISO e o
   plasma-login-manager (plasmalogin.service), NAO o SDDM. O fundo do greeter dele
