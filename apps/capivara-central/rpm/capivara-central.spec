@@ -1,5 +1,5 @@
 Name:           capivara-central
-Version:        0.1.4
+Version:        0.1.5
 Release:        1%{?dist}.marsh
 Summary:        COS Dev Center — onboarding do CapivaraOS Marsh
 
@@ -76,6 +76,13 @@ install -Dm0644 data/org.capivaraos.Central-autostart.desktop \
 %{_sysconfdir}/skel/.config/autostart/org.capivaraos.Central.desktop
 
 %changelog
+* Wed Aug 26 2026 CapivaraOS Bot <capivaraos-bot@users.noreply.github.com> - 0.1.5-1.marsh
+- Correcao critica: o launcher passa a usar /usr/bin/python3 (interpretador do
+  SISTEMA), nao o "python3" do PATH. Depois de instalar a trilha de Python (mise),
+  o "python3" do usuario apontava para um Python SEM PySide6 e o app fechava no
+  import (ModuleNotFoundError: No module named 'PySide6'). Afeta qualquer toolchain
+  de Python do usuario (mise/pyenv/venv/conda). BUG do COS Dev Center.
+
 * Wed Aug 26 2026 CapivaraOS Bot <capivaraos-bot@users.noreply.github.com> - 0.1.4-1.marsh
 - Card "Trilhas de linguagem" (FEAT-118): substitui o stub "Em breve". Folha de
   selecao (Node/Python/Go/Rust/Java) que instala via mise por USUARIO (sem root):

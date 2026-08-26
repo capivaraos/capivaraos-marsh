@@ -16,4 +16,8 @@ if [ "${1:-}" = "--autostart" ]; then
     mkdir -p "$(dirname "$FLAG")" && : > "$FLAG"
 fi
 
-exec python3 /usr/share/capivara-central/capivara-central.py "$@"
+# IMPORTANTE: usar o interpretador do SISTEMA (/usr/bin/python3), NÃO o "python3"
+# do PATH. O PySide6 (dep do RPM) fica só no Python do sistema; se o usuário
+# instalar uma trilha de Python (mise/pyenv/venv/conda), o "python3" do PATH pode
+# apontar para um Python sem PySide6 e o app fecharia no import (ModuleNotFound).
+exec /usr/bin/python3 /usr/share/capivara-central/capivara-central.py "$@"
