@@ -16,6 +16,9 @@ from PySide6.QtCore import QObject, Signal, Slot, Property, QProcess
 # App-id do Alpaca no Flathub (interface gráfica da IA local).
 ALPACA_APP_ID = "com.jeffser.Alpaca"
 
+# Trilhas de linguagem suportadas (ids de ferramenta do mise).
+LANG_TRACKS = ("node", "python", "go", "rust", "java")
+
 # Diretório dos helpers. Em produção é /usr/libexec/capivara-central (instalado
 # pelo RPM); em desenvolvimento cai para a pasta libexec/ ao lado deste arquivo.
 _HERE = os.path.dirname(os.path.abspath(__file__))
@@ -71,8 +74,19 @@ class Backend(QObject):
             # Fallback: launcher .desktop do Flatpak (system).
             QProcess.startDetached("gtk-launch", [ALPACA_APP_ID])
 
+    @Slot("QVariantList")
+    def installLangTracks(self, langs):
+        """Instala trilhas de linguagem via mise (por usuário, sem root)."""
+        picks = [str(x) for x in langs if str(x) in LANG_TRACKS]
+        if not picks:
+            self.logLine.emit("Nenhuma linguagem selecionada.")
+            self.finished.emit(False, "Nenhuma linguagem selecionada.")
+            return
+        self._run(_helper("setup-langs"),
+                  step="Preparando trilhas de linguagem…", args=picks)
+
     # ---- Execução com streaming ------------------------------------------
-    def _run(self, program: str, step: str = ""):
+    def _run(self, program: str, step: str = "", args=None):
         if self._busy:
             self.logLine.emit("Já há uma tarefa em andamento; aguarde terminar.")
             return
@@ -80,14 +94,15 @@ class Backend(QObject):
             self.stepChanged.emit(step)
         self._set_busy(True)
 
+        args = list(args or [])
         proc = QProcess(self)
         proc.setProcessChannelMode(QProcess.MergedChannels)  # junta stdout+stderr
         proc.readyReadStandardOutput.connect(lambda: self._drain(proc))
         proc.finished.connect(lambda code, _st: self._on_finished(code))
         proc.errorOccurred.connect(self._on_error)
         self._proc = proc
-        self.logLine.emit(f"$ {os.path.basename(program)}")
-        proc.start("/bin/bash", [program])
+        self.logLine.emit(f"$ {os.path.basename(program)} {' '.join(args)}".rstrip())
+        proc.start("/bin/bash", [program] + args)
 
     def _drain(self, proc: QProcess):
         data = bytes(proc.readAllStandardOutput()).decode("utf-8", "replace")

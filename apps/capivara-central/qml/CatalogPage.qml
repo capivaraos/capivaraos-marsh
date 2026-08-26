@@ -46,26 +46,60 @@ Kirigami.ScrollablePage {
             onOpenRequested: backend.openAiLocal()
         }
 
-        // Espaço reservado para as próximas levas (desabilitado no MVP).
-        Kirigami.AbstractCard {
+        Components.ActionCard {
             Layout.fillWidth: true
-            opacity: 0.6
-            contentItem: RowLayout {
-                spacing: Kirigami.Units.largeSpacing
-                Kirigami.Icon {
-                    source: "media-playlist-shuffle"
-                    implicitWidth: Kirigami.Units.iconSizes.large
-                    implicitHeight: Kirigami.Units.iconSizes.large
-                }
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    Kirigami.Heading { level: 3; text: qsTr("Trilhas de linguagem") }
-                    Controls.Label {
-                        Layout.fillWidth: true
-                        wrapMode: Text.WordWrap
-                        opacity: 0.8
-                        text: qsTr("Web/JS, Python, Go, Rust, Java… via mise. Em breve.")
-                    }
+            heading: qsTr("Trilhas de linguagem")
+            description: qsTr("Instale linguagens sob demanda com o mise (por usuário, "
+                            + "sem afetar o sistema): Web/JS (Node.js), Python, Go, Rust, Java.")
+            iconName: "media-playlist-shuffle"
+            actionText: qsTr("Escolher linguagens")
+            installed: false
+            globalBusy: backend.busy
+            onActivated: langSheet.open()
+        }
+    }
+
+    // ---- Seleção de trilhas de linguagem ---------------------------------
+    Kirigami.OverlaySheet {
+        id: langSheet
+        title: qsTr("Trilhas de linguagem")
+
+        ColumnLayout {
+            implicitWidth: Kirigami.Units.gridUnit * 26
+            spacing: Kirigami.Units.smallSpacing
+
+            Controls.Label {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                text: qsTr("Escolha as linguagens para instalar via mise. Elas ficam "
+                         + "no seu usuário; abra um novo terminal depois de instalar.")
+            }
+
+            Controls.CheckBox { id: cbNode;   text: qsTr("Web / JavaScript (Node.js)") }
+            Controls.CheckBox { id: cbPython; text: qsTr("Python") }
+            Controls.CheckBox { id: cbGo;     text: qsTr("Go") }
+            Controls.CheckBox { id: cbRust;   text: qsTr("Rust") }
+            Controls.CheckBox { id: cbJava;   text: qsTr("Java") }
+
+            Controls.Button {
+                Layout.alignment: Qt.AlignRight
+                text: qsTr("Instalar selecionadas")
+                icon.name: "install"
+                highlighted: true
+                enabled: !backend.busy && (cbNode.checked || cbPython.checked
+                         || cbGo.checked || cbRust.checked || cbJava.checked)
+                onClicked: {
+                    var langs = []
+                    if (cbNode.checked)   langs.push("node")
+                    if (cbPython.checked) langs.push("python")
+                    if (cbGo.checked)     langs.push("go")
+                    if (cbRust.checked)   langs.push("rust")
+                    if (cbJava.checked)   langs.push("java")
+                    langSheet.close()
+                    logView.clear()
+                    progressSheet.title = qsTr("Instalando trilhas de linguagem")
+                    progressSheet.open()
+                    backend.installLangTracks(langs)
                 }
             }
         }

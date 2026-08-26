@@ -1199,8 +1199,9 @@ sed -i -E \
 %changelog
 * Wed Aug 26 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.15.alpha15
 - Rótulo do preview alpha14 -> alpha15 (ISO/os-release). Sem mudanca de branding;
-  rebuild p/ empacotar o COS Dev Center 0.1.3 (botao "Abrir o Alpaca" no card de
-  IA local + deteccao de instalado exigindo Ollama E Alpaca). FEAT-90.
+  rebuild p/ empacotar o COS Dev Center 0.1.4: botao "Abrir o Alpaca" + deteccao
+  de instalado exigindo Ollama E Alpaca; card "Trilhas de linguagem" (mise).
+  FEAT-90 (FEAT-117/FEAT-118).
 
 * Wed Aug 26 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.14.alpha14
 - Login PRETO (2a rodada): o drop-in em /etc/plasmalogin.conf.d/ do alpha13 NAO

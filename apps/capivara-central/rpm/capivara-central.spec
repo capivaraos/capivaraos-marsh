@@ -1,5 +1,5 @@
 Name:           capivara-central
-Version:        0.1.3
+Version:        0.1.4
 Release:        1%{?dist}.marsh
 Summary:        COS Dev Center — onboarding do CapivaraOS Marsh
 
@@ -15,6 +15,8 @@ Requires:       kf6-kirigami
 Requires:       kf6-qqc2-desktop-style
 Requires:       polkit
 Requires:       flatpak
+# curl: usado pelo instalador do mise (card "Trilhas de linguagem").
+Requires:       curl
 
 %description
 COS Dev Center é o app de onboarding em português do CapivaraOS
@@ -42,6 +44,7 @@ install -Dm0755 capivara-central %{buildroot}%{_bindir}/capivara-central
 # --- Helpers privilegiados/orquestrador em /usr/libexec ---
 install -Dm0755 libexec/setup-ai           %{buildroot}%{_libexecdir}/%{name}/setup-ai
 install -Dm0755 libexec/install-ai-system  %{buildroot}%{_libexecdir}/%{name}/install-ai-system
+install -Dm0755 libexec/setup-langs        %{buildroot}%{_libexecdir}/%{name}/setup-langs
 
 # --- polkit action ---
 install -Dm0644 data/org.capivaraos.central.policy \
@@ -73,6 +76,12 @@ install -Dm0644 data/org.capivaraos.Central-autostart.desktop \
 %{_sysconfdir}/skel/.config/autostart/org.capivaraos.Central.desktop
 
 %changelog
+* Wed Aug 26 2026 CapivaraOS Bot <capivaraos-bot@users.noreply.github.com> - 0.1.4-1.marsh
+- Card "Trilhas de linguagem" (FEAT-118): substitui o stub "Em breve". Folha de
+  selecao (Node/Python/Go/Rust/Java) que instala via mise por USUARIO (sem root):
+  helper setup-langs instala o mise em ~/.local, ativa no bash e roda
+  "mise use --global <lang>@latest". Requires: curl (instalador do mise).
+
 * Wed Aug 26 2026 CapivaraOS Bot <capivaraos-bot@users.noreply.github.com> - 0.1.3-1.marsh
 - Card "IA local": botao "Abrir o Alpaca" quando instalado (abre direto, sem
   cacar no menu). openAiLocal() no backend (flatpak run com.jeffser.Alpaca).
