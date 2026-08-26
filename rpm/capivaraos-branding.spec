@@ -17,7 +17,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.12.alpha12%{?dist}.marsh
+Release:        0.13.alpha13%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -655,18 +655,19 @@ X-KDE-autostart-phase=2
 OnlyShowIn=KDE;
 EOF
 
-# ── Greeter do SDDM: renderizar por software (fundo do login em VM) ──────────
-# O greeter (plasma-login-greeter) roda ANTES do login com contexto GL proprio.
-# Em VM/GL degradado (ZINK sem Vulkan) ele nao carrega o fundo -> tela PRETA,
-# mesmo com o fundo ja reduzido para 1920x1080. Forcamos o greeter a renderizar
-# por software (Qt Quick software + llvmpipe), independente do driver GL da
-# maquina, entao o fundo do login aparece em qualquer VM/hardware. Custo
-# irrelevante (tela de login estatica). So afeta o greeter (GreeterEnvironment),
-# nao a sessao do usuario. Ver FEAT-108.
-install -d %{buildroot}%{_sysconfdir}/sddm.conf.d
-cat > %{buildroot}%{_sysconfdir}/sddm.conf.d/10-capivaraos-greeter.conf << 'EOF'
-[General]
-GreeterEnvironment=QT_QUICK_BACKEND=software,LIBGL_ALWAYS_SOFTWARE=1
+# ── Wallpaper do login (plasma-login-manager) -> luar ───────────────────────
+# O gerenciador de login da ISO e o plasma-login-manager (plasmalogin.service),
+# NAO o SDDM. O fundo do greeter dele vem de /usr/lib/plasmalogin/defaults.conf,
+# que aponta para Image=file:///usr/share/wallpapers/Fedora/ -- um pacote de
+# wallpaper que REMOVEMOS do seletor (FEAT-105). Sem o pacote, o login fica
+# PRETO. Sobrescrevemos com um drop-in em /etc/plasmalogin.conf.d/ apontando o
+# fundo do greeter para o pacote KDE do luar (que mantivemos). Nao editamos o
+# defaults.conf do Fedora (ele volta em update). Ver FEAT-108.
+install -d %{buildroot}%{_sysconfdir}/plasmalogin.conf.d
+cat > %{buildroot}%{_sysconfdir}/plasmalogin.conf.d/10-capivaraos-wallpaper.conf << 'EOF'
+[Greeter][Wallpaper][org.kde.image][General]
+Image=file:///usr/share/wallpapers/capivaraos-luar/
+PreviewImage=file:///usr/share/wallpapers/capivaraos-luar/
 EOF
 
 # ── Rotulo da raiz do sistema instalado -> "capivaraos" ─────────────────────
@@ -974,14 +975,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha12, preview)"
+VERSION="Marsh 2.0.0 (alpha13, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha12, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha13, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -994,24 +995,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha12, preview)"
+VARIANT="Marsh 2.0.0 (alpha13, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha12, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha13, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha12, preview)
+CapivaraOS Marsh 2.0.0 (alpha13, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha12, preview)
+Variant=Marsh 2.0.0 (alpha13, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1065,14 +1066,14 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha12, preview)"
+VERSION="Marsh 2.0.0 (alpha13, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha12, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha13, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1085,17 +1086,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha12, preview)"
+VARIANT="Marsh 2.0.0 (alpha13, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha12, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha13, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha12, preview)
+CapivaraOS Marsh 2.0.0 (alpha13, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1160,7 +1161,7 @@ done
 %{_sysconfdir}/xdg/autostart/capivaraos-wallpaper.desktop
 %{_sysconfdir}/xdg/autostart/capivaraos-layout.desktop
 %{_sysconfdir}/xdg/autostart/capivaraos-avatar.desktop
-%config(noreplace) %{_sysconfdir}/sddm.conf.d/10-capivaraos-greeter.conf
+%config(noreplace) %{_sysconfdir}/plasmalogin.conf.d/10-capivaraos-wallpaper.conf
 %{_sysconfdir}/skel/.config/plasma-org.kde.plasma.desktop-appletsrc
 %{_sysconfdir}/skel/.config/kscreenlockerrc
 %{_sysconfdir}/skel/.config/kdeglobals
@@ -1174,6 +1175,18 @@ done
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Tue Aug 25 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.13.alpha13
+- CAUSA RAIZ do login preto (finalmente): o gerenciador de login da ISO e o
+  plasma-login-manager (plasmalogin.service), NAO o SDDM. O fundo do greeter dele
+  vem de /usr/lib/plasmalogin/defaults.conf, que aponta para
+  Image=file:///usr/share/wallpapers/Fedora/ -- pacote de wallpaper que REMOVEMOS
+  do seletor no alpha10 (FEAT-105). Sem o pacote, o login ficava PRETO. NAO era
+  GPU/GL nem SDDM (por isso as tentativas de FHD e software-render no SDDM nao
+  surtiram efeito -- eram no programa errado). Fix: drop-in em
+  /etc/plasmalogin.conf.d/10-capivaraos-wallpaper.conf apontando o
+  [Greeter][Wallpaper][org.kde.image] para o pacote KDE do luar (mantido). Removida
+  a config inutil /etc/sddm.conf.d/10-capivaraos-greeter.conf. FEAT-108.
+
 * Tue Aug 25 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.12.alpha12
 - Login SDDM ainda preto em VM mesmo com o fundo 1080p: o GL do greeter esta
   quebrado demais (ZINK sem Vulkan). Forca o greeter a renderizar por software
