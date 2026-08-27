@@ -1,5 +1,5 @@
 Name:           capivara-central
-Version:        0.1.5
+Version:        0.1.6
 Release:        1%{?dist}.marsh
 Summary:        COS Dev Center — onboarding do CapivaraOS Marsh
 
@@ -17,6 +17,12 @@ Requires:       polkit
 Requires:       flatpak
 # curl: usado pelo instalador do mise (card "Trilhas de linguagem").
 Requires:       curl
+# git: template global de hooks do card "GitHub CLI + pre-commit".
+Requires:       git
+# podman: Open WebUI roda em container rootless (card "Ferramentas de dev").
+Requires:       podman
+# konsole: terminal para o login interativo do gh (gh auth login).
+Requires:       konsole
 
 %description
 COS Dev Center é o app de onboarding em português do CapivaraOS
@@ -42,9 +48,15 @@ cp -a qml %{buildroot}%{_datadir}/%{name}/qml
 install -Dm0755 capivara-central %{buildroot}%{_bindir}/capivara-central
 
 # --- Helpers privilegiados/orquestrador em /usr/libexec ---
-install -Dm0755 libexec/setup-ai           %{buildroot}%{_libexecdir}/%{name}/setup-ai
-install -Dm0755 libexec/install-ai-system  %{buildroot}%{_libexecdir}/%{name}/install-ai-system
-install -Dm0755 libexec/setup-langs        %{buildroot}%{_libexecdir}/%{name}/setup-langs
+install -Dm0755 libexec/setup-ai                %{buildroot}%{_libexecdir}/%{name}/setup-ai
+install -Dm0755 libexec/install-ai-system       %{buildroot}%{_libexecdir}/%{name}/install-ai-system
+install -Dm0755 libexec/setup-langs             %{buildroot}%{_libexecdir}/%{name}/setup-langs
+install -Dm0755 libexec/setup-gpu               %{buildroot}%{_libexecdir}/%{name}/setup-gpu
+install -Dm0755 libexec/install-gpu-system      %{buildroot}%{_libexecdir}/%{name}/install-gpu-system
+install -Dm0755 libexec/setup-devtools          %{buildroot}%{_libexecdir}/%{name}/setup-devtools
+install -Dm0755 libexec/install-devtools-system %{buildroot}%{_libexecdir}/%{name}/install-devtools-system
+install -Dm0755 libexec/setup-gh                %{buildroot}%{_libexecdir}/%{name}/setup-gh
+install -Dm0755 libexec/install-gh-system       %{buildroot}%{_libexecdir}/%{name}/install-gh-system
 
 # --- polkit action ---
 install -Dm0644 data/org.capivaraos.central.policy \
@@ -76,6 +88,19 @@ install -Dm0644 data/org.capivaraos.Central-autostart.desktop \
 %{_sysconfdir}/skel/.config/autostart/org.capivaraos.Central.desktop
 
 %changelog
+* Thu Aug 27 2026 CapivaraOS Bot <capivaraos-bot@users.noreply.github.com> - 0.1.6-1.marsh
+- Fecha os cards restantes do catalogo (FEAT-90):
+  * "Ligar GPU" (FEAT-119): detecta AMD/NVIDIA e instala ROCm ou driver+CUDA
+    (RPM Fusion) via polkit; reinicia o ollama p/ usar a GPU. Sem GPU: usa CPU.
+  * "Ferramentas de dev" (FEAT-120): folha de selecao — VS Code (repo MS) e
+    Docker CE (repo Docker) via polkit; Cline (extensao code/codium) e
+    Open WebUI (container rootless podman) por usuario.
+  * "GitHub CLI + pre-commit" (FEAT-121): instala gh + pre-commit (Fedora),
+    configura template global de hooks + config de exemplo (gitleaks/ShellCheck/
+    chaves); botao "Entrar no GitHub" abre gh auth login num terminal.
+- Novas polkit actions: enable-gpu, install-devtools, install-gh.
+- Requires: git, podman, konsole.
+
 * Wed Aug 26 2026 CapivaraOS Bot <capivaraos-bot@users.noreply.github.com> - 0.1.5-1.marsh
 - Correcao critica: o launcher passa a usar /usr/bin/python3 (interpretador do
   SISTEMA), nao o "python3" do PATH. Depois de instalar a trilha de Python (mise),

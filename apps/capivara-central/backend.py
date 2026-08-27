@@ -19,6 +19,9 @@ ALPACA_APP_ID = "com.jeffser.Alpaca"
 # Trilhas de linguagem suportadas (ids de ferramenta do mise).
 LANG_TRACKS = ("node", "python", "go", "rust", "java")
 
+# Itens do card "Ferramentas de dev".
+DEV_TOOLS = ("vscode", "cline", "openwebui", "docker")
+
 # Diretório dos helpers. Em produção é /usr/libexec/capivara-central (instalado
 # pelo RPM); em desenvolvimento cai para a pasta libexec/ ao lado deste arquivo.
 _HERE = os.path.dirname(os.path.abspath(__file__))
@@ -85,6 +88,40 @@ class Backend(QObject):
         self._run(_helper("setup-langs"),
                   step="Preparando trilhas de linguagem…", args=picks)
 
+    @Slot()
+    def enableGpu(self):
+        """Liga a aceleração por GPU (ROCm/AMD ou CUDA/NVIDIA) para o Ollama."""
+        self._run(_helper("setup-gpu"), step="Preparando a ativação da GPU…")
+
+    @Slot("QVariantList")
+    def installDevTools(self, tools):
+        """Instala ferramentas de dev (VS Code/Cline/Open WebUI/Docker CE)."""
+        picks = [str(x) for x in tools if str(x) in DEV_TOOLS]
+        if not picks:
+            self.logLine.emit("Nenhuma ferramenta selecionada.")
+            self.finished.emit(False, "Nenhuma ferramenta selecionada.")
+            return
+        self._run(_helper("setup-devtools"),
+                  step="Preparando ferramentas de dev…", args=picks)
+
+    @Slot()
+    def setupGh(self):
+        """Instala/configura gh + pre-commit (template global de hooks)."""
+        self._run(_helper("setup-gh"), step="Configurando gh + pre-commit…")
+
+    @Slot()
+    def openGhLogin(self):
+        """Abre um terminal para o login interativo no GitHub (gh auth login)."""
+        # gh auth login é interativo (device flow); precisa de um terminal.
+        for term, args in (
+            ("konsole", ["-e", "gh", "auth", "login"]),
+            ("x-terminal-emulator", ["-e", "gh", "auth", "login"]),
+        ):
+            if shutil.which(term) and QProcess.startDetached(term, args):
+                return
+        # Último recurso: tenta o gh direto (pode não achar um TTY).
+        QProcess.startDetached("gh", ["auth", "login"])
+
     # ---- Execução com streaming ------------------------------------------
     def _run(self, program: str, step: str = "", args=None):
         if self._busy:
@@ -144,3 +181,15 @@ class Backend(QObject):
             return r.returncode == 0
         except (OSError, subprocess.SubprocessError):
             return False
+
+    @Slot(result=bool)
+    def isGpuEnabled(self) -> bool:
+        """Aproximação: há suporte de GPU se existir o utilitário da NVIDIA
+        (nvidia-smi) ou do ROCm (rocminfo)."""
+        return (shutil.which("nvidia-smi") is not None
+                or shutil.which("rocminfo") is not None)
+
+    @Slot(result=bool)
+    def isGhReady(self) -> bool:
+        """True quando o GitHub CLI (gh) já está instalado."""
+        return shutil.which("gh") is not None

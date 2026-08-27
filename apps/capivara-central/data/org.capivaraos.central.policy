@@ -20,4 +20,46 @@
     <annotate key="org.freedesktop.policykit.exec.path">/usr/libexec/capivara-central/install-ai-system</annotate>
     <annotate key="org.freedesktop.policykit.exec.allow_gui">true</annotate>
   </action>
+
+  <action id="org.capivaraos.central.enable-gpu">
+    <description>Ligar a aceleração por GPU para a IA local</description>
+    <description xml:lang="pt_BR">Ligar a aceleração por GPU para a IA local</description>
+    <message>É necessário autenticar para instalar o driver/stack de GPU (ROCm ou CUDA).</message>
+    <message xml:lang="pt_BR">É necessário autenticar para instalar o driver/stack de GPU (ROCm ou CUDA).</message>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/libexec/capivara-central/install-gpu-system</annotate>
+    <annotate key="org.freedesktop.policykit.exec.allow_gui">true</annotate>
+  </action>
+
+  <action id="org.capivaraos.central.install-devtools">
+    <description>Instalar ferramentas de desenvolvimento (VS Code, Docker CE)</description>
+    <description xml:lang="pt_BR">Instalar ferramentas de desenvolvimento (VS Code, Docker CE)</description>
+    <message>É necessário autenticar para instalar as ferramentas de dev de sistema.</message>
+    <message xml:lang="pt_BR">É necessário autenticar para instalar as ferramentas de dev de sistema.</message>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/libexec/capivara-central/install-devtools-system</annotate>
+    <annotate key="org.freedesktop.policykit.exec.allow_gui">true</annotate>
+  </action>
+
+  <action id="org.capivaraos.central.install-gh">
+    <description>Instalar o GitHub CLI (gh) e o pre-commit</description>
+    <description xml:lang="pt_BR">Instalar o GitHub CLI (gh) e o pre-commit</description>
+    <message>É necessário autenticar para instalar o gh e o pre-commit.</message>
+    <message xml:lang="pt_BR">É necessário autenticar para instalar o gh e o pre-commit.</message>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/libexec/capivara-central/install-gh-system</annotate>
+    <annotate key="org.freedesktop.policykit.exec.allow_gui">true</annotate>
+  </action>
 </policyconfig>

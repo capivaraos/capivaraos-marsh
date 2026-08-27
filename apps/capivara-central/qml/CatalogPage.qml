@@ -12,8 +12,10 @@ Kirigami.ScrollablePage {
 
     title: qsTr("Extras para sua estação")
 
-    // Card de IA local — referenciado para atualizar o estado ao terminar.
+    // Estado dos cards — reavaliado ao terminar cada instalação (onFinished).
     property bool aiInstalled: backend.isAiLocalInstalled()
+    property bool gpuEnabled: backend.isGpuEnabled()
+    property bool ghReady: backend.isGhReady()
 
     ColumnLayout {
         spacing: Kirigami.Units.largeSpacing
@@ -56,6 +58,55 @@ Kirigami.ScrollablePage {
             installed: false
             globalBusy: backend.busy
             onActivated: langSheet.open()
+        }
+
+        Components.ActionCard {
+            Layout.fillWidth: true
+            heading: qsTr("Ligar GPU")
+            description: qsTr("Acelere a IA local com sua placa de vídeo: ROCm (AMD) ou "
+                            + "CUDA (NVIDIA). Sem GPU dedicada, a IA continua rodando na CPU.")
+            iconName: "preferences-desktop-display"
+            actionText: qsTr("Ativar GPU")
+            installed: page.gpuEnabled
+            globalBusy: backend.busy
+            onActivated: {
+                logView.clear()
+                progressSheet.title = qsTr("Ativando a GPU")
+                progressSheet.open()
+                backend.enableGpu()
+            }
+        }
+
+        Components.ActionCard {
+            Layout.fillWidth: true
+            heading: qsTr("Ferramentas de dev")
+            description: qsTr("Complete seu arsenal: VS Code, extensão Cline (IA agentic no "
+                            + "editor), Open WebUI (chat web do Ollama) e Docker CE.")
+            iconName: "applications-development"
+            actionText: qsTr("Escolher ferramentas")
+            installed: false
+            globalBusy: backend.busy
+            onActivated: toolsSheet.open()
+        }
+
+        Components.ActionCard {
+            Layout.fillWidth: true
+            heading: qsTr("GitHub CLI + pre-commit")
+            description: qsTr("Configure o gh (GitHub pelo terminal) e um template de "
+                            + "pre-commit com verificações de segurança (gitleaks, chaves, ShellCheck).")
+            iconName: "git"
+            actionText: qsTr("Configurar")
+            installed: page.ghReady
+            openable: true
+            openText: qsTr("Entrar no GitHub")
+            globalBusy: backend.busy
+            onActivated: {
+                logView.clear()
+                progressSheet.title = qsTr("Configurando gh + pre-commit")
+                progressSheet.open()
+                backend.setupGh()
+            }
+            onOpenRequested: backend.openGhLogin()
         }
     }
 
@@ -100,6 +151,50 @@ Kirigami.ScrollablePage {
                     progressSheet.title = qsTr("Instalando trilhas de linguagem")
                     progressSheet.open()
                     backend.installLangTracks(langs)
+                }
+            }
+        }
+    }
+
+    // ---- Seleção das ferramentas de dev ----------------------------------
+    Kirigami.OverlaySheet {
+        id: toolsSheet
+        title: qsTr("Ferramentas de dev")
+
+        ColumnLayout {
+            implicitWidth: Kirigami.Units.gridUnit * 28
+            spacing: Kirigami.Units.smallSpacing
+
+            Controls.Label {
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                text: qsTr("Escolha o que instalar. VS Code e Docker CE são de sistema "
+                         + "(pedem senha); Cline e Open WebUI ficam no seu usuário.")
+            }
+
+            Controls.CheckBox { id: cbVscode;    text: qsTr("VS Code (editor da Microsoft)") }
+            Controls.CheckBox { id: cbCline;     text: qsTr("Cline — IA agentic no editor (code/codium)") }
+            Controls.CheckBox { id: cbOpenwebui; text: qsTr("Open WebUI — chat web do Ollama (podman)") }
+            Controls.CheckBox { id: cbDocker;    text: qsTr("Docker CE — containers") }
+
+            Controls.Button {
+                Layout.alignment: Qt.AlignRight
+                text: qsTr("Instalar selecionadas")
+                icon.name: "install"
+                highlighted: true
+                enabled: !backend.busy && (cbVscode.checked || cbCline.checked
+                         || cbOpenwebui.checked || cbDocker.checked)
+                onClicked: {
+                    var tools = []
+                    if (cbVscode.checked)    tools.push("vscode")
+                    if (cbCline.checked)     tools.push("cline")
+                    if (cbOpenwebui.checked) tools.push("openwebui")
+                    if (cbDocker.checked)    tools.push("docker")
+                    toolsSheet.close()
+                    logView.clear()
+                    progressSheet.title = qsTr("Instalando ferramentas de dev")
+                    progressSheet.open()
+                    backend.installDevTools(tools)
                 }
             }
         }
@@ -165,8 +260,11 @@ Kirigami.ScrollablePage {
         }
         function onFinished(ok, message) {
             logView.text += "\n" + message + "\n"
-            if (ok)
+            if (ok) {
                 page.aiInstalled = backend.isAiLocalInstalled()
+                page.gpuEnabled = backend.isGpuEnabled()
+                page.ghReady = backend.isGhReady()
+            }
         }
     }
 }
