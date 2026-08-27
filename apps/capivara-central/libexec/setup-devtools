@@ -53,19 +53,28 @@ if [ "$has_cline" -eq 1 ]; then
 fi
 
 # --- Open WebUI (chat web do Ollama) em container rootless via podman -------
+# Best-effort: a imagem tem vários GB e depende de rede/espaço em disco; se
+# falhar, é só um AVISO e NÃO derruba os demais itens do card (o usuário pode
+# tentar de novo depois). Separamos o "pull" do "run" para diagnosticar melhor.
 if [ "$has_openwebui" -eq 1 ]; then
     echo ">>> Subindo o Open WebUI (container rootless via podman)"
     if command -v podman >/dev/null 2>&1; then
         podman rm -f open-webui >/dev/null 2>&1 || true
-        if podman run -d --name open-webui --restart=always \
-             -p 3000:8080 -v open-webui:/app/backend/data \
-             --add-host=host.containers.internal:host-gateway \
-             -e OLLAMA_BASE_URL=http://host.containers.internal:11434 \
-             ghcr.io/open-webui/open-webui:main; then
+        echo ">>> Baixando a imagem do Open WebUI (vários GB; pode demorar)"
+        if ! podman pull ghcr.io/open-webui/open-webui:main; then
+            echo "AVISO: não consegui baixar a imagem do Open WebUI."
+            echo "       Causas comuns: rede instável ou POUCO ESPAÇO em disco"
+            echo "       (a imagem tem vários GB — confira com 'df -h'). Dá para"
+            echo "       tentar de novo depois; os demais itens já foram instalados."
+        elif podman run -d --name open-webui --restart=always \
+                 -p 3000:8080 -v open-webui:/app/backend/data \
+                 --add-host=host.containers.internal:host-gateway \
+                 -e OLLAMA_BASE_URL=http://host.containers.internal:11434 \
+                 ghcr.io/open-webui/open-webui:main; then
             echo "Open WebUI no ar em http://localhost:3000"
         else
-            echo "AVISO: não consegui subir o Open WebUI."
-            rc=1
+            echo "AVISO: baixei a imagem, mas não consegui iniciar o container."
+            echo "       Verifique se a porta 3000 já está em uso."
         fi
     else
         echo "AVISO: podman não encontrado; pulei o Open WebUI."

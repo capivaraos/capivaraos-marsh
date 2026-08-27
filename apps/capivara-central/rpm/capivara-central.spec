@@ -1,5 +1,5 @@
 Name:           capivara-central
-Version:        0.1.6
+Version:        0.1.7
 Release:        1%{?dist}.marsh
 Summary:        COS Dev Center — onboarding do CapivaraOS Marsh
 
@@ -88,6 +88,12 @@ install -Dm0644 data/org.capivaraos.Central-autostart.desktop \
 %{_sysconfdir}/skel/.config/autostart/org.capivaraos.Central.desktop
 
 %changelog
+* Thu Aug 27 2026 CapivaraOS Bot <capivaraos-bot@users.noreply.github.com> - 0.1.7-1.marsh
+- Ferramentas de dev (FEAT-120): o Open WebUI agora e best-effort — se o
+  download da imagem (varios GB) falhar por rede ou falta de espaco, vira AVISO
+  e NAO derruba mais o card inteiro (VS Code/Docker/Cline seguem valendo).
+  Separa 'podman pull' do 'run' e da uma dica clara (rede/espaco em disco).
+
 * Thu Aug 27 2026 CapivaraOS Bot <capivaraos-bot@users.noreply.github.com> - 0.1.6-1.marsh
 - Fecha os cards restantes do catalogo (FEAT-90):
   * "Ligar GPU" (FEAT-119): detecta AMD/NVIDIA e instala ROCm ou driver+CUDA
