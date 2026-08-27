@@ -122,6 +122,26 @@ class Backend(QObject):
         # Último recurso: tenta o gh direto (pode não achar um TTY).
         QProcess.startDetached("gh", ["auth", "login"])
 
+    @Slot(str)
+    def openApp(self, kind: str):
+        """Abre um app instalado a partir da seção 'Instalados' do catálogo."""
+        if kind == "alpaca":
+            self.openAiLocal()
+        elif kind == "vscode":
+            QProcess.startDetached("code", [])
+        elif kind == "openwebui":
+            # Garante o container de pé antes de abrir o navegador.
+            try:
+                subprocess.run(["podman", "start", "open-webui"],
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                               timeout=15)
+            except (OSError, subprocess.SubprocessError):
+                pass
+            QProcess.startDetached("xdg-open", ["http://localhost:3000"])
+        elif kind == "gh":
+            self.openGhLogin()
+        # docker e lang:* não são "abríveis" (daemon / runtimes).
+
     # ---- Execução com streaming ------------------------------------------
     def _run(self, program: str, step: str = "", args=None):
         if self._busy:
@@ -193,3 +213,87 @@ class Backend(QObject):
     def isGhReady(self) -> bool:
         """True quando o GitHub CLI (gh) já está instalado."""
         return shutil.which("gh") is not None
+
+    # ---- Deteção de instalados (seção "Instalados" + resumos por card) ----
+    @staticmethod
+    def _lang_installed(lang: str) -> bool:
+        """True se a trilha do mise para `lang` tem alguma versão instalada."""
+        base = os.path.expanduser(f"~/.local/share/mise/installs/{lang}")
+        try:
+            return os.path.isdir(base) and bool(os.listdir(base))
+        except OSError:
+            return False
+
+    @staticmethod
+    def _openwebui_present() -> bool:
+        """True se existe o container 'open-webui' (rodando ou parado)."""
+        try:
+            r = subprocess.run(
+                ["podman", "ps", "-a", "--format", "{{.Names}}",
+                 "--filter", "name=^open-webui$"],
+                capture_output=True, text=True, timeout=10,
+            )
+            return "open-webui" in r.stdout
+        except (OSError, subprocess.SubprocessError):
+            return False
+
+    @staticmethod
+    def _cline_installed() -> bool:
+        """True se a extensão Cline (saoudrizwan.claude-dev) está no code/codium."""
+        for d in ("~/.vscode-oss/extensions", "~/.vscode/extensions"):
+            p = os.path.expanduser(d)
+            try:
+                if os.path.isdir(p):
+                    for name in os.listdir(p):
+                        if name.startswith("saoudrizwan.claude-dev"):
+                            return True
+            except OSError:
+                pass
+        return False
+
+    @Slot(result="QVariantList")
+    def installedApps(self):
+        """Apps/itens instalados pelo Dev Center, para a faixa 'Instalados'.
+        Cada item: {kind, name, icon, launch}. launch=True vira botão 'Abrir';
+        launch=False vira um chip (indicador) — ex.: Docker e as trilhas."""
+        apps = []
+        if self._alpaca_installed():
+            apps.append({"kind": "alpaca", "name": "Alpaca",
+                         "icon": "com.jeffser.Alpaca", "launch": True})
+        if shutil.which("code"):
+            apps.append({"kind": "vscode", "name": "VS Code",
+                         "icon": "vscode", "launch": True})
+        if self._openwebui_present():
+            apps.append({"kind": "openwebui", "name": "Open WebUI",
+                         "icon": "internet-web-browser", "launch": True})
+        if shutil.which("gh"):
+            apps.append({"kind": "gh", "name": "GitHub CLI",
+                         "icon": "git", "launch": True})
+        if shutil.which("docker"):
+            apps.append({"kind": "docker", "name": "Docker",
+                         "icon": "application-x-executable", "launch": False})
+        for lang in LANG_TRACKS:
+            if self._lang_installed(lang):
+                apps.append({"kind": "lang:" + lang, "name": lang.capitalize(),
+                             "icon": "media-playlist-shuffle", "launch": False})
+        return apps
+
+    @Slot(result=str)
+    def installedLangs(self) -> str:
+        """Resumo (card Trilhas): trilhas de linguagem já instaladas."""
+        got = [l.capitalize() for l in LANG_TRACKS if self._lang_installed(l)]
+        return ", ".join(got)
+
+    @Slot(result=str)
+    def installedDevTools(self) -> str:
+        """Resumo (card Ferramentas de dev): ferramentas já presentes."""
+        got = []
+        if shutil.which("code"):
+            got.append("VS Code")
+        if self._cline_installed():
+            got.append("Cline")
+        if self._openwebui_present():
+            got.append("Open WebUI")
+        if shutil.which("docker"):
+            got.append("Docker")
+        return ", ".join(got)

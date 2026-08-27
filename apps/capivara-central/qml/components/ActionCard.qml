@@ -13,6 +13,9 @@ Kirigami.AbstractCard {
     property string iconName: "applications-other"
     property string actionText: qsTr("Instalar")
     property bool installed: false
+    // Resumo opcional do que já está instalado (cards de seleção múltipla, ex.:
+    // "Python, Go"). Aparece SEM esconder o botão de ação (dá p/ instalar mais).
+    property string statusText: ""
     // Quando instalado, oferece um botão "Abrir" (ex.: abrir o Alpaca).
     property bool openable: false
     property string openText: qsTr("Abrir")
@@ -46,6 +49,22 @@ Kirigami.AbstractCard {
                 wrapMode: Text.WordWrap
                 opacity: 0.8
                 text: card.description
+            }
+            RowLayout {
+                Layout.fillWidth: true
+                visible: card.statusText !== ""
+                spacing: Kirigami.Units.smallSpacing
+                Kirigami.Icon {
+                    source: "emblem-success"
+                    implicitWidth: Kirigami.Units.iconSizes.small
+                    implicitHeight: Kirigami.Units.iconSizes.small
+                }
+                Controls.Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    color: Kirigami.Theme.positiveTextColor
+                    text: qsTr("Instalado: ") + card.statusText
+                }
             }
         }
 

@@ -1,5 +1,5 @@
 Name:           capivara-central
-Version:        0.1.7
+Version:        0.1.8
 Release:        1%{?dist}.marsh
 Summary:        COS Dev Center — onboarding do CapivaraOS Marsh
 
@@ -88,6 +88,16 @@ install -Dm0644 data/org.capivaraos.Central-autostart.desktop \
 %{_sysconfdir}/skel/.config/autostart/org.capivaraos.Central.desktop
 
 %changelog
+* Thu Aug 27 2026 CapivaraOS Bot <capivaraos-bot@users.noreply.github.com> - 0.1.8-1.marsh
+- Faixa "Instalados" no topo do catalogo: mini-lancador com o que ja foi
+  instalado pelo Dev Center — botao Abrir p/ Alpaca, VS Code, Open WebUI
+  (navegador em :3000) e gh; Docker e as trilhas aparecem como chip.
+  backend.installedApps()/openApp().
+- Cards de selecao multipla agora mostram o que ja esta instalado: Trilhas
+  ("Instalado: Python, Go" via mise) e Ferramentas de dev (VS Code/Cline/
+  Open WebUI/Docker). Novo ActionCard.statusText; refreshState() reavalia tudo
+  ao fim de cada instalacao (inclusive em falha parcial).
+
 * Thu Aug 27 2026 CapivaraOS Bot <capivaraos-bot@users.noreply.github.com> - 0.1.7-1.marsh
 - Ferramentas de dev (FEAT-120): o Open WebUI agora e best-effort — se o
   download da imagem (varios GB) falhar por rede ou falta de espaco, vira AVISO

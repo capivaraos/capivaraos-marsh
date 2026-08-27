@@ -16,9 +16,59 @@ Kirigami.ScrollablePage {
     property bool aiInstalled: backend.isAiLocalInstalled()
     property bool gpuEnabled: backend.isGpuEnabled()
     property bool ghReady: backend.isGhReady()
+    // Faixa "Instalados" + resumos dos cards de seleção múltipla.
+    property var installedApps: backend.installedApps()
+    property string langsInstalled: backend.installedLangs()
+    property string toolsInstalled: backend.installedDevTools()
+
+    // Reavalia tudo (chamado após cada instalação).
+    function refreshState() {
+        aiInstalled = backend.isAiLocalInstalled()
+        gpuEnabled = backend.isGpuEnabled()
+        ghReady = backend.isGhReady()
+        installedApps = backend.installedApps()
+        langsInstalled = backend.installedLangs()
+        toolsInstalled = backend.installedDevTools()
+    }
 
     ColumnLayout {
         spacing: Kirigami.Units.largeSpacing
+
+        // ---- Faixa "Instalados": mini-lançador do que já foi instalado -----
+        Kirigami.AbstractCard {
+            Layout.fillWidth: true
+            visible: page.installedApps.length > 0
+            contentItem: ColumnLayout {
+                spacing: Kirigami.Units.smallSpacing
+
+                Kirigami.Heading {
+                    Layout.fillWidth: true
+                    level: 3
+                    text: qsTr("Instalados")
+                }
+                Controls.Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    opacity: 0.8
+                    text: qsTr("Abra aqui o que você já instalou pelo Dev Center.")
+                }
+                Flow {
+                    Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
+                    Repeater {
+                        model: page.installedApps
+                        delegate: Controls.Button {
+                            text: modelData.name
+                            icon.name: modelData.icon
+                            // Itens não-abríveis (Docker, trilhas) viram chip.
+                            flat: !modelData.launch
+                            enabled: modelData.launch && !backend.busy
+                            onClicked: if (modelData.launch) backend.openApp(modelData.kind)
+                        }
+                    }
+                }
+            }
+        }
 
         Kirigami.InlineMessage {
             Layout.fillWidth: true
@@ -56,6 +106,7 @@ Kirigami.ScrollablePage {
             iconName: "media-playlist-shuffle"
             actionText: qsTr("Escolher linguagens")
             installed: false
+            statusText: page.langsInstalled
             globalBusy: backend.busy
             onActivated: langSheet.open()
         }
@@ -85,6 +136,7 @@ Kirigami.ScrollablePage {
             iconName: "applications-development"
             actionText: qsTr("Escolher ferramentas")
             installed: false
+            statusText: page.toolsInstalled
             globalBusy: backend.busy
             onActivated: toolsSheet.open()
         }
@@ -260,11 +312,9 @@ Kirigami.ScrollablePage {
         }
         function onFinished(ok, message) {
             logView.text += "\n" + message + "\n"
-            if (ok) {
-                page.aiInstalled = backend.isAiLocalInstalled()
-                page.gpuEnabled = backend.isGpuEnabled()
-                page.ghReady = backend.isGhReady()
-            }
+            // Reavalia o estado mesmo em falha parcial (ex.: alguns itens do card
+            // de ferramentas instalaram e só o Open WebUI não).
+            page.refreshState()
         }
     }
 }
