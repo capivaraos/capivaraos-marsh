@@ -17,7 +17,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.19.alpha19%{?dist}.marsh
+Release:        0.20.alpha20%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -460,22 +460,26 @@ weather.writeConfig("showWindInTooltip", true);
 weather.writeConfig("showPressureInTooltip", false);
 weather.writeConfig("showHumidityInTooltip", true);
 
-// Bandeja do sistema: mostra apenas volume, redes, layout de teclado e
-// notificacoes; os demais itens ficam recolhidos (showAllItems=false) e os
-// mais comuns sao explicitamente ocultados.
+// Bandeja do sistema: mostra volume, redes, layout de teclado, notificacoes
+// e o medidor de bateria (FEAT-128); os demais itens ficam recolhidos
+// (showAllItems=false) e os mais comuns sao explicitamente ocultados.
+// A bateria fica em shownItems (sempre visivel) para aparecer por padrao no
+// notebook independentemente do nivel de carga — o "shown when relevant" a
+// esconderia quando a carga estivesse cheia/na tomada. Em desktop sem bateria,
+// o applet "Energia e bateria" ainda serve de atalho de perfil de energia.
 var systray = topPanel.addWidget("org.kde.plasma.systemtray");
 systray.currentConfigGroup = ["General"];
 systray.writeConfig("showAllItems", false);
 // shownItems / hiddenItems sao StringList -> precisam ser ARRAYS JS (idem
 // launchers do dock; string com virgulas nao funciona).
 systray.writeConfig("shownItems", [
+    "org.kde.plasma.battery",
     "org.kde.plasma.volume",
     "org.kde.plasma.networkmanagement",
     "org.kde.plasma.keyboardlayout",
     "org.kde.plasma.notifications"
 ]);
 systray.writeConfig("hiddenItems", [
-    "org.kde.plasma.battery",
     "org.kde.plasma.brightness",
     "org.kde.plasma.clipboard",
     "org.kde.plasma.devicenotifier",
@@ -986,14 +990,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha19, preview)"
+VERSION="Marsh 2.0.0 (alpha20, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha19, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha20, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1006,24 +1010,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha19, preview)"
+VARIANT="Marsh 2.0.0 (alpha20, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha19, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha20, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha19, preview)
+CapivaraOS Marsh 2.0.0 (alpha20, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha19, preview)
+Variant=Marsh 2.0.0 (alpha20, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1077,14 +1081,14 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha19, preview)"
+VERSION="Marsh 2.0.0 (alpha20, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha19, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha20, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1097,17 +1101,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha19, preview)"
+VARIANT="Marsh 2.0.0 (alpha20, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha19, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha20, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha19, preview)
+CapivaraOS Marsh 2.0.0 (alpha20, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1197,6 +1201,12 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Wed Sep 02 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.20.alpha20
+- Medidor de bateria visivel por padrao na bandeja do painel superior (FEAT-128):
+  movido de hiddenItems para shownItems no layout macos-layout.js, aparecendo no
+  canto direito sem o usuario precisar adiciona-lo a mao.
+- Rotulo do preview alpha19 -> alpha20 (ISO/os-release).
+
 * Thu Aug 27 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.19.alpha19
 - Rótulo do preview alpha18 -> alpha19 (ISO/os-release). Rebuild p/ empacotar o
   COS Dev Center 0.1.8: faixa "Instalados" (mini-lancador) + estado de instalado
