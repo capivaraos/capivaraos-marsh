@@ -17,7 +17,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.21.alpha21%{?dist}.marsh
+Release:        0.22.alpha22%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -573,104 +573,29 @@ touch "$MARKER"
 EOF
 chmod 0755 %{buildroot}%{_bindir}/capivaraos-set-layout
 
-cat > %{buildroot}%{_bindir}/capivaraos-set-wallpaper << 'EOF'
+cat > %{buildroot}%{_bindir}/capivaraos-set-wallpaper << EOF
 #!/bin/bash
-# Wallpaper dinamico por hora do dia (FEAT-91). Aplica o wallpaper da marca
-# conforme o periodo do dia e RESPEITA a escolha do usuario: se ele trocar o
-# wallpaper por conta propria, paramos de mexer (nao reescrevemos por cima).
-#
-# Roda no login (autostart capivaraos-wallpaper.desktop) e de hora em hora
-# (timer de usuario capivaraos-wallpaper.timer).
+MARKER="\$HOME/.config/.capivaraos-wallpaper-applied"
+[ -f "\$MARKER" ] && exit 0
 
-WPDIR=/usr/share/wallpapers
-
-# Arte de cada periodo -- troque o pacote aqui para mudar o wallpaper do slot.
-# Se mudar esta lista, atualize tambem DYN_RE abaixo.
-WP_DAWN=capivaraos-por-do-sol   # amanhecer  05-10h  (sol dourado no horizonte)
-WP_DAY=capivaraos-abstrato-4    # dia        10-17h  (verde Pantanal, vivo)
-WP_DUSK=capivaraos-abstrato-3   # entardecer 17-20h  (azul/roxo, "hora azul")
-WP_NIGHT=capivaraos-luar        # noite      20-05h  (luar no Pantanal)
-DYN_RE="capivaraos-(por-do-sol|abstrato-4|abstrato-3|luar)"
-
-# No login, espera o plasmashell subir (ate ~30s); no timer ele ja esta de pe.
-for i in $(seq 1 30); do
+for i in \$(seq 1 30); do
     pgrep -x plasmashell >/dev/null 2>&1 && break
     sleep 1
 done
+sleep 2
 
-hour=$(date +%%-H)
-if   [ "$hour" -ge 5 ]  && [ "$hour" -lt 10 ]; then SLOT="$WP_DAWN"
-elif [ "$hour" -ge 10 ] && [ "$hour" -lt 17 ]; then SLOT="$WP_DAY"
-elif [ "$hour" -ge 17 ] && [ "$hour" -lt 20 ]; then SLOT="$WP_DUSK"
-else                                                SLOT="$WP_NIGHT"
-fi
-TARGET="$WPDIR/$SLOT"
-[ -d "$TARGET" ] || exit 0
-
-APPLETSRC="$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc"
-STATE="$HOME/.config/capivaraos-wallpaper.last"
-LAST=""
-[ -f "$STATE" ] && LAST=$(cat "$STATE" 2>/dev/null)
-CURLINE=""
-[ -f "$APPLETSRC" ] && CURLINE=$(grep -m1 '^Image=' "$APPLETSRC" 2>/dev/null)
-
-# Guarda de respeito ao usuario:
-#  - Ja gerenciamos antes (temos LAST): so mexe se o wallpaper atual ainda for
-#    exatamente o que aplicamos da ultima vez. Se divergiu, o usuario trocou
-#    -> nao tocamos mais.
-#  - Primeira vez (sem LAST): so assumimos o controle se o wallpaper atual for
-#    um dos nossos dinamicos (ou se ainda nao houver Image= definido).
-if [ -n "$CURLINE" ]; then
-    if [ -n "$LAST" ]; then
-        echo "$CURLINE" | grep -q "$LAST" || exit 0
-    else
-        echo "$CURLINE" | grep -Eq "$DYN_RE" || exit 0
-    fi
-fi
-
-# Aplica o DIRETORIO do pacote (nao o arquivo): assim o Plasma marca o tile da
-# marca como atual. Passar o arquivo (.../1920x1080.png) fazia o Plasma criar um
-# tile avulso nomeado pela resolucao, duplicado do pacote.
+# Aplica o DIRETORIO do pacote (nao o arquivo): assim o Plasma marca o tile
+# "CapivaraOS Luar" como atual. Passar o arquivo (.../1920x1080.png) fazia o
+# Plasma criar um tile de imagem avulsa nomeado pela resolucao ("1920x1080"),
+# separado e duplicado do pacote.
 if command -v plasma-apply-wallpaperimage >/dev/null 2>&1; then
-    plasma-apply-wallpaperimage "$TARGET" >/dev/null 2>&1
+    plasma-apply-wallpaperimage "${DEFAULT_WP_PKG}" >/dev/null 2>&1
 fi
 
-mkdir -p "$HOME/.config"
-printf '%%s\n' "$SLOT" > "$STATE"
+mkdir -p "\$HOME/.config"
+touch "\$MARKER"
 EOF
 chmod 0755 %{buildroot}%{_bindir}/capivaraos-set-wallpaper
-
-# ── Timer de usuario: atualiza o wallpaper dinamico de hora em hora (FEAT-91) ─
-# Alem do autostart (que acerta o wallpaper no login), um timer de usuario
-# reavalia o periodo do dia de hora em hora, trocando o wallpaper quando cruza
-# amanhecer/dia/entardecer/noite. Habilitado por padrao para todos os usuarios
-# via symlink em timers.target.wants (preset de sessao).
-install -d %{buildroot}%{_userunitdir}
-cat > %{buildroot}%{_userunitdir}/capivaraos-wallpaper.service << 'EOF'
-[Unit]
-Description=Aplica o wallpaper dinamico do CapivaraOS conforme a hora do dia
-After=graphical-session.target
-
-[Service]
-Type=oneshot
-ExecStart=/usr/bin/capivaraos-set-wallpaper
-EOF
-
-cat > %{buildroot}%{_userunitdir}/capivaraos-wallpaper.timer << 'EOF'
-[Unit]
-Description=Atualiza o wallpaper dinamico do CapivaraOS de hora em hora
-
-[Timer]
-OnCalendar=hourly
-Persistent=true
-
-[Install]
-WantedBy=timers.target
-EOF
-
-install -d %{buildroot}%{_userunitdir}/timers.target.wants
-ln -sf ../capivaraos-wallpaper.timer \
-    %{buildroot}%{_userunitdir}/timers.target.wants/capivaraos-wallpaper.timer
 
 # ── Avatar do usuario -> capivara (FEAT-102) ────────────────────────────────
 # Registra a face da marca no AccountsService no 1o login. O SDDM mostra o icone
@@ -1065,14 +990,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha21, preview)"
+VERSION="Marsh 2.0.0 (alpha22, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha21, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha22, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1085,24 +1010,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha21, preview)"
+VARIANT="Marsh 2.0.0 (alpha22, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha21, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha22, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha21, preview)
+CapivaraOS Marsh 2.0.0 (alpha22, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha21, preview)
+Variant=Marsh 2.0.0 (alpha22, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1156,14 +1081,14 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha21, preview)"
+VERSION="Marsh 2.0.0 (alpha22, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha21, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha22, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1176,17 +1101,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha21, preview)"
+VARIANT="Marsh 2.0.0 (alpha22, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha21, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha22, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha21, preview)
+CapivaraOS Marsh 2.0.0 (alpha22, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1260,9 +1185,6 @@ sed -i -E \
 %{_bindir}/capivaraos-set-avatar
 %{_bindir}/capivaraos-relabel-root
 %{_unitdir}/capivaraos-relabel-root.service
-%{_userunitdir}/capivaraos-wallpaper.service
-%{_userunitdir}/capivaraos-wallpaper.timer
-%{_userunitdir}/timers.target.wants/capivaraos-wallpaper.timer
 %{_sysconfdir}/xdg/autostart/capivaraos-wallpaper.desktop
 %{_sysconfdir}/xdg/autostart/capivaraos-layout.desktop
 %{_sysconfdir}/xdg/autostart/capivaraos-avatar.desktop
@@ -1279,18 +1201,18 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
-* Wed Sep 02 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.21.alpha21
-- Wallpaper dinamico por hora do dia (FEAT-91, 1a fatia da identidade propria):
-  o capivaraos-set-wallpaper agora escolhe o wallpaper da marca conforme o
-  periodo -- amanhecer (Por do Sol) / dia (Abstrato 4, verde Pantanal) /
-  entardecer (Abstrato 3) / noite (Luar) -- e um timer de usuario horario troca
-  ao cruzar cada faixa. Respeita a escolha do usuario: se ele trocar o wallpaper,
-  paramos de sobrescrever (arquivo de estado capivaraos-wallpaper.last).
-  Nota de build: o formato de hora do 'date' no heredoc virou percent duplo. O
-  rpm interpretava a sequencia de hora-sem-zero como macro-opcao e a apagava no
-  build, deixando a hora vazia -- todo boot caia no 'else' (= Luar). O percent
-  duplicado no spec escapa para um so no arquivo instalado.
-- Rotulo do preview alpha20 -> alpha21 (ISO/os-release).
+* Thu Sep 03 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.22.alpha22
+- Reverte o wallpaper dinamico por hora (era o alpha21, NAO lancado). Em teste de
+  VM ele quebrava o 1o boot da sessao live: fundo preto e dock ausente. Causa: o
+  timer de usuario (Persistent=true) disparava o servico de wallpaper JA no login,
+  concorrendo com o script de layout/dock -- duas mutacoes simultaneas no
+  plasmashell (plasma-apply-wallpaperimage + evaluateScript) corrompiam a
+  containment do desktop. O capivaraos-set-wallpaper volta ao comportamento
+  estavel: aplica o wallpaper padrao (Luar) uma vez no 1o login, sem timer nem
+  servico de usuario. FEAT-132 parada; identidade dinamica fica p/ outra abordagem
+  que nao mexa no plasmashell durante a montagem do 1o boot.
+- Bateria visivel por padrao na bandeja (FEAT-128) mantida.
+- Rotulo do preview alpha20 -> alpha22 (ISO/os-release); alpha21 pulado.
 
 * Wed Sep 02 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.20.alpha20
 - Medidor de bateria visivel por padrao na bandeja do painel superior (FEAT-128):
