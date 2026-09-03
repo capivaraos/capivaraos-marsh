@@ -17,7 +17,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.22.alpha22%{?dist}.marsh
+Release:        0.23.alpha23%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -381,6 +381,11 @@ EOF
 cat > %{buildroot}%{_sysconfdir}/skel/.config/kdeglobals << 'EOF'
 [General]
 ColorScheme=BreezeDark
+# PALETA VERDE CapivaraOS (FEAT-91 frente B): accent verde da marca #15B22C
+# (RGB 21,178,44). Baseline em /etc/skel; o capivaraos-post-theme.ks reforca no
+# sistema instalado sobre o esquema WhiteSur. REVERSIVEL: ver docs/REVERT-CORES-VERDE.md
+AccentColor=21,178,44
+accentColorFromWallpaper=false
 
 [KDE]
 LookAndFeelPackage=org.kde.breezedark.desktop
@@ -990,14 +995,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha22, preview)"
+VERSION="Marsh 2.0.0 (alpha23, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha22, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha23, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1010,24 +1015,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha22, preview)"
+VARIANT="Marsh 2.0.0 (alpha23, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha22, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha23, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha22, preview)
+CapivaraOS Marsh 2.0.0 (alpha23, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha22, preview)
+Variant=Marsh 2.0.0 (alpha23, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1081,14 +1086,14 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha22, preview)"
+VERSION="Marsh 2.0.0 (alpha23, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha22, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha23, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1101,17 +1106,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha22, preview)"
+VARIANT="Marsh 2.0.0 (alpha23, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha22, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha23, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha22, preview)
+CapivaraOS Marsh 2.0.0 (alpha23, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1201,6 +1206,17 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Thu Sep 03 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.23.alpha23
+- Paleta verde CapivaraOS (FEAT-91 frente B, build de avaliacao): aplica o accent
+  verde da marca #15B22C (RGB 21,178,44) ao desktop Plasma. AccentColor +
+  accentColorFromWallpaper=false em /etc/skel/.config/kdeglobals (baseline) e
+  reforcado no sistema instalado pelo capivaraos-post-theme.ks sobre o esquema de
+  cores do WhiteSur. Recolore selecao/foco/realce/controles em todo o desktop,
+  mantendo os neutros e o formato "macOS" do WhiteSur intactos. Mudanca puramente
+  estatica/declarativa (dados em kdeglobals), sem mutar o plasmashell em runtime.
+  Reversivel num unico ponto -- ver docs/REVERT-CORES-VERDE.md.
+- Rotulo do preview alpha22 -> alpha23 (ISO/os-release).
+
 * Thu Sep 03 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.22.alpha22
 - Reverte o wallpaper dinamico por hora (era o alpha21, NAO lancado). Em teste de
   VM ele quebrava o 1o boot da sessao live: fundo preto e dock ausente. Causa: o

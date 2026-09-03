@@ -106,6 +106,20 @@ for HOMEDIR in /root /etc/skel; do
     [ -n "$COLOR_SCHEME" ] && \
         kwriteconfig6 --file "$KDEGLOBALS" --group General --key ColorScheme "$COLOR_SCHEME" 2>/dev/null || \
         kwriteconfig5 --file "$KDEGLOBALS" --group General --key ColorScheme "$COLOR_SCHEME" 2>/dev/null || true
+
+    # ── PALETA VERDE CapivaraOS (FEAT-91 frente B) — SWAP DE COR ──────────────
+    # Sobrepõe o accent verde da marca (#15B22C = RGB 21,178,44) ao esquema de
+    # cores do WhiteSur. No Plasma 6 o AccentColor personalizado recolore
+    # seleção/foco/realce/controles (menus, campos, caixas, sliders, progresso)
+    # em TODO o desktop, mantendo os neutros e o formato "macOS" do WhiteSur
+    # intactos. Mudança puramente estática/declarativa (só dados em kdeglobals),
+    # sem mutar o plasmashell em runtime. REVERSÍVEL: remover este bloco volta
+    # ao accent azul do WhiteSur. Ver docs/REVERT-CORES-VERDE.md.
+    kwriteconfig6 --file "$KDEGLOBALS" --group General --key AccentColor "21,178,44" 2>/dev/null || \
+        kwriteconfig5 --file "$KDEGLOBALS" --group General --key AccentColor "21,178,44" 2>/dev/null || true
+    kwriteconfig6 --file "$KDEGLOBALS" --group General --key accentColorFromWallpaper "false" 2>/dev/null || \
+        kwriteconfig5 --file "$KDEGLOBALS" --group General --key accentColorFromWallpaper "false" 2>/dev/null || true
+
     kwriteconfig6 --file "$KDEGLOBALS" --group Icons --key Theme "$ICON_THEME" 2>/dev/null || \
         kwriteconfig5 --file "$KDEGLOBALS" --group Icons --key Theme "$ICON_THEME" 2>/dev/null || true
 
