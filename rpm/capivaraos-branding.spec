@@ -598,7 +598,7 @@ for i in $(seq 1 30); do
     sleep 1
 done
 
-hour=$(date +%-H)
+hour=$(date +%%-H)
 if   [ "$hour" -ge 5 ]  && [ "$hour" -lt 10 ]; then SLOT="$WP_DAWN"
 elif [ "$hour" -ge 10 ] && [ "$hour" -lt 17 ]; then SLOT="$WP_DAY"
 elif [ "$hour" -ge 17 ] && [ "$hour" -lt 20 ]; then SLOT="$WP_DUSK"
@@ -636,7 +636,7 @@ if command -v plasma-apply-wallpaperimage >/dev/null 2>&1; then
 fi
 
 mkdir -p "$HOME/.config"
-printf '%s\n' "$SLOT" > "$STATE"
+printf '%%s\n' "$SLOT" > "$STATE"
 EOF
 chmod 0755 %{buildroot}%{_bindir}/capivaraos-set-wallpaper
 
@@ -1286,6 +1286,10 @@ sed -i -E \
   entardecer (Abstrato 3) / noite (Luar) -- e um timer de usuario horario troca
   ao cruzar cada faixa. Respeita a escolha do usuario: se ele trocar o wallpaper,
   paramos de sobrescrever (arquivo de estado capivaraos-wallpaper.last).
+  Nota de build: o formato de hora do 'date' no heredoc virou percent duplo. O
+  rpm interpretava a sequencia de hora-sem-zero como macro-opcao e a apagava no
+  build, deixando a hora vazia -- todo boot caia no 'else' (= Luar). O percent
+  duplicado no spec escapa para um so no arquivo instalado.
 - Rotulo do preview alpha20 -> alpha21 (ISO/os-release).
 
 * Wed Sep 02 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.20.alpha20
