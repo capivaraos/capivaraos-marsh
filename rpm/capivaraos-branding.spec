@@ -17,7 +17,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.23.alpha23%{?dist}.marsh
+Release:        0.24.alpha24%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -144,10 +144,12 @@ convert backgrounds/capivaraos-wp-moonlight.png build/backgrounds/capivaraos-def
 convert backgrounds/capivaraos-wp-moonlight.png -resize 1920x1080 \
     build/backgrounds/capivaraos-sddm-1080.png
 
-# Spinner branco (arco girando) exibido logo abaixo da logo no splash.
+# Spinner VERDE da marca (arco girando) exibido logo abaixo da logo no splash.
+# Cor #15B22C = accent do CapivaraOS (FEAT-91 frente C: boot coerente com a
+# paleta). A logo continua branca; o arco verde e o sinal de marca em movimento.
 # Geramos 30 quadros, cada um girado 12°, e o script do Plymouth os cicla.
 mkdir -p build/plymouth/spinner
-convert -size 64x64 xc:none -stroke white -strokewidth 5 \
+convert -size 64x64 xc:none -stroke '#15B22C' -strokewidth 5 \
     -fill none -draw "stroke-linecap round arc 12,12 52,52 0,300" \
     build/plymouth/spinner-base.png
 for i in $(seq 0 29); do
@@ -276,8 +278,10 @@ ScriptFile=/usr/share/plymouth/themes/capivaraos/capivaraos.script
 EOF
 
 cat > %{buildroot}%{_datadir}/plymouth/themes/capivaraos/capivaraos.script << 'EOF'
-Window.SetBackgroundTopColor(0.07, 0.09, 0.13);
-Window.SetBackgroundBottomColor(0.07, 0.09, 0.13);
+# Fundo = tom escuro da paleta CapivaraOS (#12160F, verde-quase-preto),
+# alinhado ao "dark ground" do desktop (FEAT-91 frente C).
+Window.SetBackgroundTopColor(0.071, 0.086, 0.059);
+Window.SetBackgroundBottomColor(0.071, 0.086, 0.059);
 
 # ── Logo branca (acima do spinner) ──────────────────────────────────────────
 logo.image = Image("logo.png");
@@ -995,14 +999,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha23, preview)"
+VERSION="Marsh 2.0.0 (alpha24, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha23, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha24, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1015,24 +1019,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha23, preview)"
+VARIANT="Marsh 2.0.0 (alpha24, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha23, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha24, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha23, preview)
+CapivaraOS Marsh 2.0.0 (alpha24, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha23, preview)
+Variant=Marsh 2.0.0 (alpha24, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1086,14 +1090,14 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha23, preview)"
+VERSION="Marsh 2.0.0 (alpha24, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha23, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha24, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1106,17 +1110,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha23, preview)"
+VARIANT="Marsh 2.0.0 (alpha24, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha23, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha24, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha23, preview)
+CapivaraOS Marsh 2.0.0 (alpha24, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1206,6 +1210,15 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Thu Sep 03 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.24.alpha24
+- Boot coerente com a paleta (FEAT-91 frente C): o spinner do Plymouth passa a
+  usar o verde da marca #15B22C (era branco) e o fundo do splash passa ao tom
+  escuro da paleta (#12160F). Logo continua branca. So arte/cores no tema
+  Plymouth; nenhuma mudanca de logica. Login (accent do formulario) fica p/ uma
+  proxima fatia, apos confirmar a alavanca do plasma-login-manager em VM (evita
+  regressao de login preto -- BUG-43).
+- Rotulo do preview alpha23 -> alpha24 (ISO/os-release).
+
 * Thu Sep 03 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.23.alpha23
 - Paleta verde CapivaraOS (FEAT-91 frente B, build de avaliacao): aplica o accent
   verde da marca #15B22C (RGB 21,178,44) ao desktop Plasma. AccentColor +

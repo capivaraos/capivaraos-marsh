@@ -31,6 +31,8 @@ Ou, para descartar antes de commitar/publicar: `git checkout -- <arquivos abaixo
 | 5 | `rpm/capivaraos-branding.spec` — `%changelog` | Entrada nova documentando a paleta | — | entrada `0.23.alpha23` |
 | 6 | `build-all.sh` | Nome da ISO + `--volid` | `...alpha22...` | `...alpha23...` |
 | 7 | `docs/REVERT-CORES-VERDE.md` | Este mapa | — | novo |
+| 8 | `rpm/...spec` — geração do spinner do Plymouth (frente C) | Cor do arco do spinner | `-stroke white` | `-stroke '#15B22C'` |
+| 9 | `rpm/...spec` — `capivaraos.script` do Plymouth (frente C) | Cor de fundo do splash | `SetBackground*Color(0.07, 0.09, 0.13)` (azul-escuro) | `(0.071, 0.086, 0.059)` (#12160F, verde-quase-preto) |
 
 Para reverter **só a cor** e manter o rótulo alpha23, basta desfazer os itens
 **1 e 2** (as duas linhas de `AccentColor`/`accentColorFromWallpaper`).
@@ -53,5 +55,14 @@ Verde da marca em: itens de menu realçados, texto selecionado, borda de campo e
 foco, caixas de seleção / botões de rádio / interruptores, barras de progresso,
 alças de slider e indicadores de ocupado. Janelas e painéis continuam com o
 formato e os cinzas do WhiteSur.
+
+## Frente C — boot/login
+
+- **Boot (Plymouth):** FEITO no alpha24 (itens 8 e 9). Spinner verde + fundo escuro
+  da paleta; logo branca mantida.
+- **Login (accent do formulário):** PENDENTE. O login já é coerente (fundo luar
+  escuro + avatar no quadrado verde); falta só o accent do campo/botão. Não foi
+  editado às cegas para não arriscar login preto (BUG-43 / plasma-login-manager).
+  Será feito após confirmar a chave de accent do greeter em VM.
 
 Build: `./build-all.sh`
