@@ -34,7 +34,7 @@ Ou, para descartar antes de commitar/publicar: `git checkout -- <arquivos abaixo
 | 8 | `rpm/...spec` — geração do spinner do Plymouth (frente C) | Cor do arco do spinner | `-stroke white` | `-stroke '#15B22C'` |
 | 9 | `rpm/...spec` — `capivaraos.script` do Plymouth (frente C) | Cor de fundo do splash | `SetBackground*Color(0.07, 0.09, 0.13)` (azul-escuro) | `(0.071, 0.086, 0.059)` (#12160F, verde-quase-preto) |
 | 10 | `rpm/...spec` — `%posttrans`, após o wallpaper do login (frente C) | Grava o accent verde no `kdeglobals` fallback do sistema (via `kwriteconfig`, merge) que o greeter `plasmalogin` lê | *(greeter usava o accent azul padrão do Breeze)* | `/etc/xdg/kdeglobals` → `[General] AccentColor=21,178,44` + `accentColorFromWallpaper=false` |
-| 11 | `rpm/...spec` — `capivaraos.script` do Plymouth (frente C, Path C) | Capivara "andando no lugar": gingado sutil da logo no `refresh_callback` (bob vertical + sway lateral via `Math.Sin`) + `logo.tick` init | *(logo estática)* | logo animada; revert = remover o bloco de animação do `refresh_callback` e a linha `logo.tick = 0;` |
+| 11 | `rpm/...spec` — `capivaraos.script` do Plymouth (frente C, Path C) | ~~Capivara "andando no lugar" (gingado da logo)~~ **REVERTIDO no alpha27** — a logo do boot voltou a ser estática, por decisão de design | logo estática | **logo estática** (animação removida) |
 
 Para reverter **só a cor** e manter o rótulo alpha23, basta desfazer os itens
 **1 e 2** (as duas linhas de `AccentColor`/`accentColorFromWallpaper`).
@@ -62,13 +62,13 @@ formato e os cinzas do WhiteSur.
 
 - **Boot (Plymouth):** FEITO no alpha24 (itens 8 e 9). Spinner verde + fundo escuro
   da paleta; logo branca mantida.
-- **Capivara com movimento (alpha26, item 11):** a logo do splash ganha um gingado
-  sutil de "andar no lugar" (Path C — aproximação **por código**, sem arte nova).
-  **Path A** (walk-cycle real, com a capivara mexendo as patas) fica pendente de
-  **arte**: precisa de ~6–12 quadros da capivara andando (PNG com alfa) que o
-  script cicla igual ao spinner. Alternativa **Path B**: logo em camadas (patas
-  separadas) para animar as patas por rotação no script. Não temos fonte vetorial/
-  camadas — só rasters chapados (`branding/icons/capivaraos-logo.png` 700×700).
+- **Capivara com movimento:** foi tentada no alpha26 (Path C, gingado por código) e
+  **REVERTIDA no alpha27** por decisão de design — a logo do boot/desligamento é
+  **estática**. Fica registrado, caso um dia se retome: **Path A** = walk-cycle real
+  (~6–12 quadros desenhados da capivara andando, PNG com alfa, ciclados como o
+  spinner); **Path B** = logo em camadas (patas separadas) animadas por rotação no
+  script. Ambos dependem de **arte** — hoje só há rasters chapados
+  (`branding/icons/capivaraos-logo.png` 700×700).
 - **Login (accent do formulário):** FEITO no alpha25 (item 10). Confirmado o
   mecanismo em VM: o greeter do `plasma-login-manager` roda como o usuário
   `plasmalogin` (home `/var/lib/plasmalogin`) e lê a aparência de um `kdeglobals`
