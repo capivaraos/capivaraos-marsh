@@ -35,6 +35,7 @@ Ou, para descartar antes de commitar/publicar: `git checkout -- <arquivos abaixo
 | 9 | `rpm/...spec` — `capivaraos.script` do Plymouth (frente C) | Cor de fundo do splash | `SetBackground*Color(0.07, 0.09, 0.13)` (azul-escuro) | `(0.071, 0.086, 0.059)` (#12160F, verde-quase-preto) |
 | 10 | `rpm/...spec` — `%posttrans`, após o wallpaper do login (frente C) | Grava o accent verde no `kdeglobals` fallback do sistema (via `kwriteconfig`, merge) que o greeter `plasmalogin` lê | *(greeter usava o accent azul padrão do Breeze)* | `/etc/xdg/kdeglobals` → `[General] AccentColor=21,178,44` + `accentColorFromWallpaper=false` |
 | 11 | `rpm/...spec` — `capivaraos.script` do Plymouth (frente C, Path C) | ~~Capivara "andando no lugar" (gingado da logo)~~ **REVERTIDO no alpha27** — a logo do boot voltou a ser estática, por decisão de design | logo estática | **logo estática** (animação removida) |
+| 12 | `branding/color-schemes/CapivaraOS.colors` (novo) + `rpm/build-rpm.sh` + `rpm/...spec` (`%install`/`%files`/`/etc/skel kdeglobals`) + `kickstart/capivaraos-post-theme.ks` (frente **D**, D1, alpha28) | Esquema de cores **próprio** do CapivaraOS (paleta verde) no lugar do esquema do WhiteSur; `kdeglobals ColorScheme` passa a `CapivaraOS` | `ColorScheme=<WhiteSur*>` | `ColorScheme=CapivaraOS` (arquivo `.colors` empacotado; formas WhiteSur mantidas) |
 
 Para reverter **só a cor** e manter o rótulo alpha23, basta desfazer os itens
 **1 e 2** (as duas linhas de `AccentColor`/`accentColorFromWallpaper`).
@@ -78,5 +79,27 @@ formato e os cinzas do WhiteSur.
   as duas chaves via `kwriteconfig` (merge). Seguro: valor não-reconhecido não
   faz efeito e **nunca** dá login preto (o preto do BUG-43 era o wallpaper
   apontando para diretório removido, não o accent). Reversível pelo item 10.
+
+## Frente D — aposentar o WhiteSur (em fatias)
+
+Onde o WhiteSur entra hoje: `kickstart/capivaraos-post-theme.ks` clona 2 repos
+(WhiteSur-gtk-theme + WhiteSur-kde) e aplica **4 superfícies** — (1) tema **GTK**,
+(2) **esquema de cores**, (3) decoração **Aurorae**, (4) **tema Plasma**. Ícones e
+Look&Feel já são Breeze.
+
+- **D1 — Esquema de cores próprio:** FEITO no alpha28 (item 12). Novo
+  `branding/color-schemes/CapivaraOS.colors` (derivado do Breeze Dark do KDE,
+  LGPL-2.0-or-later; neutros da paleta + accent verde), empacotado pelo
+  `capivaraos-branding`; `kdeglobals ColorScheme=CapivaraOS`. Aposenta a
+  dependência do **esquema de cores** do WhiteSur. **Formas** do WhiteSur
+  (Aurorae + tema Plasma) seguem por ora.
+- **D2 (decisão pendente) — base das FORMAS:** (a) Breeze nativo (seguro/genérico,
+  aposenta o clone já) ou (b) tema bespoke próprio (bonito/identidade, **depende de
+  arte**: SVGs de Aurorae + tema Plasma). Escolhido **híbrido**: D1 agora, formas
+  do WhiteSur mantidas até a decisão/arte.
+- **D3 — decoração Aurorae própria** (ou Breeze): pendente.
+- **D4 — tema Plasma próprio** (ou Breeze): pendente.
+- **D5 — tema GTK próprio** (ou Adwaita/Breeze) + remover os 2 `git clone` do
+  WhiteSur do build: pendente.
 
 Build: `./build-all.sh`

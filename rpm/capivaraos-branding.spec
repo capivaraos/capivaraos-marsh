@@ -17,7 +17,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.27.alpha27%{?dist}.marsh
+Release:        0.28.alpha28%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -256,6 +256,15 @@ cp -r build/wallpapers/* %{buildroot}%{_datadir}/wallpapers/
 find %{buildroot}%{_datadir}/wallpapers -type f -exec chmod 0644 {} \;
 find %{buildroot}%{_datadir}/wallpapers -type d -exec chmod 0755 {} \;
 
+# ── Esquema de cores próprio do CapivaraOS (FEAT-91 frente D, D1) ────────────
+# Paleta verde da marca (accent #15B22C + neutros escuros ~#12160F). Substitui a
+# dependência do esquema de cores do WhiteSur; as FORMAS (Aurorae/tema Plasma)
+# seguem por ora. Selecionado em kdeglobals (ColorScheme=CapivaraOS) pelo
+# /etc/skel abaixo e reforçado no capivaraos-post-theme.ks. Ver docs/REVERT-CORES-VERDE.md.
+install -d %{buildroot}%{_datadir}/color-schemes
+install -m 0644 color-schemes/CapivaraOS.colors \
+    %{buildroot}%{_datadir}/color-schemes/CapivaraOS.colors
+
 # ── Tema Plymouth ────────────────────────────────────────────────────────────
 install -d %{buildroot}%{_datadir}/plymouth/themes/capivaraos
 install -m 0644 build/plymouth/logo.png \
@@ -384,10 +393,13 @@ EOF
 
 cat > %{buildroot}%{_sysconfdir}/skel/.config/kdeglobals << 'EOF'
 [General]
-ColorScheme=BreezeDark
+# ESQUEMA DE CORES PROPRIO CapivaraOS (FEAT-91 frente D, D1): paleta verde da
+# marca no lugar do Breeze/WhiteSur. Instalado por este pacote em
+# /usr/share/color-schemes/CapivaraOS.colors; reforcado pelo capivaraos-post-theme.ks.
+ColorScheme=CapivaraOS
 # PALETA VERDE CapivaraOS (FEAT-91 frente B): accent verde da marca #15B22C
 # (RGB 21,178,44). Baseline em /etc/skel; o capivaraos-post-theme.ks reforca no
-# sistema instalado sobre o esquema WhiteSur. REVERSIVEL: ver docs/REVERT-CORES-VERDE.md
+# sistema instalado. REVERSIVEL: ver docs/REVERT-CORES-VERDE.md
 AccentColor=21,178,44
 accentColorFromWallpaper=false
 
@@ -1016,14 +1028,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha27, preview)"
+VERSION="Marsh 2.0.0 (alpha28, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha27, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha28, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1036,24 +1048,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha27, preview)"
+VARIANT="Marsh 2.0.0 (alpha28, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha27, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha28, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha27, preview)
+CapivaraOS Marsh 2.0.0 (alpha28, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha27, preview)
+Variant=Marsh 2.0.0 (alpha28, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1107,14 +1119,14 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha27, preview)"
+VERSION="Marsh 2.0.0 (alpha28, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha27, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha28, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1127,17 +1139,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha27, preview)"
+VARIANT="Marsh 2.0.0 (alpha28, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha27, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha28, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha27, preview)
+CapivaraOS Marsh 2.0.0 (alpha28, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1203,6 +1215,7 @@ sed -i -E \
 %{_datadir}/icons/hicolor/*/apps/capivaraos-full-logo.png
 %{_datadir}/icons/hicolor/*/apps/capivaraos-head.png
 %{_datadir}/wallpapers/capivaraos-*/
+%{_datadir}/color-schemes/CapivaraOS.colors
 %{_datadir}/plymouth/themes/capivaraos/
 %{_datadir}/capivaraos/
 %{_datadir}/fonts/capivaraos-firacode-nerd/
@@ -1227,6 +1240,17 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Fri Sep 04 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.28.alpha28
+- Esquema de cores PROPRIO do CapivaraOS (FEAT-91 frente D, fatia D1): novo
+  /usr/share/color-schemes/CapivaraOS.colors (derivado do Breeze Dark do KDE,
+  LGPL-2.0-or-later, com neutros da paleta ~#12160F e accent/selecao/foco no
+  verde da marca #15B22C). kdeglobals passa a ColorScheme=CapivaraOS (/etc/skel
+  + reforco no capivaraos-post-theme.ks), aposentando a dependencia do esquema
+  de cores do WhiteSur. As FORMAS do WhiteSur (decoracao Aurorae + tema Plasma)
+  seguem por ora -- proximas fatias da frente D dependem de design. Reversivel;
+  ver docs/REVERT-CORES-VERDE.md.
+- Rotulo do preview alpha27 -> alpha28 (ISO/os-release).
+
 * Fri Sep 04 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.27.alpha27
 - Revertida a animacao da capivara no splash do Plymouth (Path C do alpha26): a
   logo do boot/desligamento volta a ser ESTATICA, por decisao de design. Removido

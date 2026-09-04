@@ -71,9 +71,19 @@ GTK_THEME=$(ls /usr/share/themes/ 2>/dev/null | grep -i '^WhiteSur.*[Dd]ark' | h
 # de Preferências do Sistema do macOS).
 ICON_THEME="breeze-dark"
 
-COLOR_SCHEME_FILE=$(ls /usr/share/color-schemes/ 2>/dev/null | grep -i 'whitesur' | grep -i 'dark' | head -1)
-[ -z "$COLOR_SCHEME_FILE" ] && COLOR_SCHEME_FILE=$(ls /usr/share/color-schemes/ 2>/dev/null | grep -i 'whitesur' | head -1)
-COLOR_SCHEME="${COLOR_SCHEME_FILE%.colors}"
+# Esquema de cores: usamos o PRÓPRIO do CapivaraOS (FEAT-91 frente D, D1),
+# instalado pelo pacote capivaraos-branding em
+# /usr/share/color-schemes/CapivaraOS.colors — paleta verde da marca, sem
+# depender do esquema do WhiteSur. As FORMAS do WhiteSur (Aurorae/tema Plasma)
+# seguem por ora. Fallback para o WhiteSur só se o nosso não existir (build sem
+# o pacote). Ver docs/REVERT-CORES-VERDE.md.
+if [ -f /usr/share/color-schemes/CapivaraOS.colors ]; then
+    COLOR_SCHEME="CapivaraOS"
+else
+    COLOR_SCHEME_FILE=$(ls /usr/share/color-schemes/ 2>/dev/null | grep -i 'whitesur' | grep -i 'dark' | head -1)
+    [ -z "$COLOR_SCHEME_FILE" ] && COLOR_SCHEME_FILE=$(ls /usr/share/color-schemes/ 2>/dev/null | grep -i 'whitesur' | head -1)
+    COLOR_SCHEME="${COLOR_SCHEME_FILE%.colors}"
+fi
 
 AURORAE_THEME=$(ls /usr/share/aurorae/themes/ 2>/dev/null | grep -i 'whitesur' | grep -i 'dark' | head -1)
 [ -z "$AURORAE_THEME" ] && AURORAE_THEME=$(ls /usr/share/aurorae/themes/ 2>/dev/null | grep -i 'whitesur' | head -1)
