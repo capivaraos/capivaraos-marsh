@@ -36,6 +36,7 @@ Ou, para descartar antes de commitar/publicar: `git checkout -- <arquivos abaixo
 | 10 | `rpm/...spec` — `%posttrans`, após o wallpaper do login (frente C) | Grava o accent verde no `kdeglobals` fallback do sistema (via `kwriteconfig`, merge) que o greeter `plasmalogin` lê | *(greeter usava o accent azul padrão do Breeze)* | `/etc/xdg/kdeglobals` → `[General] AccentColor=21,178,44` + `accentColorFromWallpaper=false` |
 | 11 | `rpm/...spec` — `capivaraos.script` do Plymouth (frente C, Path C) | ~~Capivara "andando no lugar" (gingado da logo)~~ **REVERTIDO no alpha27** — a logo do boot voltou a ser estática, por decisão de design | logo estática | **logo estática** (animação removida) |
 | 12 | `branding/color-schemes/CapivaraOS.colors` (novo) + `rpm/build-rpm.sh` + `rpm/...spec` (`%install`/`%files`/`/etc/skel kdeglobals`) + `kickstart/capivaraos-post-theme.ks` (frente **D**, D1, alpha28) | Esquema de cores **próprio** do CapivaraOS (paleta verde) no lugar do esquema do WhiteSur; `kdeglobals ColorScheme` passa a `CapivaraOS` | `ColorScheme=<WhiteSur*>` | `ColorScheme=CapivaraOS` (arquivo `.colors` empacotado; formas WhiteSur mantidas) |
+| 13 | `branding/aurorae/CapivaraOS/*` (novo) + `rpm/build-rpm.sh` + `rpm/...spec` (`%install`/`%files`) + `kickstart/capivaraos-post-theme.ks` (frente **D**, D3, alpha29) | **Decoração de janela própria** (Aurorae): titlebar da paleta, cantos arredondados, botões círculos coloridos da marca; `kwinrc` passa a `theme=__aurorae__svg__CapivaraOS` | `theme=__aurorae__svg__<WhiteSur*>` | `theme=__aurorae__svg__CapivaraOS` (tema Aurorae empacotado; tema Plasma/painel do WhiteSur mantido) |
 
 Para reverter **só a cor** e manter o rótulo alpha23, basta desfazer os itens
 **1 e 2** (as duas linhas de `AccentColor`/`accentColorFromWallpaper`).
@@ -97,7 +98,10 @@ Look&Feel já são Breeze.
   Brief de arte escrito em **`docs/BRIEF-TEMA-CAPIVARAOS.md`** (decoração Aurorae +
   tema Plasma, com paleta e lista exata de SVGs). Formas do WhiteSur **mantidas até
   a arte chegar** (não-destrutivo).
-- **D3 — decoração Aurorae própria:** aguardando arte (ver brief).
+- **D3 — decoração Aurorae própria:** PROVA 1 no alpha29 (item 13). Arte original
+  em `branding/aurorae/CapivaraOS/` (gerada como código SVG, não ilustração).
+  Ligada no build; **sujeita a ajuste após teste em VM** (é o 1º `decoration.svg`
+  nine-patch feito sem preview local). Tema Plasma/painel do WhiteSur mantido.
 - **D4 — tema Plasma próprio:** aguardando arte (ver brief).
 - **D5 — tema GTK** (Adwaita accent verde recomendado) + remover os 2 `git clone`
   do WhiteSur do build: entra junto com D3/D4.

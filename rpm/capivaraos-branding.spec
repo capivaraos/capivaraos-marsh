@@ -17,7 +17,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.28.alpha28%{?dist}.marsh
+Release:        0.29.alpha29%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -264,6 +264,14 @@ find %{buildroot}%{_datadir}/wallpapers -type d -exec chmod 0755 {} \;
 install -d %{buildroot}%{_datadir}/color-schemes
 install -m 0644 color-schemes/CapivaraOS.colors \
     %{buildroot}%{_datadir}/color-schemes/CapivaraOS.colors
+
+# ── Decoração de janela própria (Aurorae) do CapivaraOS (FEAT-91 frente D, D3) ─
+# Titlebar da paleta + cantos arredondados + botões círculos coloridos da marca.
+# Selecionada no capivaraos-post-theme.ks (kwinrc theme=__aurorae__svg__CapivaraOS).
+# As demais formas do WhiteSur (tema Plasma) seguem por ora. Ver docs/BRIEF-TEMA-CAPIVARAOS.md.
+install -d %{buildroot}%{_datadir}/aurorae/themes/CapivaraOS
+install -m 0644 aurorae/CapivaraOS/* \
+    %{buildroot}%{_datadir}/aurorae/themes/CapivaraOS/
 
 # ── Tema Plymouth ────────────────────────────────────────────────────────────
 install -d %{buildroot}%{_datadir}/plymouth/themes/capivaraos
@@ -1028,14 +1036,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha28, preview)"
+VERSION="Marsh 2.0.0 (alpha29, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha28, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha29, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1048,24 +1056,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha28, preview)"
+VARIANT="Marsh 2.0.0 (alpha29, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha28, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha29, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha28, preview)
+CapivaraOS Marsh 2.0.0 (alpha29, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha28, preview)
+Variant=Marsh 2.0.0 (alpha29, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1119,14 +1127,14 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha28, preview)"
+VERSION="Marsh 2.0.0 (alpha29, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha28, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha29, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1139,17 +1147,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha28, preview)"
+VARIANT="Marsh 2.0.0 (alpha29, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha28, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha29, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha28, preview)
+CapivaraOS Marsh 2.0.0 (alpha29, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1216,6 +1224,7 @@ sed -i -E \
 %{_datadir}/icons/hicolor/*/apps/capivaraos-head.png
 %{_datadir}/wallpapers/capivaraos-*/
 %{_datadir}/color-schemes/CapivaraOS.colors
+%{_datadir}/aurorae/themes/CapivaraOS/
 %{_datadir}/plymouth/themes/capivaraos/
 %{_datadir}/capivaraos/
 %{_datadir}/fonts/capivaraos-firacode-nerd/
@@ -1240,6 +1249,17 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Fri Sep 04 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.29.alpha29
+- Decoração de janela PRÓPRIA (FEAT-91 frente D, D3 - prova p/ avaliação): novo
+  tema Aurorae /usr/share/aurorae/themes/CapivaraOS (arte original GPL-3.0):
+  titlebar na cor da paleta, cantos arredondados, botões como círculos coloridos
+  da marca (fechar vermelho / minimizar âmbar / maximizar-restaurar verde
+  #15B22C, glifo no hover), botões à esquerda (topo/dock). Selecionada no
+  capivaraos-post-theme.ks (kwinrc theme=__aurorae__svg__CapivaraOS). O tema
+  Plasma (painel) do WhiteSur segue por ora. Prova sujeita a ajuste após teste
+  em VM. Ver docs/BRIEF-TEMA-CAPIVARAOS.md.
+- Rótulo do preview alpha28 -> alpha29 (ISO/os-release).
+
 * Fri Sep 04 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.28.alpha28
 - Esquema de cores PROPRIO do CapivaraOS (FEAT-91 frente D, fatia D1): novo
   /usr/share/color-schemes/CapivaraOS.colors (derivado do Breeze Dark do KDE,

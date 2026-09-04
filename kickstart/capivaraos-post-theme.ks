@@ -85,8 +85,17 @@ else
     COLOR_SCHEME="${COLOR_SCHEME_FILE%.colors}"
 fi
 
-AURORAE_THEME=$(ls /usr/share/aurorae/themes/ 2>/dev/null | grep -i 'whitesur' | grep -i 'dark' | head -1)
-[ -z "$AURORAE_THEME" ] && AURORAE_THEME=$(ls /usr/share/aurorae/themes/ 2>/dev/null | grep -i 'whitesur' | head -1)
+# Decoração de janela: usamos a PRÓPRIA do CapivaraOS (FEAT-91 frente D, D3),
+# instalada pelo pacote capivaraos-branding em /usr/share/aurorae/themes/CapivaraOS
+# (titlebar da paleta + cantos arredondados + botões círculos coloridos da marca).
+# O tema Plasma (painel) do WhiteSur segue por ora. Fallback p/ WhiteSur só se a
+# nossa não existir. Ver docs/BRIEF-TEMA-CAPIVARAOS.md.
+if [ -d /usr/share/aurorae/themes/CapivaraOS ]; then
+    AURORAE_THEME="CapivaraOS"
+else
+    AURORAE_THEME=$(ls /usr/share/aurorae/themes/ 2>/dev/null | grep -i 'whitesur' | grep -i 'dark' | head -1)
+    [ -z "$AURORAE_THEME" ] && AURORAE_THEME=$(ls /usr/share/aurorae/themes/ 2>/dev/null | grep -i 'whitesur' | head -1)
+fi
 
 SDDM_THEME=$(ls /usr/share/sddm/themes/ 2>/dev/null | grep -i 'whitesur' | head -1)
 
