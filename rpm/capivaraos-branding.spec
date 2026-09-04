@@ -17,7 +17,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.25.alpha25%{?dist}.marsh
+Release:        0.26.alpha26%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -289,6 +289,8 @@ logo.sprite = Sprite(logo.image);
 logo.x = Window.GetWidth() / 2 - logo.image.GetWidth() / 2;
 logo.y = Window.GetHeight() / 2 - logo.image.GetHeight() / 2 - 80;
 logo.sprite.SetPosition(logo.x, logo.y, 1);
+# Contador de tempo p/ animar a capivara "andando no lugar" (FEAT-91 frente C).
+logo.tick = 0;
 
 # ── Spinner (arco branco girando, logo abaixo da logo) ──────────────────────
 spinner_frame_count = 30;
@@ -341,6 +343,16 @@ if (is_updates) {
 }
 
 fun refresh_callback() {
+    # ── Capivara "andando no lugar" (FEAT-91 frente C, Path C) ──────────────
+    # Gingado sutil da logo: bob vertical (sobe-desce) + leve sway lateral a
+    # metade da frequencia, dando cadencia de caminhada. So reposiciona o sprite
+    # (sem re-render de imagem -> barato). NAO e um walk-cycle de verdade (isso
+    # exige quadros desenhados, Path A); e uma aproximacao ate a arte existir.
+    logo.tick++;
+    bob  = Math.Sin(logo.tick * 0.10) * 5;
+    sway = Math.Sin(logo.tick * 0.05) * 3;
+    logo.sprite.SetPosition(logo.x + sway, logo.y + bob, 1);
+
     spinner.frame++;
     if (spinner.frame >= spinner_frame_count * 3)
         spinner.frame = 0;
@@ -1016,14 +1028,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha25, preview)"
+VERSION="Marsh 2.0.0 (alpha26, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha25, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha26, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1036,24 +1048,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha25, preview)"
+VARIANT="Marsh 2.0.0 (alpha26, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha25, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha26, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha25, preview)
+CapivaraOS Marsh 2.0.0 (alpha26, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha25, preview)
+Variant=Marsh 2.0.0 (alpha26, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1107,14 +1119,14 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha25, preview)"
+VERSION="Marsh 2.0.0 (alpha26, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha25, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha26, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1127,17 +1139,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha25, preview)"
+VARIANT="Marsh 2.0.0 (alpha26, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha25, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha26, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha25, preview)
+CapivaraOS Marsh 2.0.0 (alpha26, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1227,6 +1239,15 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Fri Sep 04 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.26.alpha26
+- Capivara com movimento no boot/desligamento (FEAT-91 frente C, Path C): a logo
+  do splash do Plymouth ganha um gingado sutil de "andar no lugar" -- bob
+  vertical + leve sway lateral, animado no refresh_callback via Math.Sin (so
+  reposiciona o sprite, sem re-render). NAO e um walk-cycle real (isso exige
+  quadros desenhados da capivara andando -- Path A, dependente de arte); e uma
+  aproximacao ate a arte existir. Reversivel; ver docs/REVERT-CORES-VERDE.md.
+- Rotulo do preview alpha25 -> alpha26 (ISO/os-release).
+
 * Fri Sep 04 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.25.alpha25
 - Login coerente com a paleta (FEAT-91 frente C, fatia final): o accent do
   greeter do plasma-login-manager passa ao verde da marca #15B22C. O greeter
