@@ -17,7 +17,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.30.alpha30%{?dist}.marsh
+Release:        0.31.alpha31%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -1018,6 +1018,31 @@ kwriteconfig6 --file "$XDGKG" --group General --key AccentColor "21,178,44" 2>/d
 kwriteconfig6 --file "$XDGKG" --group General --key accentColorFromWallpaper "false" 2>/dev/null || \
     kwriteconfig5 --file "$XDGKG" --group General --key accentColorFromWallpaper "false" 2>/dev/null || true
 
+# ── Identidade CapivaraOS como PADRAO DO SISTEMA (/etc/xdg) — FEAT-91 frente D ─
+# A sessao LIVE (liveuser) NAO herda /etc/skel/.config de forma confiavel (por
+# isso wallpaper/layout usam autostart). Provado: no live, ~/.config/kdeglobals
+# nao tem ColorScheme=CapivaraOS nem o kwinrc tem a decoracao -- so o accent, que
+# ja vinha justamente daqui do /etc/xdg. Entao gravamos o esquema de cores, a
+# decoracao de janela e o perfil do Konsole no /etc/xdg (fallback do sistema,
+# lido por TODOS os usuarios sem override -- live e instalado). Merge via
+# kwriteconfig; reversivel. Ver docs/REVERT-CORES-VERDE.md.
+kwriteconfig6 --file "$XDGKG" --group General --key ColorScheme "CapivaraOS" 2>/dev/null || \
+    kwriteconfig5 --file "$XDGKG" --group General --key ColorScheme "CapivaraOS" 2>/dev/null || true
+
+XDGKWIN=%{_sysconfdir}/xdg/kwinrc
+kwriteconfig6 --file "$XDGKWIN" --group "org.kde.kdecoration2" --key library "org.kde.kwin.aurorae.v2" 2>/dev/null || \
+    kwriteconfig5 --file "$XDGKWIN" --group "org.kde.kdecoration2" --key library "org.kde.kwin.aurorae.v2" 2>/dev/null || true
+kwriteconfig6 --file "$XDGKWIN" --group "org.kde.kdecoration2" --key theme "__aurorae__svg__CapivaraOS" 2>/dev/null || \
+    kwriteconfig5 --file "$XDGKWIN" --group "org.kde.kdecoration2" --key theme "__aurorae__svg__CapivaraOS" 2>/dev/null || true
+kwriteconfig6 --file "$XDGKWIN" --group "org.kde.kdecoration2" --key ButtonsOnLeft "XIA" 2>/dev/null || \
+    kwriteconfig5 --file "$XDGKWIN" --group "org.kde.kdecoration2" --key ButtonsOnLeft "XIA" 2>/dev/null || true
+kwriteconfig6 --file "$XDGKWIN" --group "org.kde.kdecoration2" --key ButtonsOnRight "" 2>/dev/null || \
+    kwriteconfig5 --file "$XDGKWIN" --group "org.kde.kdecoration2" --key ButtonsOnRight "" 2>/dev/null || true
+
+XDGKONSOLE=%{_sysconfdir}/xdg/konsolerc
+kwriteconfig6 --file "$XDGKONSOLE" --group "Desktop Entry" --key DefaultProfile "CapivaraOS.profile" 2>/dev/null || \
+    kwriteconfig5 --file "$XDGKONSOLE" --group "Desktop Entry" --key DefaultProfile "CapivaraOS.profile" 2>/dev/null || true
+
 # ── Remove os wallpapers de marca Fedora do seletor do Plasma ────────────────
 # O seletor deve listar so os 8 do CapivaraOS + os neutros do KDE
 # (plasma-workspace-wallpapers). As 3 entradas "Fedora KDE SIG" saem:
@@ -1052,14 +1077,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha30, preview)"
+VERSION="Marsh 2.0.0 (alpha31, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha30, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha31, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1072,24 +1097,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha30, preview)"
+VARIANT="Marsh 2.0.0 (alpha31, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha30, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha31, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha30, preview)
+CapivaraOS Marsh 2.0.0 (alpha31, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha30, preview)
+Variant=Marsh 2.0.0 (alpha31, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1143,14 +1168,14 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha30, preview)"
+VERSION="Marsh 2.0.0 (alpha31, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha30, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha31, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1163,17 +1188,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha30, preview)"
+VARIANT="Marsh 2.0.0 (alpha31, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha30, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha31, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha30, preview)
+CapivaraOS Marsh 2.0.0 (alpha31, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1268,6 +1293,17 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Fri Sep 04 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.31.alpha31
+- Correção: identidade visual agora aplica também na sessão LIVE. Diagnóstico
+  (grep no liveuser): a sessão live NÃO herda /etc/skel/.config -> o esquema de
+  cores CapivaraOS e a decoração de janela não estavam sendo aplicados no live
+  (só o accent, que já vinha do /etc/xdg). Correção: gravamos ColorScheme=
+  CapivaraOS, a decoração Aurorae (library aurorae.v2 + theme + ButtonsOnLeft=XIA)
+  e o perfil padrão do Konsole no /etc/xdg (padrão do sistema, lido por todos os
+  usuários -- live e instalado), via kwriteconfig no %posttrans. Skel mantido
+  como reforço para o sistema instalado. Ver docs/REVERT-CORES-VERDE.md.
+- Rótulo do preview alpha30 -> alpha31 (ISO/os-release).
+
 * Fri Sep 04 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.30.alpha30
 - Correção: a decoração de janela própria agora carrega no boot da live (antes
   caía no Breeze). A library correta do kwinrc é org.kde.kwin.aurorae.v2 (com
