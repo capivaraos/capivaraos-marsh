@@ -273,6 +273,16 @@ install -d %{buildroot}%{_datadir}/aurorae/themes/CapivaraOS
 install -m 0644 aurorae/CapivaraOS/* \
     %{buildroot}%{_datadir}/aurorae/themes/CapivaraOS/
 
+# ── Konsole: esquema de cores + perfil padrão do CapivaraOS (FEAT-91 frente D) ─
+# Terminal na paleta verde da marca (identidade "estação de dev"). O perfil usa
+# o esquema CapivaraOS e a FiraCode Nerd Font (já instalada por este pacote). O
+# perfil padrão é apontado no /etc/skel/.config/konsolerc abaixo.
+install -d %{buildroot}%{_datadir}/konsole
+install -m 0644 konsole/CapivaraOS.colorscheme \
+    %{buildroot}%{_datadir}/konsole/CapivaraOS.colorscheme
+install -m 0644 konsole/CapivaraOS.profile \
+    %{buildroot}%{_datadir}/konsole/CapivaraOS.profile
+
 # ── Tema Plymouth ────────────────────────────────────────────────────────────
 install -d %{buildroot}%{_datadir}/plymouth/themes/capivaraos
 install -m 0644 build/plymouth/logo.png \
@@ -397,6 +407,12 @@ cat > %{buildroot}%{_sysconfdir}/skel/.config/kscreenlockerrc << EOF
 [Greeter][Wallpaper][org.kde.image][General]
 Image=${DEFAULT_WP_IMG}
 FillMode=2
+EOF
+
+# Konsole: perfil padrão = CapivaraOS (esquema de cores verde da marca).
+cat > %{buildroot}%{_sysconfdir}/skel/.config/konsolerc << 'EOF'
+[Desktop Entry]
+DefaultProfile=CapivaraOS.profile
 EOF
 
 cat > %{buildroot}%{_sysconfdir}/skel/.config/kdeglobals << 'EOF'
@@ -1225,6 +1241,8 @@ sed -i -E \
 %{_datadir}/wallpapers/capivaraos-*/
 %{_datadir}/color-schemes/CapivaraOS.colors
 %{_datadir}/aurorae/themes/CapivaraOS/
+%{_datadir}/konsole/CapivaraOS.colorscheme
+%{_datadir}/konsole/CapivaraOS.profile
 %{_datadir}/plymouth/themes/capivaraos/
 %{_datadir}/capivaraos/
 %{_datadir}/fonts/capivaraos-firacode-nerd/
@@ -1239,6 +1257,7 @@ sed -i -E \
 %{_sysconfdir}/skel/.config/plasma-org.kde.plasma.desktop-appletsrc
 %{_sysconfdir}/skel/.config/kscreenlockerrc
 %{_sysconfdir}/skel/.config/kdeglobals
+%{_sysconfdir}/skel/.config/konsolerc
 %{_sysconfdir}/skel/.config/plasmarc
 %{_sysconfdir}/skel/.config/plasma-welcomerc
 %{_sysconfdir}/skel/.face
@@ -1256,6 +1275,10 @@ sed -i -E \
   valor que o KCM grava. Corrigido no capivaraos-post-theme.ks (FEAT-91 D3).
 - Botões da janela à ESQUERDA, estilo macOS (ButtonsOnLeft=XIA / ButtonsOnRight
   vazio), coerente com o layout topo+dock e os círculos coloridos da marca.
+- Konsole com identidade CapivaraOS (FEAT-91 frente D): novo esquema de cores
+  /usr/share/konsole/CapivaraOS.colorscheme (fundo #12160F + verde da marca +
+  ANSI da paleta) e perfil /usr/share/konsole/CapivaraOS.profile (FiraCode Nerd
+  Font); perfil padrão apontado em /etc/skel/.config/konsolerc.
 - Rótulo do preview alpha29 -> alpha30 (ISO/os-release).
 
 * Fri Sep 04 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.29.alpha29

@@ -31,6 +31,7 @@ cp -r "${PROJECT_DIR}/branding/icons" "$SRCDIR/"
 cp -r "${PROJECT_DIR}/branding/fonts" "$SRCDIR/"
 cp -r "${PROJECT_DIR}/branding/color-schemes" "$SRCDIR/"
 cp -r "${PROJECT_DIR}/branding/aurorae" "$SRCDIR/"
+cp -r "${PROJECT_DIR}/branding/konsole" "$SRCDIR/"
 
 mkdir -p "$HOME/rpmbuild/SOURCES" "$HOME/rpmbuild/SPECS"
 # Remove um tarball homonimo de build anterior antes de gravar o novo.
