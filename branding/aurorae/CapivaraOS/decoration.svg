@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Decoração de janela do CapivaraOS (Aurorae FrameSvg).
+  Titlebar sólida na cor de superfície da paleta (#1E231A ativo / #191D14
+  inativo), cantos arredondados (r=10), bordas laterais/inferior de 1px.
+  Convenção FrameSvg: elementos nine-patch decoration-*, inativos
+  decoration-inactive-*, máscara de forma mask-* e retângulos hint-*-margin
+  (inset de conteúdo: topo=34, lados/base=1). Posições dos elementos são
+  arbitrárias — o motor lê cada id pelo tamanho. FEAT-91 frente D (D3).
+  SPDX-License-Identifier: GPL-3.0-or-later
+  SPDX-FileCopyrightText: 2026 CapivaraOS Project
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="240" viewBox="0 0 140 240">
+  <!-- ===== ATIVO ===== -->
+  <g transform="translate(0,0)"><path id="decoration-topleft" fill="#1E231A" d="M0,10 A10,10 0 0 1 10,0 L12,0 L12,34 L0,34 Z"/></g>
+  <g transform="translate(20,0)"><rect id="decoration-top" fill="#1E231A" width="8" height="34"/></g>
+  <g transform="translate(40,0)"><path id="decoration-topright" fill="#1E231A" d="M0,0 L2,0 A10,10 0 0 1 12,10 L12,34 L0,34 Z"/></g>
+  <g transform="translate(60,0)"><rect id="decoration-left" fill="#2A3122" width="1" height="8"/></g>
+  <g transform="translate(70,0)"><rect id="decoration-right" fill="#2A3122" width="1" height="8"/></g>
+  <g transform="translate(80,0)"><rect id="decoration-center" fill="none" width="8" height="8"/></g>
+  <g transform="translate(0,50)"><path id="decoration-bottomleft" fill="#2A3122" d="M0,0 L12,0 L12,12 L10,12 A10,10 0 0 1 0,2 Z"/></g>
+  <g transform="translate(20,50)"><rect id="decoration-bottom" fill="#2A3122" width="8" height="1"/></g>
+  <g transform="translate(40,50)"><path id="decoration-bottomright" fill="#2A3122" d="M0,0 L12,0 L12,2 A10,10 0 0 1 2,12 L0,12 Z"/></g>
+
+  <!-- ===== INATIVO ===== -->
+  <g transform="translate(0,80)"><path id="decoration-inactive-topleft" fill="#191D14" d="M0,10 A10,10 0 0 1 10,0 L12,0 L12,34 L0,34 Z"/></g>
+  <g transform="translate(20,80)"><rect id="decoration-inactive-top" fill="#191D14" width="8" height="34"/></g>
+  <g transform="translate(40,80)"><path id="decoration-inactive-topright" fill="#191D14" d="M0,0 L2,0 A10,10 0 0 1 12,10 L12,34 L0,34 Z"/></g>
+  <g transform="translate(60,80)"><rect id="decoration-inactive-left" fill="#232A1B" width="1" height="8"/></g>
+  <g transform="translate(70,80)"><rect id="decoration-inactive-right" fill="#232A1B" width="1" height="8"/></g>
+  <g transform="translate(80,80)"><rect id="decoration-inactive-center" fill="none" width="8" height="8"/></g>
+  <g transform="translate(0,130)"><path id="decoration-inactive-bottomleft" fill="#232A1B" d="M0,0 L12,0 L12,12 L10,12 A10,10 0 0 1 0,2 Z"/></g>
+  <g transform="translate(20,130)"><rect id="decoration-inactive-bottom" fill="#232A1B" width="8" height="1"/></g>
+  <g transform="translate(40,130)"><path id="decoration-inactive-bottomright" fill="#232A1B" d="M0,0 L12,0 L12,2 A10,10 0 0 1 2,12 L0,12 Z"/></g>
+
+  <!-- ===== MÁSCARA (forma da janela: cantos arredondados) ===== -->
+  <g transform="translate(0,160)"><path id="mask-topleft" fill="#ffffff" d="M0,10 A10,10 0 0 1 10,0 L12,0 L12,34 L0,34 Z"/></g>
+  <g transform="translate(20,160)"><rect id="mask-top" fill="#ffffff" width="8" height="34"/></g>
+  <g transform="translate(40,160)"><path id="mask-topright" fill="#ffffff" d="M0,0 L2,0 A10,10 0 0 1 12,10 L12,34 L0,34 Z"/></g>
+  <g transform="translate(60,160)"><rect id="mask-left" fill="#ffffff" width="1" height="8"/></g>
+  <g transform="translate(70,160)"><rect id="mask-right" fill="#ffffff" width="1" height="8"/></g>
+  <g transform="translate(80,160)"><rect id="mask-center" fill="#ffffff" width="8" height="8"/></g>
+  <g transform="translate(0,210)"><path id="mask-bottomleft" fill="#ffffff" d="M0,0 L12,0 L12,12 L10,12 A10,10 0 0 1 0,2 Z"/></g>
+  <g transform="translate(20,210)"><rect id="mask-bottom" fill="#ffffff" width="8" height="1"/></g>
+  <g transform="translate(40,210)"><path id="mask-bottomright" fill="#ffffff" d="M0,0 L12,0 L12,2 A10,10 0 0 1 2,12 L0,12 Z"/></g>
+
+  <!-- ===== HINTS (insets de conteúdo) ===== -->
+  <rect id="hint-top-margin" fill="none" x="100" y="0" width="1" height="34"/>
+  <rect id="hint-bottom-margin" fill="none" x="105" y="0" width="1" height="1"/>
+  <rect id="hint-left-margin" fill="none" x="110" y="0" width="1" height="1"/>
+  <rect id="hint-right-margin" fill="none" x="115" y="0" width="1" height="1"/>
+</svg>

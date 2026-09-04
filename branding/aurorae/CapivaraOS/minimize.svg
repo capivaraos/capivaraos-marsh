@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Botão MINIMIZAR — círculo âmbar; glifo – no hover/pressed.
+     SPDX-License-Identifier: GPL-3.0-or-later
+     SPDX-FileCopyrightText: 2026 CapivaraOS Project -->
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="16" viewBox="0 0 140 16">
+  <g id="active-center" transform="translate(0,0)">
+    <rect width="16" height="16" fill="#000" fill-opacity="0"/>
+    <circle cx="8" cy="8" r="6" fill="#F6A700"/>
+  </g>
+  <g id="inactive-center" transform="translate(20,0)">
+    <rect width="16" height="16" fill="#000" fill-opacity="0"/>
+    <circle cx="8" cy="8" r="6" fill="#4A5040"/>
+  </g>
+  <g id="hover-center" transform="translate(40,0)">
+    <rect width="16" height="16" fill="#000" fill-opacity="0"/>
+    <circle cx="8" cy="8" r="6" fill="#F6A700"/>
+    <path d="M4.6,8 L11.4,8" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+  </g>
+  <g id="hover-inactive-center" transform="translate(60,0)">
+    <rect width="16" height="16" fill="#000" fill-opacity="0"/>
+    <circle cx="8" cy="8" r="6" fill="#F6A700"/>
+    <path d="M4.6,8 L11.4,8" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+  </g>
+  <g id="pressed-center" transform="translate(80,0)">
+    <rect width="16" height="16" fill="#000" fill-opacity="0"/>
+    <circle cx="8" cy="8" r="6" fill="#C57F00"/>
+    <path d="M4.6,8 L11.4,8" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+  </g>
+  <g id="deactivated-center" transform="translate(100,0)">
+    <rect width="16" height="16" fill="#000" fill-opacity="0"/>
+    <circle cx="8" cy="8" r="6" fill="#3A4030"/>
+  </g>
+  <g id="deactivated-inactive-center" transform="translate(120,0)">
+    <rect width="16" height="16" fill="#000" fill-opacity="0"/>
+    <circle cx="8" cy="8" r="6" fill="#3A4030"/>
+  </g>
+</svg>
