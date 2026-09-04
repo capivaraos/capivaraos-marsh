@@ -93,13 +93,13 @@ Look&Feel já são Breeze.
   `capivaraos-branding`; `kdeglobals ColorScheme=CapivaraOS`. Aposenta a
   dependência do **esquema de cores** do WhiteSur. **Formas** do WhiteSur
   (Aurorae + tema Plasma) seguem por ora.
-- **D2 (decisão pendente) — base das FORMAS:** (a) Breeze nativo (seguro/genérico,
-  aposenta o clone já) ou (b) tema bespoke próprio (bonito/identidade, **depende de
-  arte**: SVGs de Aurorae + tema Plasma). Escolhido **híbrido**: D1 agora, formas
-  do WhiteSur mantidas até a decisão/arte.
-- **D3 — decoração Aurorae própria** (ou Breeze): pendente.
-- **D4 — tema Plasma próprio** (ou Breeze): pendente.
-- **D5 — tema GTK próprio** (ou Adwaita/Breeze) + remover os 2 `git clone` do
-  WhiteSur do build: pendente.
+- **D2 — base das FORMAS: DECIDIDO = bespoke** (tema próprio, não Breeze genérico).
+  Brief de arte escrito em **`docs/BRIEF-TEMA-CAPIVARAOS.md`** (decoração Aurorae +
+  tema Plasma, com paleta e lista exata de SVGs). Formas do WhiteSur **mantidas até
+  a arte chegar** (não-destrutivo).
+- **D3 — decoração Aurorae própria:** aguardando arte (ver brief).
+- **D4 — tema Plasma próprio:** aguardando arte (ver brief).
+- **D5 — tema GTK** (Adwaita accent verde recomendado) + remover os 2 `git clone`
+  do WhiteSur do build: entra junto com D3/D4.
 
 Build: `./build-all.sh`
