@@ -17,7 +17,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.24.alpha24%{?dist}.marsh
+Release:        0.25.alpha25%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -965,6 +965,23 @@ if [ -f "$PLD" ]; then
         "$PLD"
 fi
 
+# ── Accent verde no login (greeter do plasma-login-manager) — FEAT-91 frente C
+# O greeter roda como o usuario "plasmalogin" (home /var/lib/plasmalogin) e le a
+# aparencia de um kdeglobals (o .kcfg do greeter aponta p/ kdeglobals, grupo
+# [KDE]); o accent do Plasma 6 vem de [General] AccentColor. Como o usuario
+# plasmalogin NAO tem AccentColor proprio, o fallback do sistema
+# /etc/xdg/kdeglobals prevalece. Gravamos as MESMAS chaves do desktop la, via
+# kwriteconfig (MERGE: nao apaga outras chaves do kde-settings; cria o arquivo se
+# faltar). ESTATICO/reversivel. Seguro: valor nao-reconhecido nao faz efeito e
+# NUNCA da tela preta (o preto do BUG-43 era o wallpaper apontando p/ diretorio
+# removido, nao o accent). Ver docs/REVERT-CORES-VERDE.md.
+XDGKG=%{_sysconfdir}/xdg/kdeglobals
+install -d %{_sysconfdir}/xdg
+kwriteconfig6 --file "$XDGKG" --group General --key AccentColor "21,178,44" 2>/dev/null || \
+    kwriteconfig5 --file "$XDGKG" --group General --key AccentColor "21,178,44" 2>/dev/null || true
+kwriteconfig6 --file "$XDGKG" --group General --key accentColorFromWallpaper "false" 2>/dev/null || \
+    kwriteconfig5 --file "$XDGKG" --group General --key accentColorFromWallpaper "false" 2>/dev/null || true
+
 # ── Remove os wallpapers de marca Fedora do seletor do Plasma ────────────────
 # O seletor deve listar so os 8 do CapivaraOS + os neutros do KDE
 # (plasma-workspace-wallpapers). As 3 entradas "Fedora KDE SIG" saem:
@@ -999,14 +1016,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha24, preview)"
+VERSION="Marsh 2.0.0 (alpha25, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha24, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha25, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1019,24 +1036,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha24, preview)"
+VARIANT="Marsh 2.0.0 (alpha25, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha24, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha25, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha24, preview)
+CapivaraOS Marsh 2.0.0 (alpha25, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha24, preview)
+Variant=Marsh 2.0.0 (alpha25, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1090,14 +1107,14 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha24, preview)"
+VERSION="Marsh 2.0.0 (alpha25, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha24, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha25, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1110,17 +1127,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha24, preview)"
+VARIANT="Marsh 2.0.0 (alpha25, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha24, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha25, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha24, preview)
+CapivaraOS Marsh 2.0.0 (alpha25, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1210,6 +1227,16 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Fri Sep 04 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.25.alpha25
+- Login coerente com a paleta (FEAT-91 frente C, fatia final): o accent do
+  greeter do plasma-login-manager passa ao verde da marca #15B22C. O greeter
+  roda como o usuario "plasmalogin" e le a aparencia de um kdeglobals; gravamos
+  [General] AccentColor=21,178,44 + accentColorFromWallpaper=false no fallback do
+  sistema /etc/xdg/kdeglobals (merge via kwriteconfig, nao apaga outras chaves).
+  Estatico/reversivel; seguro (valor nao-reconhecido nao faz efeito e nunca da
+  tela preta -- o preto do BUG-43 era o wallpaper, nao o accent).
+- Rotulo do preview alpha24 -> alpha25 (ISO/os-release).
+
 * Thu Sep 03 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.24.alpha24
 - Boot coerente com a paleta (FEAT-91 frente C): o spinner do Plymouth passa a
   usar o verde da marca #15B22C (era branco) e o fundo do splash passa ao tom
