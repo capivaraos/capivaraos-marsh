@@ -17,7 +17,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.29.alpha29%{?dist}.marsh
+Release:        0.30.alpha30%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -1036,14 +1036,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha29, preview)"
+VERSION="Marsh 2.0.0 (alpha30, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha29, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha30, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1056,24 +1056,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha29, preview)"
+VARIANT="Marsh 2.0.0 (alpha30, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha29, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha30, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha29, preview)
+CapivaraOS Marsh 2.0.0 (alpha30, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha29, preview)
+Variant=Marsh 2.0.0 (alpha30, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1127,14 +1127,14 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha29, preview)"
+VERSION="Marsh 2.0.0 (alpha30, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha29, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha30, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1147,17 +1147,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha29, preview)"
+VARIANT="Marsh 2.0.0 (alpha30, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha29, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha30, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha29, preview)
+CapivaraOS Marsh 2.0.0 (alpha30, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1249,6 +1249,15 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Fri Sep 04 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.30.alpha30
+- Correção: a decoração de janela própria agora carrega no boot da live (antes
+  caía no Breeze). A library correta do kwinrc é org.kde.kwin.aurorae.v2 (com
+  .v2) -- sem isso o KWin do Plasma 6 nao carrega o Aurorae. Descoberto lendo o
+  valor que o KCM grava. Corrigido no capivaraos-post-theme.ks (FEAT-91 D3).
+- Botões da janela à ESQUERDA, estilo macOS (ButtonsOnLeft=XIA / ButtonsOnRight
+  vazio), coerente com o layout topo+dock e os círculos coloridos da marca.
+- Rótulo do preview alpha29 -> alpha30 (ISO/os-release).
+
 * Fri Sep 04 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.29.alpha29
 - Decoração de janela PRÓPRIA (FEAT-91 frente D, D3 - prova p/ avaliação): novo
   tema Aurorae /usr/share/aurorae/themes/CapivaraOS (arte original GPL-3.0):

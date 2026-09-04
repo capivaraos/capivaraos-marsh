@@ -98,10 +98,12 @@ Look&Feel já são Breeze.
   Brief de arte escrito em **`docs/BRIEF-TEMA-CAPIVARAOS.md`** (decoração Aurorae +
   tema Plasma, com paleta e lista exata de SVGs). Formas do WhiteSur **mantidas até
   a arte chegar** (não-destrutivo).
-- **D3 — decoração Aurorae própria:** PROVA 1 no alpha29 (item 13). Arte original
-  em `branding/aurorae/CapivaraOS/` (gerada como código SVG, não ilustração).
-  Ligada no build; **sujeita a ajuste após teste em VM** (é o 1º `decoration.svg`
-  nine-patch feito sem preview local). Tema Plasma/painel do WhiteSur mantido.
+- **D3 — decoração Aurorae própria:** FUNCIONANDO em VM a partir do alpha30. Arte
+  original em `branding/aurorae/CapivaraOS/` (código SVG, não ilustração), validada
+  em janelas reais (titlebar arredondada + círculos coloridos da marca). Correção
+  do alpha30: a library do kwinrc precisa ser `org.kde.kwin.aurorae.v2` (com `.v2`)
+  — sem isso o Plasma 6 caía no Breeze; e botões à esquerda (ButtonsOnLeft=XIA)
+  estilo macOS. Tema Plasma/painel do WhiteSur mantido (D4).
 - **D4 — tema Plasma próprio:** aguardando arte (ver brief).
 - **D5 — tema GTK** (Adwaita accent verde recomendado) + remover os 2 `git clone`
   do WhiteSur do build: entra junto com D3/D4.

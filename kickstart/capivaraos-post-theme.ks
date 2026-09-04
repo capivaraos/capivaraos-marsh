@@ -155,10 +155,21 @@ for HOMEDIR in /root /etc/skel; do
 
     if [ -n "$AURORAE_THEME" ]; then
         KWINRC="$HOMEDIR/.config/kwinrc"
-        kwriteconfig6 --file "$KWINRC" --group "org.kde.kdecoration2" --key library "org.kde.kwin.aurorae" 2>/dev/null || \
-        kwriteconfig5 --file "$KWINRC" --group "org.kde.kdecoration2" --key library "org.kde.kwin.aurorae" 2>/dev/null || true
+        # IMPORTANTE: a library correta e "org.kde.kwin.aurorae.v2" (com .v2).
+        # Sem o .v2 o KWin do Plasma 6 (Fedora 44) NAO carrega o motor Aurorae e
+        # cai no Breeze -> a sessao live abria com decoracao Breeze mesmo com o
+        # tema selecionado. Descoberto lendo o que o KCM grava no kwinrc.
+        kwriteconfig6 --file "$KWINRC" --group "org.kde.kdecoration2" --key library "org.kde.kwin.aurorae.v2" 2>/dev/null || \
+        kwriteconfig5 --file "$KWINRC" --group "org.kde.kdecoration2" --key library "org.kde.kwin.aurorae.v2" 2>/dev/null || true
         kwriteconfig6 --file "$KWINRC" --group "org.kde.kdecoration2" --key theme "__aurorae__svg__${AURORAE_THEME}" 2>/dev/null || \
         kwriteconfig5 --file "$KWINRC" --group "org.kde.kdecoration2" --key theme "__aurorae__svg__${AURORAE_THEME}" 2>/dev/null || true
+        # Botoes a ESQUERDA no estilo macOS (fechar X, minimizar I, maximizar A),
+        # coerente com o layout topo+dock mantido. ButtonsOnLeft/Right sobrepoe o
+        # LeftButtons do rc do tema (padrao do sistema poe a direita).
+        kwriteconfig6 --file "$KWINRC" --group "org.kde.kdecoration2" --key ButtonsOnLeft "XIA" 2>/dev/null || \
+        kwriteconfig5 --file "$KWINRC" --group "org.kde.kdecoration2" --key ButtonsOnLeft "XIA" 2>/dev/null || true
+        kwriteconfig6 --file "$KWINRC" --group "org.kde.kdecoration2" --key ButtonsOnRight "" 2>/dev/null || \
+        kwriteconfig5 --file "$KWINRC" --group "org.kde.kdecoration2" --key ButtonsOnRight "" 2>/dev/null || true
     fi
 
     if [ -n "$PLASMA_THEME" ]; then
