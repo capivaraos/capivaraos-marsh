@@ -99,8 +99,17 @@ fi
 
 SDDM_THEME=$(ls /usr/share/sddm/themes/ 2>/dev/null | grep -i 'whitesur' | head -1)
 
-PLASMA_THEME=$(ls /usr/share/plasma/desktoptheme/ 2>/dev/null | grep -i 'whitesur' | grep -i 'dark' | head -1)
-[ -z "$PLASMA_THEME" ] && PLASMA_THEME=$(ls /usr/share/plasma/desktoptheme/ 2>/dev/null | grep -i 'whitesur' | head -1)
+# Tema Plasma: usamos o PROPRIO do CapivaraOS (FEAT-91 frente D, D4), instalado
+# pelo pacote capivaraos-branding em /usr/share/plasma/desktoptheme/CapivaraOS
+# (painel/menus/dialogos/dica na paleta verde; o que nao redesenhamos cai no
+# Breeze recolorido pelo arquivo "colors" do tema). Fallback p/ WhiteSur so se o
+# nosso nao existir (build sem o pacote). Ver docs/BRIEF-TEMA-CAPIVARAOS.md.
+if [ -d /usr/share/plasma/desktoptheme/CapivaraOS ]; then
+    PLASMA_THEME="CapivaraOS"
+else
+    PLASMA_THEME=$(ls /usr/share/plasma/desktoptheme/ 2>/dev/null | grep -i 'whitesur' | grep -i 'dark' | head -1)
+    [ -z "$PLASMA_THEME" ] && PLASMA_THEME=$(ls /usr/share/plasma/desktoptheme/ 2>/dev/null | grep -i 'whitesur' | head -1)
+fi
 
 echo "==> Tema GTK detectado: ${GTK_THEME:-<nenhum>}"
 echo "==> Tema de ícones: ${ICON_THEME} (oficial KDE)"
