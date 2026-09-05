@@ -17,7 +17,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.33.alpha33%{?dist}.marsh
+Release:        0.34.alpha34%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -1101,14 +1101,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha33, preview)"
+VERSION="Marsh 2.0.0 (alpha34, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha33, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha34, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1121,24 +1121,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha33, preview)"
+VARIANT="Marsh 2.0.0 (alpha34, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha33, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha34, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha33, preview)
+CapivaraOS Marsh 2.0.0 (alpha34, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha33, preview)
+Variant=Marsh 2.0.0 (alpha34, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1192,14 +1192,14 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha33, preview)"
+VERSION="Marsh 2.0.0 (alpha34, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha33, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha34, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1212,17 +1212,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha33, preview)"
+VARIANT="Marsh 2.0.0 (alpha34, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha33, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha34, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha33, preview)
+CapivaraOS Marsh 2.0.0 (alpha34, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1318,6 +1318,18 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Sat Sep 05 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.34.alpha34
+- Tema Plasma (FEAT-91 frente D, D4 -- prova 2): formas proprias de widget
+  adicionadas ao desktoptheme CapivaraOS -- widgets/listitem.svg (realce de
+  item de menu/lista: hover accent suave, selecionado VERDE solido #15B22C,
+  pressionado #0E7A1E), widgets/lineedit.svg (campo: base escura #12160F +
+  borda, anel de foco verde) e widgets/button.svg (botao: normal surface-alt
+  #282E23, hover/foco com borda accent, pressionado #0E7A1E). Nine-patch r=6,
+  fill EXPLICITO por forma (o QSvg do Plasma nao herda fill do <g> ancestral ao
+  desenhar por id -- so o transform; um bug de listitem preto foi pego e
+  corrigido na validacao). Empacotamento reaproveita o cp -r do tema (sem
+  mudanca em %install/%files). Item 16 (revert map).
+
 * Sat Sep 05 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.33.alpha33
 - Tema Plasma proprio (FEAT-91 frente D, D4 -- prova 1): novo desktoptheme
   CapivaraOS em /usr/share/plasma/desktoptheme/CapivaraOS. Formas proprias

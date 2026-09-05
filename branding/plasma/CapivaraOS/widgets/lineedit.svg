@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Campo de texto do CapivaraOS — FrameSvg com prefixos base/focus.
+     base = fundo escuro #12160F + borda #3A4030; focus = anel accent #15B22C
+     (centro transparente, desenhado sobre o base). Nine-patch r=6. FEAT-91 D4 (prova 2).
+     SPDX-License-Identifier: GPL-3.0-or-later
+     SPDX-FileCopyrightText: 2026 CapivaraOS Project -->
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="48" viewBox="0 0 96 48">
+  <!-- base: fundo + borda -->
+  <g transform="translate(0,0)">
+    <g id="base-topleft"><path d="M8,0 L6,0 A6,6 0 0 1 0,6 L0,8 L8,8 Z" fill="#3A4030"/><path d="M8,1 L6,1 A5,5 0 0 1 1,6 L1,8 L8,8 Z" fill="#12160F"/></g>
+    <g id="base-top"><rect x="12" y="0" width="4" height="8" fill="#12160F"/><rect x="12" y="0" width="4" height="1" fill="#3A4030"/></g>
+    <g id="base-topright"><path d="M20,0 L22,0 A6,6 0 0 1 28,6 L28,8 L20,8 Z" fill="#3A4030"/><path d="M20,1 L22,1 A5,5 0 0 1 27,6 L27,8 L20,8 Z" fill="#12160F"/></g>
+    <g id="base-left"><rect x="0" y="12" width="8" height="4" fill="#12160F"/><rect x="0" y="12" width="1" height="4" fill="#3A4030"/></g>
+    <g id="base-center"><rect x="12" y="12" width="4" height="4" fill="#12160F"/></g>
+    <g id="base-right"><rect x="20" y="12" width="8" height="4" fill="#12160F"/><rect x="27" y="12" width="1" height="4" fill="#3A4030"/></g>
+    <g id="base-bottomleft"><path d="M0,20 L8,20 L8,28 L6,28 A6,6 0 0 1 0,22 Z" fill="#3A4030"/><path d="M1,20 L8,20 L8,27 L6,27 A5,5 0 0 1 1,22 Z" fill="#12160F"/></g>
+    <g id="base-bottom"><rect x="12" y="20" width="4" height="8" fill="#12160F"/><rect x="12" y="27" width="4" height="1" fill="#3A4030"/></g>
+    <g id="base-bottomright"><path d="M20,20 L28,20 L28,22 A6,6 0 0 1 22,28 L20,28 Z" fill="#3A4030"/><path d="M20,20 L27,20 L27,22 A5,5 0 0 1 22,27 L20,27 Z" fill="#12160F"/></g>
+  </g>
+  <!-- focus: anel accent (centro transparente) -->
+  <g transform="translate(40,0)">
+    <g id="focus-topleft"><path d="M8,0 L6,0 A6,6 0 0 1 0,6 L0,8 L8,8 Z" fill="#15B22C"/><path d="M8,1 L6,1 A5,5 0 0 1 1,6 L1,8 L8,8 Z" fill="#000" fill-opacity="0"/></g>
+    <g id="focus-top"><rect x="12" y="0" width="4" height="1" fill="#15B22C"/></g>
+    <g id="focus-topright"><path d="M20,0 L22,0 A6,6 0 0 1 28,6 L28,8 L20,8 Z" fill="#15B22C"/><path d="M20,1 L22,1 A5,5 0 0 1 27,6 L27,8 L20,8 Z" fill="#000" fill-opacity="0"/></g>
+    <g id="focus-left"><rect x="0" y="12" width="1" height="4" fill="#15B22C"/></g>
+    <g id="focus-center"><rect x="12" y="12" width="4" height="4" fill="#000" fill-opacity="0"/></g>
+    <g id="focus-right"><rect x="27" y="12" width="1" height="4" fill="#15B22C"/></g>
+    <g id="focus-bottomleft"><path d="M0,20 L8,20 L8,28 L6,28 A6,6 0 0 1 0,22 Z" fill="#15B22C"/><path d="M1,20 L8,20 L8,27 L6,27 A5,5 0 0 1 1,22 Z" fill="#000" fill-opacity="0"/></g>
+    <g id="focus-bottom"><rect x="12" y="27" width="4" height="1" fill="#15B22C"/></g>
+    <g id="focus-bottomright"><path d="M20,20 L28,20 L28,22 A6,6 0 0 1 22,28 L20,28 Z" fill="#15B22C"/><path d="M20,20 L27,20 L27,22 A5,5 0 0 1 22,27 L20,27 Z" fill="#000" fill-opacity="0"/></g>
+  </g>
+  <rect id="hint-top-margin" x="0" y="40" width="4" height="5" fill="#000" fill-opacity="0"/>
+  <rect id="hint-bottom-margin" x="6" y="40" width="4" height="5" fill="#000" fill-opacity="0"/>
+  <rect id="hint-left-margin" x="12" y="40" width="6" height="4" fill="#000" fill-opacity="0"/>
+  <rect id="hint-right-margin" x="20" y="40" width="6" height="4" fill="#000" fill-opacity="0"/>
+</svg>
