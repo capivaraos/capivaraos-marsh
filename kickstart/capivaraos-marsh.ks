@@ -170,12 +170,11 @@ google-noto-emoji-fonts
 cups
 system-config-printer
 
-# ===== TEMA MACOS (WHITESUR) — dependências para o post-script de tema =====
-sassc
-optipng
-gtk-murrine-engine
-gtk2-engines
-ImageMagick
+# NOTA: a identidade visual do CapivaraOS (cores, Aurorae, tema Plasma e GTK) e
+# 100% propria, entregue pelo pacote capivaraos-branding — nao ha mais tema de
+# terceiros (WhiteSur aposentado, FEAT-91 D5). Por isso sairam daqui as antigas
+# dependencias que so serviam ao build do WhiteSur: sassc, optipng,
+# gtk-murrine-engine, gtk2-engines e ImageMagick.
 
 %end
 
@@ -183,5 +182,4 @@ ImageMagick
 # Post-scripts específicos do CapivaraOS
 # =============================================================================
 %include capivaraos-post-branding.ks
-%include capivaraos-post-theme.ks
 %include capivaraos-post-devstation.ks

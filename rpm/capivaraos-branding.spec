@@ -7,9 +7,10 @@
 #   - 0020-desktop.hook.chroot    -> os-release, issue, plymouth, ícones
 #                                     "Sobre o sistema", avatar, layout macOS
 #
-# O tema WhiteSur (GTK/KDE) e o ajuste fino do layout estilo macOS que
-# dependem dele continuam em kickstart/capivaraos-post-theme.ks, pois
-# exigem git clone de repositórios externos durante o build da imagem.
+# A identidade visual (cores, Aurorae, tema Plasma e GTK) e 100% propria e vive
+# NESTE pacote — nao ha mais tema de terceiros. O antigo kickstart/
+# capivaraos-post-theme.ks (que baixava o WhiteSur por git clone) foi aposentado
+# na frente D, D5 (FEAT-91): o build nao depende mais de rede para o tema.
 
 Name:           capivaraos-branding
 Version:        2.0.0
@@ -17,7 +18,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.34.alpha34%{?dist}.marsh
+Release:        0.35.alpha35%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -257,18 +258,18 @@ find %{buildroot}%{_datadir}/wallpapers -type f -exec chmod 0644 {} \;
 find %{buildroot}%{_datadir}/wallpapers -type d -exec chmod 0755 {} \;
 
 # ── Esquema de cores próprio do CapivaraOS (FEAT-91 frente D, D1) ────────────
-# Paleta verde da marca (accent #15B22C + neutros escuros ~#12160F). Substitui a
-# dependência do esquema de cores do WhiteSur; as FORMAS (Aurorae/tema Plasma)
-# seguem por ora. Selecionado em kdeglobals (ColorScheme=CapivaraOS) pelo
-# /etc/skel abaixo e reforçado no capivaraos-post-theme.ks. Ver docs/REVERT-CORES-VERDE.md.
+# Paleta verde da marca (accent #15B22C + neutros escuros ~#12160F). Substitui de
+# vez o esquema de cores do WhiteSur. Selecionado em kdeglobals
+# (ColorScheme=CapivaraOS) pelo /etc/skel abaixo e pelo /etc/xdg (%posttrans, p/
+# a sessao LIVE). Ver docs/REVERT-CORES-VERDE.md.
 install -d %{buildroot}%{_datadir}/color-schemes
 install -m 0644 color-schemes/CapivaraOS.colors \
     %{buildroot}%{_datadir}/color-schemes/CapivaraOS.colors
 
 # ── Decoração de janela própria (Aurorae) do CapivaraOS (FEAT-91 frente D, D3) ─
 # Titlebar da paleta + cantos arredondados + botões círculos coloridos da marca.
-# Selecionada no capivaraos-post-theme.ks (kwinrc theme=__aurorae__svg__CapivaraOS).
-# As demais formas do WhiteSur (tema Plasma) seguem por ora. Ver docs/BRIEF-TEMA-CAPIVARAOS.md.
+# Selecionada via /etc/xdg/kwinrc (theme=__aurorae__svg__CapivaraOS, %posttrans).
+# Ver docs/BRIEF-TEMA-CAPIVARAOS.md.
 install -d %{buildroot}%{_datadir}/aurorae/themes/CapivaraOS
 install -m 0644 aurorae/CapivaraOS/* \
     %{buildroot}%{_datadir}/aurorae/themes/CapivaraOS/
@@ -278,8 +279,8 @@ install -m 0644 aurorae/CapivaraOS/* \
 # menus/plasmoides/diálogos e balão de dica — nine-patch FrameSvg na paleta
 # verde. O arquivo "colors" replica o esquema CapivaraOS, então TODO widget que
 # não redesenhamos (botão, slider, etc.) cai no Breeze recolorido na NOSSA
-# paleta. Selecionado no capivaraos-post-theme.ks (plasmarc [Theme] name=
-# CapivaraOS) e reforçado no /etc/xdg/plasmarc (%posttrans). Ver docs/BRIEF-TEMA-CAPIVARAOS.md.
+# paleta. Selecionado em plasmarc [Theme] name=CapivaraOS pelo /etc/skel abaixo e
+# pelo /etc/xdg/plasmarc (%posttrans, p/ a sessao LIVE). Ver docs/BRIEF-TEMA-CAPIVARAOS.md.
 install -d %{buildroot}%{_datadir}/plasma/desktoptheme/CapivaraOS
 cp -r plasma/CapivaraOS/. %{buildroot}%{_datadir}/plasma/desktoptheme/CapivaraOS/
 find %{buildroot}%{_datadir}/plasma/desktoptheme/CapivaraOS -type d -exec chmod 0755 {} \;
@@ -294,6 +295,25 @@ install -m 0644 konsole/CapivaraOS.colorscheme \
     %{buildroot}%{_datadir}/konsole/CapivaraOS.colorscheme
 install -m 0644 konsole/CapivaraOS.profile \
     %{buildroot}%{_datadir}/konsole/CapivaraOS.profile
+
+# ── Config GTK: Adwaita-dark + accent verde da marca (FEAT-91 frente D, D5) ────
+# Apps GTK/libadwaita usam o tema NATIVO Adwaita-dark (in-box) com o verde da
+# marca (#15B22C) injetado como accent (gtk.css), casando com o accent do Plasma.
+# Isso APOSENTA o tema GTK do WhiteSur, que antes era baixado por git no
+# capivaraos-post-theme.ks — agora nao ha mais dependencia de rede/terceiros no
+# tema. Gravado em /etc/skel (usuarios novos = sistema instalado) E em /etc/xdg
+# (padrao do sistema, lido na sessao LIVE, que nao herda /etc/skel de forma
+# confiavel — mesmo motivo do bloco /etc/xdg do %posttrans).
+for GDIR in %{buildroot}%{_sysconfdir}/skel/.config %{buildroot}%{_sysconfdir}/xdg; do
+    install -d "$GDIR/gtk-3.0" "$GDIR/gtk-4.0"
+    install -m 0644 gtk/settings.ini "$GDIR/gtk-3.0/settings.ini"
+    install -m 0644 gtk/settings.ini "$GDIR/gtk-4.0/settings.ini"
+    install -m 0644 gtk/gtk.css      "$GDIR/gtk-3.0/gtk.css"
+    install -m 0644 gtk/gtk.css      "$GDIR/gtk-4.0/gtk.css"
+done
+# GTK2 legado (poucos apps): so no skel do usuario.
+install -d %{buildroot}%{_sysconfdir}/skel
+install -m 0644 gtk/gtkrc-2.0 %{buildroot}%{_sysconfdir}/skel/.gtkrc-2.0
 
 # ── Tema Plymouth ────────────────────────────────────────────────────────────
 install -d %{buildroot}%{_datadir}/plymouth/themes/capivaraos
@@ -431,17 +451,21 @@ cat > %{buildroot}%{_sysconfdir}/skel/.config/kdeglobals << 'EOF'
 [General]
 # ESQUEMA DE CORES PROPRIO CapivaraOS (FEAT-91 frente D, D1): paleta verde da
 # marca no lugar do Breeze/WhiteSur. Instalado por este pacote em
-# /usr/share/color-schemes/CapivaraOS.colors; reforcado pelo capivaraos-post-theme.ks.
+# /usr/share/color-schemes/CapivaraOS.colors; reforcado no /etc/xdg (%posttrans).
 ColorScheme=CapivaraOS
 # PALETA VERDE CapivaraOS (FEAT-91 frente B): accent verde da marca #15B22C
-# (RGB 21,178,44). Baseline em /etc/skel; o capivaraos-post-theme.ks reforca no
-# sistema instalado. REVERSIVEL: ver docs/REVERT-CORES-VERDE.md
+# (RGB 21,178,44). Baseline em /etc/skel; reforcado no /etc/xdg (%posttrans) p/ a
+# sessao LIVE. REVERSIVEL: ver docs/REVERT-CORES-VERDE.md
 AccentColor=21,178,44
 accentColorFromWallpaper=false
 
 [KDE]
 LookAndFeelPackage=org.kde.breezedark.desktop
 SingleClick=false
+
+[Icons]
+# Icones oficiais Breeze Dark do KDE (sem icones estilo Apple do WhiteSur).
+Theme=breeze-dark
 
 [KSplash]
 Theme=None
@@ -1045,6 +1069,9 @@ kwriteconfig6 --file "$XDGKG" --group General --key accentColorFromWallpaper "fa
 # kwriteconfig; reversivel. Ver docs/REVERT-CORES-VERDE.md.
 kwriteconfig6 --file "$XDGKG" --group General --key ColorScheme "CapivaraOS" 2>/dev/null || \
     kwriteconfig5 --file "$XDGKG" --group General --key ColorScheme "CapivaraOS" 2>/dev/null || true
+# Icones Breeze Dark (antes fixados no capivaraos-post-theme.ks, agora aposentado).
+kwriteconfig6 --file "$XDGKG" --group Icons --key Theme "breeze-dark" 2>/dev/null || \
+    kwriteconfig5 --file "$XDGKG" --group Icons --key Theme "breeze-dark" 2>/dev/null || true
 
 XDGKWIN=%{_sysconfdir}/xdg/kwinrc
 kwriteconfig6 --file "$XDGKWIN" --group "org.kde.kdecoration2" --key library "org.kde.kwin.aurorae.v2" 2>/dev/null || \
@@ -1101,14 +1128,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha34, preview)"
+VERSION="Marsh 2.0.0 (alpha35, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha34, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha35, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1121,24 +1148,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha34, preview)"
+VARIANT="Marsh 2.0.0 (alpha35, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha34, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha35, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha34, preview)
+CapivaraOS Marsh 2.0.0 (alpha35, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha34, preview)
+Variant=Marsh 2.0.0 (alpha35, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1192,14 +1219,14 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha34, preview)"
+VERSION="Marsh 2.0.0 (alpha35, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha34, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha35, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1212,17 +1239,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha34, preview)"
+VARIANT="Marsh 2.0.0 (alpha35, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha34, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha35, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha34, preview)
+CapivaraOS Marsh 2.0.0 (alpha35, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1310,6 +1337,11 @@ sed -i -E \
 %{_sysconfdir}/skel/.config/konsolerc
 %{_sysconfdir}/skel/.config/plasmarc
 %{_sysconfdir}/skel/.config/plasma-welcomerc
+%{_sysconfdir}/skel/.config/gtk-3.0/
+%{_sysconfdir}/skel/.config/gtk-4.0/
+%{_sysconfdir}/skel/.gtkrc-2.0
+%{_sysconfdir}/xdg/gtk-3.0/
+%{_sysconfdir}/xdg/gtk-4.0/
 %{_sysconfdir}/skel/.face
 %{_sysconfdir}/skel/.face.icon
 %{_sysconfdir}/anaconda/profile.d/capivaraos.conf
@@ -1318,6 +1350,22 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Sun Sep 06 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.35.alpha35
+- Tema GTK proprio (FEAT-91 frente D, D5 -- ULTIMA fatia): apps GTK/libadwaita
+  passam a usar o tema NATIVO Adwaita-dark (in-box) com o verde da marca #15B22C
+  injetado como accent via gtk.css (accent_bg_color/theme_selected_bg_color),
+  casando com o accent do desktop Plasma. Config em /etc/skel/.config/gtk-{3,4}.0
+  (settings.ini + gtk.css) e /etc/gtk-2.0 legado (.gtkrc-2.0), e replicada em
+  /etc/xdg/gtk-{3,4}.0 para valer na sessao LIVE. Icones Breeze Dark fixados em
+  kdeglobals [Icons] Theme (skel + /etc/xdg), antes feito no post-script.
+- APOSENTA O WHITESUR: com D1 (cores), D3 (Aurorae), D4 (tema Plasma) e agora D5
+  (GTK), as 4 superficies visuais sao 100% proprias. Removidos do build os dois
+  "git clone" do WhiteSur (GTK e KDE) e todo o capivaraos-post-theme.ks (agora
+  sem funcao -- o RPM cobre colors/aurorae/plasma/gtk em skel e /etc/xdg).
+  Removidas do %packages as dependencias que so serviam ao WhiteSur (sassc,
+  optipng, gtk-murrine-engine, gtk2-engines, ImageMagick). Build sem rede.
+  Fecha o FEAT-91. Ver docs/REVERT-CORES-VERDE.md.
+
 * Sat Sep 05 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.34.alpha34
 - Tema Plasma (FEAT-91 frente D, D4 -- prova 2): formas proprias de widget
   adicionadas ao desktoptheme CapivaraOS -- widgets/listitem.svg (realce de

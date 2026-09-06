@@ -86,10 +86,12 @@ formato e os cinzas do WhiteSur.
 
 ## Frente D — aposentar o WhiteSur (em fatias)
 
-Onde o WhiteSur entra hoje: `kickstart/capivaraos-post-theme.ks` clona 2 repos
-(WhiteSur-gtk-theme + WhiteSur-kde) e aplica **4 superfícies** — (1) tema **GTK**,
-(2) **esquema de cores**, (3) decoração **Aurorae**, (4) **tema Plasma**. Ícones e
-Look&Feel já são Breeze.
+As **4 superfícies** da identidade — (1) tema **GTK**, (2) **esquema de cores**,
+(3) decoração **Aurorae**, (4) **tema Plasma** — hoje são **100% próprias**
+(pacote `capivaraos-branding`). O WhiteSur foi **aposentado** no alpha35 (D5): o
+antigo `kickstart/capivaraos-post-theme.ks`, que clonava 2 repos
+(WhiteSur-gtk-theme + WhiteSur-kde), foi **removido** e o build não depende mais
+de rede/terceiros para o tema. Ícones (Breeze Dark) e Look&Feel já eram Breeze.
 
 - **D1 — Esquema de cores próprio:** FEITO no alpha28 (item 12). Novo
   `branding/color-schemes/CapivaraOS.colors` (derivado do Breeze Dark do KDE,
@@ -107,8 +109,31 @@ Look&Feel já são Breeze.
   do alpha30: a library do kwinrc precisa ser `org.kde.kwin.aurorae.v2` (com `.v2`)
   — sem isso o Plasma 6 caía no Breeze; e botões à esquerda (ButtonsOnLeft=XIA)
   estilo macOS. Tema Plasma/painel do WhiteSur mantido (D4).
-- **D4 — tema Plasma próprio:** aguardando arte (ver brief).
-- **D5 — tema GTK** (Adwaita accent verde recomendado) + remover os 2 `git clone`
-  do WhiteSur do build: entra junto com D3/D4.
+- **D4 — tema Plasma próprio:** FEITO (prova 1 alpha33, prova 2 alpha34). Novo
+  `branding/plasma/CapivaraOS/` (desktoptheme): fundo do painel/menus/diálogos/
+  dica (prova 1) + widgets `button`/`lineedit`/`listitem` (prova 2 — realce de
+  item **verde sólido**, anel de foco verde, estados de botão) em nine-patch
+  FrameSvg na paleta. O que não redesenhamos cai no Breeze recolorido pela nossa
+  paleta (arquivo `colors` do tema). Selecionado via `plasmarc name=CapivaraOS`
+  (skel + `/etc/xdg`). Aposenta o **tema Plasma** do WhiteSur.
+- **D5 — tema GTK próprio + REMOÇÃO DO WHITESUR:** FEITO no alpha35 (item 17).
+  Apps GTK/libadwaita usam **Adwaita-dark nativo + accent verde** (`branding/gtk/`
+  → `gtk.css` com `accent_bg_color`/`theme_selected_bg_color` #15B22C, em skel e
+  `/etc/xdg`). Com isso as 4 superfícies são próprias: **removidos** os 2
+  `git clone` do WhiteSur e todo o `capivaraos-post-theme.ks`, mais as deps de
+  build só-WhiteSur (sassc/optipng/gtk-murrine-engine/gtk2-engines/ImageMagick).
+  **Fecha o FEAT-91.**
+
+### Item 17 — tema GTK próprio + aposentadoria do WhiteSur (alpha35, FEAT-91 D5)
+- **`branding/gtk/{gtk.css,settings.ini,gtkrc-2.0}`** (NOVOS): Adwaita-dark +
+  accent verde #15B22C. Instalados pelo RPM em `/etc/skel/.config/gtk-{3,4}.0` e
+  `/etc/xdg/gtk-{3,4}.0` (este p/ a sessão LIVE) + `/etc/skel/.gtkrc-2.0`.
+- **`kdeglobals [Icons] Theme=breeze-dark`** movido do post-script para o RPM
+  (skel + `/etc/xdg`) — único ajuste que o kickstart ainda fazia sozinho.
+- **`kickstart/capivaraos-post-theme.ks`**: REMOVIDO (junto com o `%include` e as
+  deps de build só-WhiteSur na `capivaraos-marsh.ks`).
+- **Reverter:** improvável (é a identidade final). Para voltar ao WhiteSur seria
+  preciso restaurar o post-script do histórico do git. O accent GTK isolado:
+  apagar `branding/gtk/gtk.css` volta ao Adwaita-dark neutro.
 
 Build: `./build-all.sh`
