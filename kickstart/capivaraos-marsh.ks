@@ -149,6 +149,10 @@ trivy
 gh
 podman
 distrobox
+# -- Central do Desenvolvedor: app de onboarding pt-BR (1o boot) que instala os
+# OPCIONAIS em 1 clique (IA local etc.). Vem do repo local capivaraos-local
+# (buildado por build-all.sh). FEAT-90. Ver apps/capivara-central/.
+capivara-central
 # -- Gerenciador de senhas (pegada de seguranca) --
 keepassxc
 # -- Snapshots "atualize sem medo" (Btrfs nativo do Fedora) --
@@ -166,12 +170,11 @@ google-noto-emoji-fonts
 cups
 system-config-printer
 
-# ===== TEMA MACOS (WHITESUR) — dependências para o post-script de tema =====
-sassc
-optipng
-gtk-murrine-engine
-gtk2-engines
-ImageMagick
+# NOTA: a identidade visual do CapivaraOS (cores, Aurorae, tema Plasma e GTK) e
+# 100% propria, entregue pelo pacote capivaraos-branding — nao ha mais tema de
+# terceiros (WhiteSur aposentado, FEAT-91 D5). Por isso sairam daqui as antigas
+# dependencias que so serviam ao build do WhiteSur: sassc, optipng,
+# gtk-murrine-engine, gtk2-engines e ImageMagick.
 
 %end
 
@@ -179,5 +182,4 @@ ImageMagick
 # Post-scripts específicos do CapivaraOS
 # =============================================================================
 %include capivaraos-post-branding.ks
-%include capivaraos-post-theme.ks
 %include capivaraos-post-devstation.ks

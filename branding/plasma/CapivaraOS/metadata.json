@@ -1,0 +1,15 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "CapivaraOS Project"
+            }
+        ],
+        "Category": "",
+        "Description": "Tema visual próprio do CapivaraOS Marsh — paleta verde-Pantanal/Cerrado, formas próprias (barra, menus, diálogos, dicas). Aposenta o WhiteSur.",
+        "Id": "CapivaraOS",
+        "License": "GPL-3.0-or-later",
+        "Name": "CapivaraOS"
+    },
+    "X-Plasma-API": "6.0"
+}

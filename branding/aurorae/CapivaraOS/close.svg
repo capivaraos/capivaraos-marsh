@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Botão FECHAR — círculo vermelho da paleta; glifo × no hover/pressed.
+     Estados FrameSvg: *-center. FEAT-91 frente D.
+     SPDX-License-Identifier: GPL-3.0-or-later
+     SPDX-FileCopyrightText: 2026 CapivaraOS Project -->
+<svg xmlns="http://www.w3.org/2000/svg" width="140" height="16" viewBox="0 0 140 16">
+  <g id="active-center" transform="translate(0,0)">
+    <rect width="16" height="16" fill="#000" fill-opacity="0"/>
+    <circle cx="8" cy="8" r="6" fill="#DA4453"/>
+  </g>
+  <g id="inactive-center" transform="translate(20,0)">
+    <rect width="16" height="16" fill="#000" fill-opacity="0"/>
+    <circle cx="8" cy="8" r="6" fill="#DA4453"/>
+  </g>
+  <g id="hover-center" transform="translate(40,0)">
+    <rect width="16" height="16" fill="#000" fill-opacity="0"/>
+    <circle cx="8" cy="8" r="6" fill="#DA4453"/>
+    <path d="M5.5,5.5 L10.5,10.5 M10.5,5.5 L5.5,10.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+  </g>
+  <g id="hover-inactive-center" transform="translate(60,0)">
+    <rect width="16" height="16" fill="#000" fill-opacity="0"/>
+    <circle cx="8" cy="8" r="6" fill="#DA4453"/>
+    <path d="M5.5,5.5 L10.5,10.5 M10.5,5.5 L5.5,10.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+  </g>
+  <g id="pressed-center" transform="translate(80,0)">
+    <rect width="16" height="16" fill="#000" fill-opacity="0"/>
+    <circle cx="8" cy="8" r="6" fill="#B0313F"/>
+    <path d="M5.5,5.5 L10.5,10.5 M10.5,5.5 L5.5,10.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+  </g>
+  <g id="deactivated-center" transform="translate(100,0)">
+    <rect width="16" height="16" fill="#000" fill-opacity="0"/>
+    <circle cx="8" cy="8" r="6" fill="#3A4030"/>
+  </g>
+  <g id="deactivated-inactive-center" transform="translate(120,0)">
+    <rect width="16" height="16" fill="#000" fill-opacity="0"/>
+    <circle cx="8" cy="8" r="6" fill="#3A4030"/>
+  </g>
+</svg>

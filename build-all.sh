@@ -4,9 +4,10 @@
 # constrói a ISO live com livemedia-creator.
 #
 # Requer privilégios de root (dnf install + livemedia-creator --no-virt) e
-# acesso à rede (pacotes do Fedora + git clone dos temas WhiteSur durante o
-# %post). Recomenda-se rodar num terminal interativo (a senha do sudo será
-# solicitada e o build pode levar bastante tempo).
+# acesso à rede (pacotes do Fedora). O tema é 100% próprio (pacote
+# capivaraos-branding) — não há mais git clone de temas de terceiros no %post
+# (WhiteSur aposentado, FEAT-91 D5). Recomenda-se rodar num terminal interativo
+# (a senha do sudo será solicitada e o build pode levar bastante tempo).
 #
 # Uso:
 #   ./build-all.sh
@@ -16,13 +17,14 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR=/var/tmp/capivaraos-repo
 RESULT_DIR=/var/tmp/capivaraos-marsh-result
-ISO_NAME=CapivaraOS-Marsh-2.0.0-alpha9-x86_64.iso
+ISO_NAME=CapivaraOS-Marsh-2.0.0-alpha35-x86_64.iso
 
 echo "==> 1/4: Instalando dependências (lorax, rpm-build, ImageMagick, git, createrepo_c)..."
 sudo dnf install -y lorax rpm-build ImageMagick git createrepo_c
 
-echo "==> 2/4: Construindo RPM capivaraos-branding..."
+echo "==> 2/4: Construindo RPMs (capivaraos-branding + capivara-central)..."
 "$SCRIPT_DIR/rpm/build-rpm.sh"
+"$SCRIPT_DIR/apps/capivara-central/rpm/build-rpm.sh"
 
 echo "==> 3/4: Criando repositório local em ${REPO_DIR}..."
 # BUG CORRIGIDO (2026-06-25): ~/rpmbuild/RPMS/noarch/ acumula RPMs
@@ -34,11 +36,16 @@ echo "==> 3/4: Criando repositório local em ${REPO_DIR}..."
 # aconteceu de fato com Pup vs. Snout, que compartilham Version=1.0.0).
 # Agora resolvemos a NEVRA EXATA deste spec (Version E Release) via
 # "rpmspec -q", garantindo que copiamos só o RPM desta spin.
-NEVRA=$(rpmspec -q --qf '%{name}-%{version}-%{release}.%{arch}\n' "$SCRIPT_DIR/rpm/capivaraos-branding.spec" | head -1)
-RPM_FILE="$HOME/rpmbuild/RPMS/noarch/${NEVRA}.rpm"
-[ -f "$RPM_FILE" ] || { echo "ERRO: RPM esperado não encontrado: ${RPM_FILE}" >&2; exit 1; }
 mkdir -p "$REPO_DIR"
-cp -v "$RPM_FILE" "$REPO_DIR/"
+# Resolve a NEVRA EXATA de cada spec (Version E Release) e copia só o RPM
+# desta spin — ~/rpmbuild/RPMS/noarch é compartilhado pelas 3 spins.
+for SPEC in "$SCRIPT_DIR/rpm/capivaraos-branding.spec" \
+            "$SCRIPT_DIR/apps/capivara-central/rpm/capivara-central.spec"; do
+    NEVRA=$(rpmspec -q --qf '%{name}-%{version}-%{release}.%{arch}\n' "$SPEC" | head -1)
+    RPM_FILE="$HOME/rpmbuild/RPMS/noarch/${NEVRA}.rpm"
+    [ -f "$RPM_FILE" ] || { echo "ERRO: RPM esperado não encontrado: ${RPM_FILE}" >&2; exit 1; }
+    cp -v "$RPM_FILE" "$REPO_DIR/"
+done
 createrepo_c "$REPO_DIR"
 
 echo "==> 4/4: Gerando ISO com livemedia-creator (pode levar bastante tempo)..."
@@ -58,7 +65,7 @@ sudo livemedia-creator --ks="$FLAT_KS" \
     --logfile="$LIVEMEDIA_LOG" \
     --project="CapivaraOS Marsh" --make-iso --iso-only \
     --iso-name="$ISO_NAME" \
-    --volid="CapivaraOS Marsh 2.0.0 alpha9" --variant="CapivaraOS Marsh" \
+    --volid="CapivaraOS Marsh 2.0.0 alpha35" --variant="CapivaraOS Marsh" \
     --releasever=44
 
 # ── TRAVA: a ISO PRECISA conter os updates do Fedora ────────────────────────
