@@ -1,0 +1,4 @@
+# CapivaraOS — apps GTK2 legados: tema nativo Adwaita-dark + icones Breeze Dark.
+# (O accent verde da marca so se aplica a GTK3/GTK4 via gtk.css.) FEAT-91 D5.
+gtk-theme-name="Adwaita-dark"
+gtk-icon-theme-name="breeze-dark"

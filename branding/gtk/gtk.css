@@ -1,0 +1,20 @@
+/* CapivaraOS — accent verde da marca para apps GTK/libadwaita.
+   Estrategia (FEAT-91 frente D, D5): usamos o tema NATIVO Adwaita-dark (in-box,
+   sem manutencao de tema proprio) e injetamos apenas o verde da marca como cor
+   de destaque, casando com o accent do desktop Plasma (kdeglobals AccentColor=
+   21,178,44). Aposenta de vez o tema GTK do WhiteSur (terceiro, baixado por git).
+
+   - accent_bg_color: fundo de botoes/switches/selecao acentuados -> verde #15B22C
+   - accent_fg_color: texto sobre o accent -> branco
+   - accent_color: accent "solto" (texto/links/icones) sobre fundo escuro da
+     janela -> variante mais clara #46C95B, para manter contraste legivel.
+   theme_selected_* cobrem o Adwaita do GTK3; accent_* cobrem GTK4/libadwaita.
+   SPDX-License-Identifier: GPL-3.0-or-later
+   SPDX-FileCopyrightText: 2026 CapivaraOS Project */
+
+@define-color accent_bg_color #15B22C;
+@define-color accent_fg_color #ffffff;
+@define-color accent_color #46C95B;
+
+@define-color theme_selected_bg_color #15B22C;
+@define-color theme_selected_fg_color #ffffff;
