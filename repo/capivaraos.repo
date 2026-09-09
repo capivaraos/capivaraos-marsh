@@ -1,0 +1,50 @@
+# CapivaraOS — repositório de atualizações assinado (desktop, Community, GRÁTIS).
+#
+# Dá ao CapivaraOS INSTALADO um caminho de atualização de primeira classe (FEAT-111):
+# além dos updates do Fedora, o sistema passa a receber os NOSSOS pacotes
+# (capivaraos-branding, COS Dev Center, temas, correções) sem esperar uma ISO
+# nova. Antes, os RPMs próprios só existiam offline dentro da ISO.
+#
+# CONFIANÇA NÃO DEPENDE DO HOST: a assinatura é NOSSA (chave GPG própria do
+# desktop, abaixo — SEPARADA da chave do Herd). gpgcheck + repo_gpgcheck rejeitam
+# qualquer pacote OU metadado que não esteja assinado pela nossa chave — mesmo que
+# o servidor/CDN seja comprometido, ninguém empurra update malicioso. A chave
+# PRIVADA fica OFFLINE (HSM/cofre); só a pública viaja neste pacote. Ver
+# keys/README.md e docs/repo/README.md.
+#
+# DOMÍNIO .org DE PROPÓSITO: o repo grátis vive no domínio da COMUNIDADE
+# (capivaraos.org). Ver reference_domains_org_com.
+#
+# CAMINHO POR SPIN (marsh/): as 3 spins desktop (Marsh/Pup/Snout) compartilham
+# ESTA base (scripts, pacote, cerimônia), mas cada uma tem seu PRÓPRIO caminho de
+# repo — marsh/, pup/, snout/ — porque o capivaraos-branding tem Release por spin
+# (.marsh/.pup/.snout) e juntá-las num só diretório faria o dnf "atualizar" um
+# Marsh com o build de outra spin (armadilha de NEVRA, ver BUG-30). Hoje só o
+# Marsh está no 2.x; Pup/Snout ganham pup//snout/ quando chegarem ao 2.x (mesmo
+# pacote, baseurl por spin — via build por spin ou variável dnf $capivaraosspin).
+#
+# $releasever resolve para a base Fedora (44 no Marsh 2.x) via
+# system-release(releasever) do fedora-release — NÃO pelo VERSION_ID do
+# os-release. Num `dnf system-upgrade --releasever=45` ele vira 45 e o baseurl
+# aponta sozinho para marsh/f45/, sem editar este arquivo.
+
+[capivaraos]
+name=CapivaraOS $releasever - $basearch
+baseurl=https://repo.capivaraos.org/marsh/f$releasever/$basearch/stable/
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-capivaraos
+metadata_expire=6h
+
+# Canal de pré-produção (QA). DESLIGADO por padrão; um testador liga com
+# `dnf --enablerepo=capivaraos-testing update`. Um fix promovido para stable
+# some daqui. Ver o fluxo testing->stable em docs/repo/README.md.
+[capivaraos-testing]
+name=CapivaraOS $releasever - $basearch - Testing
+baseurl=https://repo.capivaraos.org/marsh/f$releasever/$basearch/testing/
+enabled=0
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-capivaraos
+metadata_expire=6h
