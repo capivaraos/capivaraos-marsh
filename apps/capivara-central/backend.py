@@ -8,6 +8,7 @@
 # nunca roda como root.
 
 import os
+import re
 import shutil
 import subprocess
 
@@ -21,6 +22,11 @@ LANG_TRACKS = ("node", "python", "go", "rust", "java")
 
 # Itens do card "Ferramentas de dev".
 DEV_TOOLS = ("vscode", "cline", "openwebui", "docker")
+
+# Ferramenta de upgrade de versão in-place (FEAT-115). O card "Atualizar o
+# CapivaraOS" (FEAT-116) só aparece quando ela está instalada — sem dependência
+# RPM rígida, para não puxar o repo de updates para a ISO antes de o repo existir.
+UPGRADE_TOOL = "capivaraos-upgrade"
 
 # Diretório dos helpers. Em produção é /usr/libexec/capivara-central (instalado
 # pelo RPM); em desenvolvimento cai para a pasta libexec/ ao lado deste arquivo.
@@ -47,11 +53,17 @@ class Backend(QObject):
     stepChanged = Signal(str)    # rótulo do passo atual (pt-BR)
     busyChanged = Signal()
     finished = Signal(bool, str)  # (sucesso, mensagem)
+    # (upgrade disponível?, versão de destino, pronto para reiniciar/aplicar?)
+    upgradeStatus = Signal(bool, str, bool)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._busy = False
         self._proc: QProcess | None = None
+        self._action = ""                 # rótulo da tarefa atual (p/ _on_finished)
+        self._probe: QProcess | None = None  # sonda de upgrade (não-bloqueante)
+        self._upgrade_target = ""         # versão Fedora de destino detectada
+        self._upgrade_ready = False       # download já concluído nesta sessão
 
     # ---- Property busy (para desabilitar botões no QML) -------------------
     def _is_busy(self) -> bool:
@@ -142,11 +154,63 @@ class Backend(QObject):
             self.openGhLogin()
         # docker e lang:* não são "abríveis" (daemon / runtimes).
 
+    # ---- Atualização de versão do CapivaraOS (FEAT-116) ------------------
+    @Slot()
+    def checkUpgrade(self):
+        """Sonda, sem bloquear a UI, se há uma nova versão do CapivaraOS. Só faz
+        sentido se a ferramenta capivaraos-upgrade (FEAT-115) estiver instalada;
+        senão o card fica escondido. `capivaraos-upgrade check` é read-only
+        (não baixa nem reinicia)."""
+        if shutil.which(UPGRADE_TOOL) is None:
+            self.upgradeStatus.emit(False, "", False)
+            return
+        probe = QProcess(self)
+        probe.setProcessChannelMode(QProcess.MergedChannels)
+        buf = {"out": ""}
+
+        def drain():
+            buf["out"] += bytes(probe.readAllStandardOutput()).decode("utf-8", "replace")
+
+        def done(code, _st):
+            target = ""
+            for line in buf["out"].splitlines():
+                if "destino" in line:
+                    m = re.search(r"(\d+)", line)
+                    if m:
+                        target = m.group(1)
+            self._upgrade_target = target
+            # Disponível quando o pré-voo aprova (exit 0: repo assinado do destino
+            # existe). readyToReboot só vira True após um download nesta sessão.
+            self.upgradeStatus.emit(code == 0, target, self._upgrade_ready)
+            self._probe = None
+
+        probe.readyReadStandardOutput.connect(drain)
+        probe.finished.connect(done)
+        self._probe = probe
+        probe.start(UPGRADE_TOOL, ["check"])
+
+    @Slot()
+    def downloadUpgrade(self):
+        """Baixa a transação de upgrade (privilegiado; snapshot + dnf5
+        system-upgrade download). Não reinicia."""
+        self._run(_helper("setup-upgrade"),
+                  step="Baixando a atualização do CapivaraOS…",
+                  args=["download"], kind="upgrade-download")
+
+    @Slot()
+    def rebootUpgrade(self):
+        """Aplica: reinicia no modo offline. Passo terminal — a máquina reinicia
+        (o processo pode não retornar)."""
+        self._run(_helper("setup-upgrade"),
+                  step="Reiniciando para aplicar a atualização…",
+                  args=["reboot"], kind="upgrade-reboot")
+
     # ---- Execução com streaming ------------------------------------------
-    def _run(self, program: str, step: str = "", args=None):
+    def _run(self, program: str, step: str = "", args=None, kind: str = ""):
         if self._busy:
             self.logLine.emit("Já há uma tarefa em andamento; aguarde terminar.")
             return
+        self._action = kind
         if step:
             self.stepChanged.emit(step)
         self._set_busy(True)
@@ -175,12 +239,20 @@ class Backend(QObject):
     def _on_finished(self, code: int):
         self._set_busy(False)
         self._proc = None
+        action = self._action
+        self._action = ""
         if code == 0:
             self.stepChanged.emit("Concluído!")
-            self.finished.emit(True, "Instalação concluída com sucesso.")
+            if action == "upgrade-download":
+                self._upgrade_ready = True
+                self.finished.emit(
+                    True, "Download da atualização concluído. Reinicie para aplicar.")
+                self.upgradeStatus.emit(True, self._upgrade_target, True)
+            else:
+                self.finished.emit(True, "Instalação concluída com sucesso.")
         else:
             self.stepChanged.emit("Falhou")
-            self.finished.emit(False, f"A instalação terminou com erro (código {code}).")
+            self.finished.emit(False, f"A operação terminou com erro (código {code}).")
 
     # ---- Consultas simples de estado (para os cards) ---------------------
     @Slot(result=bool)

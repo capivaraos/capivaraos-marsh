@@ -1,5 +1,5 @@
 Name:           capivara-central
-Version:        0.1.8
+Version:        0.2.0
 Release:        1%{?dist}.marsh
 Summary:        COS Dev Center — onboarding do CapivaraOS Marsh
 
@@ -57,6 +57,8 @@ install -Dm0755 libexec/setup-devtools          %{buildroot}%{_libexecdir}/%{nam
 install -Dm0755 libexec/install-devtools-system %{buildroot}%{_libexecdir}/%{name}/install-devtools-system
 install -Dm0755 libexec/setup-gh                %{buildroot}%{_libexecdir}/%{name}/setup-gh
 install -Dm0755 libexec/install-gh-system       %{buildroot}%{_libexecdir}/%{name}/install-gh-system
+install -Dm0755 libexec/setup-upgrade           %{buildroot}%{_libexecdir}/%{name}/setup-upgrade
+install -Dm0755 libexec/upgrade-system          %{buildroot}%{_libexecdir}/%{name}/upgrade-system
 
 # --- polkit action ---
 install -Dm0644 data/org.capivaraos.central.policy \
@@ -88,6 +90,19 @@ install -Dm0644 data/org.capivaraos.Central-autostart.desktop \
 %{_sysconfdir}/skel/.config/autostart/org.capivaraos.Central.desktop
 
 %changelog
+* Thu Sep 10 2026 CapivaraOS Bot <capivaraos-bot@users.noreply.github.com> - 0.2.0-1.marsh
+- Card "Atualizar o CapivaraOS" (FEAT-116): o "botao de atualizar" no modelo do
+  Fedora ("nova versao disponivel"). So aparece quando ha versao nova (sonda
+  assincrona backend.checkUpgrade via `capivaraos-upgrade check`, read-only).
+  Fluxo em dois passos: "Baixar atualizacao" (privilegiado, com snapshot snapper
+  antes) e, apos o download, "Reiniciar e aplicar" (dialogo de confirmacao ->
+  transacao offline no reboot). Reusa a engine capivaraos-upgrade (FEAT-115) via
+  helpers setup-upgrade (usuario) -> upgrade-system (root, pkexec) e a polkit
+  action org.capivaraos.central.system-upgrade.
+- SEM dependencia RPM rigida de capivaraos-upgrade/capivaraos-repos: o card
+  detecta a ferramenta em runtime (which) e fica escondido se ausente -- assim a
+  ISO nao puxa o repo de updates antes de ele estar no ar (guardrail FEAT-111).
+
 * Thu Aug 27 2026 CapivaraOS Bot <capivaraos-bot@users.noreply.github.com> - 0.1.8-1.marsh
 - Faixa "Instalados" no topo do catalogo: mini-lancador com o que ja foi
   instalado pelo Dev Center — botao Abrir p/ Alpaca, VS Code, Open WebUI
