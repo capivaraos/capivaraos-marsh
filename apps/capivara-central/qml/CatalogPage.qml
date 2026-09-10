@@ -21,6 +21,15 @@ Kirigami.ScrollablePage {
     property string langsInstalled: backend.installedLangs()
     property string toolsInstalled: backend.installedDevTools()
 
+    // Atualização de versão do CapivaraOS (FEAT-116). Sondado de forma
+    // assíncrona no carregamento; o card só aparece quando há versão nova.
+    property bool upgradeAvailable: false
+    property string upgradeTarget: ""
+    property bool upgradeReadyToReboot: false
+
+    // Sonda a nova versão sem bloquear a UI (o card aparece quando responder).
+    Component.onCompleted: backend.checkUpgrade()
+
     // Reavalia tudo (chamado após cada instalação).
     function refreshState() {
         aiInstalled = backend.isAiLocalInstalled()
@@ -33,6 +42,77 @@ Kirigami.ScrollablePage {
 
     ColumnLayout {
         spacing: Kirigami.Units.largeSpacing
+
+        // ---- Atualização de versão do CapivaraOS (FEAT-116) ----------------
+        // Só aparece quando há uma versão nova (backend.checkUpgrade). Atualiza
+        // sem formatar, com snapshot de segurança antes — a engine é a
+        // ferramenta capivaraos-upgrade (FEAT-115).
+        Kirigami.AbstractCard {
+            Layout.fillWidth: true
+            visible: page.upgradeAvailable
+            contentItem: ColumnLayout {
+                spacing: Kirigami.Units.smallSpacing
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Kirigami.Units.largeSpacing
+                    Kirigami.Icon {
+                        source: "system-software-update"
+                        Layout.alignment: Qt.AlignTop
+                        implicitWidth: Kirigami.Units.iconSizes.large
+                        implicitHeight: Kirigami.Units.iconSizes.large
+                    }
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: Kirigami.Units.smallSpacing
+                        Kirigami.Heading {
+                            Layout.fillWidth: true
+                            level: 3
+                            text: qsTr("Atualização do CapivaraOS disponível")
+                        }
+                        Controls.Label {
+                            Layout.fillWidth: true
+                            wrapMode: Text.WordWrap
+                            opacity: 0.8
+                            text: page.upgradeReadyToReboot
+                                ? qsTr("A atualização foi baixada. Reinicie para aplicá-la "
+                                     + "num ambiente offline. Criamos um ponto de restauração "
+                                     + "(snapshot) antes.")
+                                : qsTr("Uma nova versão do CapivaraOS está disponível. Você pode "
+                                     + "atualizar sem formatar, mantendo seus dados e programas. "
+                                     + "Criamos um ponto de restauração (snapshot) antes de aplicar.")
+                        }
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Kirigami.Units.smallSpacing
+                    Item { Layout.fillWidth: true }
+                    Controls.Button {
+                        visible: !page.upgradeReadyToReboot
+                        text: qsTr("Baixar atualização")
+                        icon.name: "download"
+                        highlighted: true
+                        enabled: !backend.busy
+                        onClicked: {
+                            logView.clear()
+                            progressSheet.title = qsTr("Baixando a atualização")
+                            progressSheet.open()
+                            backend.downloadUpgrade()
+                        }
+                    }
+                    Controls.Button {
+                        visible: page.upgradeReadyToReboot
+                        text: qsTr("Reiniciar e aplicar")
+                        icon.name: "system-reboot"
+                        highlighted: true
+                        enabled: !backend.busy
+                        onClicked: rebootDialog.open()
+                    }
+                }
+            }
+        }
 
         // ---- Faixa "Instalados": mini-lançador do que já foi instalado -----
         Kirigami.AbstractCard {
@@ -301,8 +381,38 @@ Kirigami.ScrollablePage {
         }
     }
 
+    // ---- Confirmação de reinício para aplicar o upgrade ------------------
+    Kirigami.PromptDialog {
+        id: rebootDialog
+        title: qsTr("Reiniciar e aplicar a atualização?")
+        subtitle: qsTr("A máquina vai reiniciar e aplicar a atualização num ambiente "
+                     + "offline (pode levar alguns minutos). Salve seu trabalho e feche "
+                     + "os aplicativos. Se algo falhar, dá para voltar pelo snapshot.")
+        standardButtons: Kirigami.Dialog.NoButton
+        customFooterActions: [
+            Kirigami.Action {
+                text: qsTr("Reiniciar agora")
+                icon.name: "system-reboot"
+                onTriggered: {
+                    rebootDialog.close()
+                    backend.rebootUpgrade()
+                }
+            },
+            Kirigami.Action {
+                text: qsTr("Agora não")
+                icon.name: "dialog-cancel"
+                onTriggered: rebootDialog.close()
+            }
+        ]
+    }
+
     Connections {
         target: backend
+        function onUpgradeStatus(available, target, ready) {
+            page.upgradeAvailable = available
+            page.upgradeTarget = target
+            page.upgradeReadyToReboot = ready
+        }
         function onLogLine(line) {
             logView.text += line + "\n"
             logView.cursorPosition = logView.length
