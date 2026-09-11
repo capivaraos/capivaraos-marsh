@@ -34,6 +34,7 @@ cp -r "${PROJECT_DIR}/branding/aurorae" "$SRCDIR/"
 cp -r "${PROJECT_DIR}/branding/plasma" "$SRCDIR/"
 cp -r "${PROJECT_DIR}/branding/konsole" "$SRCDIR/"
 cp -r "${PROJECT_DIR}/branding/gtk" "$SRCDIR/"
+cp -r "${PROJECT_DIR}/branding/fastfetch" "$SRCDIR/"
 
 mkdir -p "$HOME/rpmbuild/SOURCES" "$HOME/rpmbuild/SPECS"
 # Remove um tarball homonimo de build anterior antes de gravar o novo.
