@@ -18,7 +18,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.35.alpha35%{?dist}.marsh
+Release:        0.36.alpha36%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -314,6 +314,19 @@ done
 # GTK2 legado (poucos apps): so no skel do usuario.
 install -d %{buildroot}%{_sysconfdir}/skel
 install -m 0644 gtk/gtkrc-2.0 %{buildroot}%{_sysconfdir}/skel/.gtkrc-2.0
+
+# ── Logo próprio do fastfetch (FEAT-136 / FEAT-50) ────────────────────────────
+# O fastfetch mostra o logo ASCII do Fedora (escolhido por ID_LIKE do os-release).
+# Trocamos pela cabeça de capivara da marca + "CapivaraOS" em verde. A arte vai
+# em /usr/share/capivaraos/fastfetch/ (coberta por %{_datadir}/capivaraos/) e o
+# config.jsonc (só o LOGO, sem mexer nos módulos) em /etc/skel E /etc/xdg — este
+# ultimo p/ valer na sessao LIVE (fastfetch le XDG_CONFIG_DIRS=/etc/xdg).
+install -d %{buildroot}%{_datadir}/capivaraos/fastfetch
+install -m 0644 fastfetch/capivara.txt %{buildroot}%{_datadir}/capivaraos/fastfetch/capivara.txt
+for FDIR in %{buildroot}%{_sysconfdir}/skel/.config %{buildroot}%{_sysconfdir}/xdg; do
+    install -d "$FDIR/fastfetch"
+    install -m 0644 fastfetch/config.jsonc "$FDIR/fastfetch/config.jsonc"
+done
 
 # ── Tema Plymouth ────────────────────────────────────────────────────────────
 install -d %{buildroot}%{_datadir}/plymouth/themes/capivaraos
@@ -1128,14 +1141,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha35, preview)"
+VERSION="Marsh 2.0.0 (alpha36, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha35, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha36, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1148,24 +1161,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha35, preview)"
+VARIANT="Marsh 2.0.0 (alpha36, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha35, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha36, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha35, preview)
+CapivaraOS Marsh 2.0.0 (alpha36, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha35, preview)
+Variant=Marsh 2.0.0 (alpha36, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1219,14 +1232,14 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha35, preview)"
+VERSION="Marsh 2.0.0 (alpha36, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha35, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha36, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1239,17 +1252,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha35, preview)"
+VARIANT="Marsh 2.0.0 (alpha36, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha35, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha36, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha35, preview)
+CapivaraOS Marsh 2.0.0 (alpha36, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1342,6 +1355,8 @@ sed -i -E \
 %{_sysconfdir}/skel/.gtkrc-2.0
 %{_sysconfdir}/xdg/gtk-3.0/
 %{_sysconfdir}/xdg/gtk-4.0/
+%{_sysconfdir}/skel/.config/fastfetch/
+%{_sysconfdir}/xdg/fastfetch/
 %{_sysconfdir}/skel/.face
 %{_sysconfdir}/skel/.face.icon
 %{_sysconfdir}/anaconda/profile.d/capivaraos.conf
@@ -1350,6 +1365,16 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Fri Sep 11 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.36.alpha36
+- Logo próprio do CapivaraOS no fastfetch (FEAT-136 / FEAT-50): o painel ASCII do
+  terminal deixa de mostrar o logo do Fedora (que o fastfetch escolhia por ID_LIKE
+  do os-release) e passa a mostrar a cabeça de capivara da marca + "CapivaraOS" em
+  VERDE (#15B22C). Arte em /usr/share/capivaraos/fastfetch/capivara.txt (silhueta
+  do brand-assets + nome via placeholder $2) e config.jsonc mínimo (só o LOGO, sem
+  mexer nos módulos) em /etc/skel/.config/fastfetch/ e /etc/xdg/fastfetch/ (este p/
+  valer na sessao LIVE). ASCII funciona em TTY. Só o Marsh (2.x); Pup/Snout/Herd
+  ficam p/ o 2.x de cada (FEAT-137/138/PROD-110).
+
 * Sun Sep 06 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.35.alpha35
 - Tema GTK proprio (FEAT-91 frente D, D5 -- ULTIMA fatia): apps GTK/libadwaita
   passam a usar o tema NATIVO Adwaita-dark (in-box) com o verde da marca #15B22C
