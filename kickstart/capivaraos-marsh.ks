@@ -1,6 +1,6 @@
 #version=DEVEL
 # =============================================================================
-# CapivaraOS Marsh - Fedora 44 (KDE Plasma) - kickstart principal
+# CapivaraOS Marsh - Fedora 45 (KDE Plasma) - kickstart principal
 # =============================================================================
 #
 # Baseado no kickstart oficial do Fedora KDE Live (vendorizado em
