@@ -1,5 +1,5 @@
 #!/bin/bash
-# Build completo do CapivaraOS Marsh (Fedora 44 KDE): instala dependências,
+# Build completo do CapivaraOS Marsh (Fedora 45 KDE): instala dependências,
 # gera o RPM capivaraos-branding, monta um repositório local com ele e
 # constrói a ISO live com livemedia-creator.
 #
@@ -17,7 +17,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR=/var/tmp/capivaraos-repo
 RESULT_DIR=/var/tmp/capivaraos-marsh-result
-ISO_NAME=CapivaraOS-Marsh-2.0.0-alpha36-x86_64.iso
+ISO_NAME=CapivaraOS-Marsh-2.0.0-alpha37-x86_64.iso
 
 echo "==> 1/4: Instalando dependências (lorax, rpm-build, ImageMagick, git, createrepo_c)..."
 sudo dnf install -y lorax rpm-build ImageMagick git createrepo_c
@@ -65,8 +65,8 @@ sudo livemedia-creator --ks="$FLAT_KS" \
     --logfile="$LIVEMEDIA_LOG" \
     --project="CapivaraOS Marsh" --make-iso --iso-only \
     --iso-name="$ISO_NAME" \
-    --volid="CapivaraOS Marsh 2.0.0 alpha36" --variant="CapivaraOS Marsh" \
-    --releasever=44
+    --volid="CapivaraOS Marsh 2.0.0 alpha37" --variant="CapivaraOS Marsh" \
+    --releasever=45
 
 # ── TRAVA: a ISO PRECISA conter os updates do Fedora ────────────────────────
 # As ISOs 1.1.2/1.1.3 saíram só com o Fedora 44 GA porque o repo 'updates' não
@@ -81,11 +81,11 @@ _TMPREPO=$(mktemp -d)
 cat > "$_TMPREPO/ucheck.repo" <<EOF
 [ucheck]
 name=ucheck
-mirrorlist=https://mirrors.fedoraproject.org/mirrorlist?repo=updates-released-f44&arch=x86_64
+mirrorlist=https://mirrors.fedoraproject.org/mirrorlist?repo=updates-released-f45&arch=x86_64
 enabled=1
 EOF
 LATEST_KERNEL=$(dnf -q --setopt=reposdir="$_TMPREPO" --disablerepo='*' --enablerepo=ucheck \
-    --releasever=44 repoquery --qf '%{version}-%{release}\n' kernel-core 2>/dev/null \
+    --releasever=45 repoquery --qf '%{version}-%{release}\n' kernel-core 2>/dev/null \
     | sort -V | tail -1)
 rm -rf "$_TMPREPO"
 
@@ -105,7 +105,7 @@ else
 fi
 
 # ── Título do menu de boot da mídia live (grub) ─────────────────────────────
-# O lorax gera "CapivaraOS Marsh 44" (@PRODUCT@ + @VERSION@=releasever). Trocamos
+# O lorax gera "CapivaraOS Marsh 45" (@PRODUCT@ + @VERSION@=releasever). Trocamos
 # pela versão real (ex.: "CapivaraOS Marsh 2.0.0 (alpha6)"). Edita os dois
 # grub.cfg (BIOS em /boot/grub2, UEFI em /EFI/BOOT) dentro da ISO com xorriso e
 # reimplanta o checksum (implantisomd5) — senão a opção "Test this media" falha.
@@ -119,7 +119,7 @@ if command -v xorriso >/dev/null 2>&1; then
     for GCFG in /EFI/BOOT/grub.cfg /boot/grub2/grub.cfg; do
         _b="${_GW}/$(echo "$GCFG" | tr '/' '_')"
         xorriso -osirrox on -indev "$ISO_PATH" -extract "$GCFG" "$_b" 2>/dev/null || continue
-        sed -i "s|CapivaraOS Marsh 44|${MENU_TITLE}|g" "$_b"
+        sed -i "s|CapivaraOS Marsh 45|${MENU_TITLE}|g" "$_b"
     done
     if xorriso -indev "$ISO_PATH" -outdev "${ISO_PATH}.new" -boot_image any replay \
             -update "${_GW}/_EFI_BOOT_grub.cfg"   /EFI/BOOT/grub.cfg \
