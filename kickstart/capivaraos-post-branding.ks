@@ -13,6 +13,25 @@
 # live.
 
 %post
+# ── DM correto: forçar o plasma-login-manager (plasmalogin.service) ──────────
+# REGRESSÃO F45 (PROD-113): no F44 o DM ativo era o plasma-login-manager e toda a
+# nossa branding do greeter (defaults.conf do plasmalogin) + o autologin do live
+# (livesys escreve em /etc/plasmalogin.conf) assumem isso. No F45, os pacotes
+# SDDM que instalamos p/ o tema do greeter (sddm-breeze/kde-settings-sddm) fazem
+# o SDDM "ganhar" a eleição do display-manager → o SDDM lê /etc/sddm.conf (SEM
+# autologin) e a sessão LIVE cai na tela de senha, além de ignorar a branding do
+# greeter do plasmalogin. Este %post roda DEPOIS de todos os presets de pacote,
+# então é a palavra final: fixamos o display-manager no plasmalogin. (No F44 é
+# no-op — já era o DM.) Ver reference_plasmalogin_wallpaper / reference_sddm_theme.
+if [ -f /usr/lib/systemd/system/plasmalogin.service ]; then
+    systemctl disable sddm.service >/dev/null 2>&1 || true
+    systemctl enable plasmalogin.service >/dev/null 2>&1 || true
+    # Belt + suspenders: fixa o alias display-manager direto (o enable em chroot
+    # nem sempre grava o Alias=display-manager.service).
+    ln -sf /usr/lib/systemd/system/plasmalogin.service \
+        /etc/systemd/system/display-manager.service
+fi
+
 # ── Regera a initramfs com o tema Plymouth do CapivaraOS ────────────────────
 # O kernel-core gera /boot/initramfs-*.img durante a transacao de pacotes do
 # dnf (no %posttrans/scriptlet do proprio kernel), que roda ANTES do
