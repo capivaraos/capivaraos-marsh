@@ -13,20 +13,27 @@
 # (Caminho por spin: quando Pup/Snout chegarem ao 2.x, usam pup//snout/ — ver
 #  repo/capivaraos.repo. Passe --spin para publicar noutra spin.)
 #
+# HOST DE PRODUÇÃO = GitHub Pages (repo capivaraos/repo, servido em
+# repo.capivaraos.org, card-free). Use o comando `pages` para publicar. O `upload`
+# (rclone/R2) fica como alternativa futura, se a banda crescer — como o baseurl é
+# o nosso domínio (CNAME), dá pra repointar depois sem tocar no pacote.
+#
 # Fluxo recomendado:
-#   build RPM  ->  add ao TESTING  ->  QA em VM  ->  PROMOTE p/ STABLE  ->  upload
+#   build RPM -> add ao TESTING -> QA em VM -> PROMOTE p/ STABLE -> pages (publica)
 #
 # Uso:
 #   # 1) adicionar RPMs ao canal testing (assina + createrepo + assina repomd)
 #   ./publish-repo.sh add    --rel 44 --arch x86_64 --channel testing ~/rpmbuild/RPMS/noarch/*.rpm
 #   # 2) promover o que passou no QA para stable
 #   ./publish-repo.sh promote --rel 44 --arch x86_64
-#   # 3) subir a árvore para o object storage (rclone remote configurável)
-#   ./publish-repo.sh upload  --rel 44 --arch x86_64
+#   # 3) publicar a árvore no GitHub Pages (commit+push no capivaraos/repo)
+#   ./publish-repo.sh pages   --rel 44 --arch x86_64
+#   #    (alternativa futura: ./publish-repo.sh upload ... -> object storage/R2)
 #
-# Pré-req: rpm-sign (rpmsign), createrepo_c, gnupg2; rclone p/ upload. A chave
-# privada precisa estar disponível ao gpg-agent e o %_gpg_name em ~/.rpmmacros
-# (ver keys/README.md).
+# Pré-req: rpm-sign (rpmsign), createrepo_c, gnupg2; git+rsync p/ `pages`
+# (rclone p/ `upload`). A chave privada precisa estar disponível ao gpg-agent e o
+# %_gpg_name em ~/.rpmmacros (ver keys/README.md). Para o `pages`, o autor do push
+# (capivaraos-bot ou dono) precisa de acesso de escrita ao capivaraos/repo.
 # =============================================================================
 set -euo pipefail
 
@@ -37,7 +44,9 @@ REPO_ROOT="${CAPIVARAOS_REPO_ROOT:-${PROJECT_DIR}/out/repo}"   # raiz local do r
 #   rclone config   # tipo "s3", provider "Cloudflare", endpoint do R2, chaves
 # e aponte o domínio repo.capivaraos.org para o bucket (custom domain do R2).
 # BOOTSTRAP alternativo (enquanto não há R2): Fedora Copr, grátis, assina/hospeda.
-RCLONE_REMOTE="${CAPIVARAOS_RCLONE_REMOTE:-r2:capivaraos-marsh}" # destino do upload
+RCLONE_REMOTE="${CAPIVARAOS_RCLONE_REMOTE:-r2:capivaraos-marsh}" # destino do upload (R2)
+# Repo do GitHub Pages (host de PRODUÇÃO). Override p/ testar num clone/bare local.
+PAGES_REPO="${CAPIVARAOS_PAGES_REPO:-https://github.com/capivaraos/repo.git}"
 GPG_KEY_NAME="${CAPIVARAOS_GPG_NAME:-CapivaraOS (repo signing key)}"
 SPIN="${CAPIVARAOS_SPIN:-marsh}"                                 # caminho por spin
 # Cache na CDN: RPMs são imutáveis (cache longo); o índice muda a cada publicação
@@ -125,7 +134,40 @@ case "$CMD" in
         done
         echo "OK: upload concluído"
         ;;
+    pages)
+        # Publica a árvore assinada no GitHub Pages (capivaraos/repo -> repo.capivaraos.org).
+        # Clona o repo do Pages, sincroniza SÓ esta spin/release/arch (preserva
+        # index.html/CNAME/.nojekyll/chave e as outras spins), commita e faz push.
+        # Um único commit é atômico -> cliente sempre vê RPMs + repodata coerentes
+        # (não precisa da dança "RPM antes do índice" do R2/CDN).
+        command -v git >/dev/null   || die "git ausente (para o pages)"
+        command -v rsync >/dev/null || die "rsync ausente (para o pages)"
+        BASE="${REPO_ROOT}/${SPIN}/f${REL}/${ARCH}"
+        [ -d "$BASE" ] || die "nada para publicar em $BASE (rode 'add'/'promote' antes)"
+        # Guarda: RPM > 100 MB é rejeitado pelo GitHub -> pare com aviso claro.
+        big="$(find "$BASE" -name '*.rpm' -size +100M -printf '%f ' 2>/dev/null)"
+        [ -z "$big" ] || die "RPM(s) acima de 100 MB (limite do GitHub): $big"
+        WORK="$(mktemp -d)"
+        echo "clonando ${PAGES_REPO}…"
+        git clone --quiet --depth 1 "$PAGES_REPO" "$WORK" || die "falha ao clonar $PAGES_REPO"
+        DST="$WORK/${SPIN}/f${REL}/${ARCH}"
+        mkdir -p "$DST"
+        # --delete: pacotes removidos na rotação somem do Pages; --delete restrito à
+        # subárvore desta spin/release/arch, então o resto do site fica intacto.
+        rsync -a --delete "$BASE/" "$DST/"
+        ( cd "$WORK"
+          git add -A
+          if git diff --cached --quiet; then
+              echo "nada mudou — nenhum commit."; exit 0
+          fi
+          git -c user.name="CapivaraOS Bot" \
+              -c user.email="capivaraos-bot@users.noreply.github.com" \
+              commit -q -m "publish: ${SPIN}/f${REL}/${ARCH} ($(date -u +%FT%TZ))"
+          git push --quiet )
+        rm -rf "$WORK"
+        echo "OK: publicado em https://repo.capivaraos.org/${SPIN}/f${REL}/${ARCH}/"
+        ;;
     *)
-        die "comando inválido. Use: add | promote | upload (ver cabeçalho)"
+        die "comando inválido. Use: add | promote | pages | upload (ver cabeçalho)"
         ;;
 esac
