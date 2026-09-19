@@ -18,7 +18,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.37.alpha37%{?dist}.marsh
+Release:        0.38.alpha38%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -839,6 +839,51 @@ RemainAfterExit=yes
 WantedBy=multi-user.target
 EOF
 
+# ── Snapshots pré-upgrade: config 'root' do snapper no 1º boot (PROD-118) ────
+# O capivaraos-upgrade (FEAT-115) só tira o snapshot de segurança ANTES do
+# upgrade in-place se a raiz for btrfs E existir a config 'root' do snapper
+# (snapper list-configs | grep -qw root). O Marsh instala snapper +
+# btrfs-assistant, mas nem o pacote nem o Anaconda criam essa config — então o
+# upgrade caía no caminho "sem snapshot" (sem rollback automático). Este
+# serviço a cria uma única vez no 1º boot do sistema instalado (idempotente,
+# DE-agnóstico). Portado do Snout (PROD-116, commit 5ac5b59). Sem '%' nos
+# heredocs (o rpm come '%' no %install mesmo com << 'EOF' -- ver
+# reference_rpm_percent_heredoc): o script/unit abaixo não usa nenhum.
+install -d %{buildroot}%{_libexecdir}/capivaraos
+cat > %{buildroot}%{_libexecdir}/capivaraos/snapper-firstboot << 'EOF'
+#!/bin/bash
+# Cria a config 'root' do snapper se a raiz for btrfs e ainda não existir.
+# Idempotente; pensado para rodar uma vez no 1o boot do sistema instalado.
+set -e
+[ "$(findmnt -no FSTYPE /)" = btrfs ] || exit 0
+command -v snapper >/dev/null 2>&1 || exit 0
+snapper list-configs 2>/dev/null | grep -qw root && exit 0
+snapper -c root create-config /
+# Limites conservadores: sem timeline automática (não encher o disco); mantém
+# os snapshots numerados (pré/pós de transação e o do capivaraos-upgrade).
+snapper -c root set-config TIMELINE_CREATE=no NUMBER_CLEANUP=yes NUMBER_LIMIT=10 NUMBER_LIMIT_IMPORTANT=10 || true
+systemctl enable --now snapper-cleanup.timer >/dev/null 2>&1 || true
+EOF
+chmod 0755 %{buildroot}%{_libexecdir}/capivaraos/snapper-firstboot
+
+cat > %{buildroot}%{_unitdir}/capivaraos-snapper-setup.service << 'EOF'
+[Unit]
+Description=CapivaraOS: cria a configuracao snapper 'root' no 1o boot (btrfs)
+Documentation=https://capivaraos.org
+# Pula assim que a config existir (nao roda de novo); e so em raiz btrfs.
+ConditionPathExists=!/etc/snapper/configs/root
+After=local-fs.target
+Before=multi-user.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/libexec/capivaraos/snapper-firstboot
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
 # ── Perfil do Anaconda: faz o instalador reconhecer o CapivaraOS (BUG-38) ────
 # O Anaconda casa o perfil de instalacao pelo os_id do /etc/os-release. Como o
 # nosso ID e "capivaraos" (nao "fedora"), NENHUM perfil casava e o instalador
@@ -973,6 +1018,11 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # (nao roda na live -- ver a unit). Habilitado aqui, no compose, para o
 # sistema instalado herdar o servico ligado.
 systemctl enable capivaraos-relabel-root.service >/dev/null 2>&1 || true
+
+# Cria a config 'root' do snapper no 1o boot (btrfs) -> habilita o snapshot/
+# rollback automático do capivaraos-upgrade. PROD-118. Habilitado aqui (compose)
+# para o sistema instalado herdar o serviço ligado, igual ao relabel-root acima.
+systemctl enable capivaraos-snapper-setup.service >/dev/null 2>&1 || true
 
 # Pula o OOBE de 1o boot do Plasma (plasma-setup.service: assistente de idioma/
 # teclado/usuario com fundo do mapa 3D, que "abre no inicio do KDE"). E
@@ -1141,14 +1191,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha37, preview)"
+VERSION="Marsh 2.0.0 (alpha38, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha37, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha38, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1161,24 +1211,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha37, preview)"
+VARIANT="Marsh 2.0.0 (alpha38, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha37, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha38, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha37, preview)
+CapivaraOS Marsh 2.0.0 (alpha38, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha37, preview)
+Variant=Marsh 2.0.0 (alpha38, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1232,14 +1282,14 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha37, preview)"
+VERSION="Marsh 2.0.0 (alpha38, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha37, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha38, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1252,17 +1302,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha37, preview)"
+VARIANT="Marsh 2.0.0 (alpha38, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha37, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha38, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha37, preview)
+CapivaraOS Marsh 2.0.0 (alpha38, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1341,6 +1391,9 @@ sed -i -E \
 %{_bindir}/capivaraos-set-avatar
 %{_bindir}/capivaraos-relabel-root
 %{_unitdir}/capivaraos-relabel-root.service
+%{_unitdir}/capivaraos-snapper-setup.service
+%dir %{_libexecdir}/capivaraos
+%{_libexecdir}/capivaraos/snapper-firstboot
 %{_sysconfdir}/xdg/autostart/capivaraos-wallpaper.desktop
 %{_sysconfdir}/xdg/autostart/capivaraos-layout.desktop
 %{_sysconfdir}/xdg/autostart/capivaraos-avatar.desktop
@@ -1365,6 +1418,14 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Sat Sep 19 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.38.alpha38
+- snapper: cria a config 'root' no 1o boot do sistema instalado (PROD-118). Novo
+  /usr/libexec/capivaraos/snapper-firstboot + capivaraos-snapper-setup.service
+  (oneshot, ConditionPathExists=!/etc/snapper/configs/root, so em raiz btrfs),
+  habilitado no %post. Sem isso o capivaraos-upgrade (FEAT-115) caía em "sem
+  snapshot" — snapper/btrfs-assistant vêm na ISO, mas ninguém criava a config.
+  Portado do Snout (PROD-116, commit 5ac5b59); DE-agnóstico e idempotente.
+
 * Fri Sep 18 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.37.alpha37
 - Primeira build do rebase para Fedora 45 (base do 2.0) — PROD-113. O F45 Beta saiu
   (2026-09-18); build repontado no branch rebase-f45: build-all.sh --releasever=45,
