@@ -18,7 +18,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.39.alpha39%{?dist}.marsh
+Release:        0.40.alpha40%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -1080,8 +1080,8 @@ done
 # que a tela de bloqueio do Plasma mostra. Sobrescrevemos com o luar (JXL). Feito
 # no %posttrans (depois do desktop-backgrounds-compat instalar) e reaplicado por
 # %transfiletriggerin quando esse pacote atualizar (que reverteria o arquivo).
-# IMPORTANTE: default.jxl e um SYMLINK -> ./f44/default/f44-01-day.jxl (idem o
-# -dark, -> f44-01-night.jxl). Um "cp -f" escreve ATRAVES do link e sobrescreve a
+# IMPORTANTE: default.jxl e um SYMLINK -> ./f45/default/f45-01-day.jxl (idem o
+# -dark, -> f45-01-night.jxl) no Fedora 45. Um "cp -f" escreve ATRAVES do link e sobrescreve a
 # arte REAL do Fedora (era o que fazia o wallpaper "Fedora Forty-Four" aparecer
 # com o luar). "cp --remove-destination" apaga o link antes e grava um arquivo
 # real -> os originais do Fedora ficam intactos.
@@ -1161,14 +1161,15 @@ kwriteconfig6 --file "$XDGPLASMA" --group Theme --key name "CapivaraOS" 2>/dev/n
     kwriteconfig5 --file "$XDGPLASMA" --group Theme --key name "CapivaraOS" 2>/dev/null || true
 
 # ── Remove os wallpapers de marca Fedora do seletor do Plasma ────────────────
-# O seletor deve listar so os 8 do CapivaraOS + os neutros do KDE
-# (plasma-workspace-wallpapers). As 3 entradas "Fedora KDE SIG" saem:
-# F44 ("Fedora Forty-Four"), Fedora e Default. NAO removemos os PACOTES:
-# kde-settings-plasma (dono de "Fedora") e essencial e desktop-backgrounds-kde
-# EXIGE f44-backgrounds-kde -> excluir no kickstart arrastaria dependencia. Entao
+# O seletor deve listar so os 9 do CapivaraOS + os neutros do KDE
+# (plasma-workspace-wallpapers). As entradas "Fedora KDE SIG" saem: a da versao
+# (F45 no Fedora 45 -- "Fedora Forty-Five"; deixamos F44 na lista por seguranca
+# entre rebases), Fedora e Default. NAO removemos os PACOTES: kde-settings-plasma
+# (dono de "Fedora") e essencial e desktop-backgrounds-kde EXIGE
+# f45-backgrounds-kde -> excluir no kickstart arrastaria dependencia. Entao
 # apagamos so os diretorios do seletor. Reaplicado por %transfiletriggerin em
 # %{_datadir}/wallpapers caso um update reinstale-os.
-for WP in F44 Fedora Default; do
+for WP in F44 F45 Fedora Default; do
     rm -rf %{_datadir}/wallpapers/"$WP"
 done
 
@@ -1194,44 +1195,44 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha39, preview)"
+VERSION="Marsh 2.0.0 (alpha40, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
-VERSION_ID=44
+VERSION_ID=45
 VERSION_CODENAME=marsh
-PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha39, preview)"
+PLATFORM_ID="platform:f45"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha40, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
-CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
+CPE_NAME="cpe:/o:capivaraos:capivaraos:45"
 DEFAULT_HOSTNAME=capivaraos
 HOME_URL="https://capivaraos.org"
 DOCUMENTATION_URL="https://capivaraos.org"
 SUPPORT_URL="https://capivaraos.org"
 BUG_REPORT_URL="https://capivaraos.org"
 REDHAT_BUGZILLA_PRODUCT="Fedora"
-REDHAT_BUGZILLA_PRODUCT_VERSION=44
+REDHAT_BUGZILLA_PRODUCT_VERSION=45
 REDHAT_SUPPORT_PRODUCT="Fedora"
-REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha39, preview)"
+REDHAT_SUPPORT_PRODUCT_VERSION=45
+VARIANT="Marsh 2.0.0 (alpha40, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha39, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha40, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha39, preview)
+CapivaraOS Marsh 2.0.0 (alpha40, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha39, preview)
+Variant=Marsh 2.0.0 (alpha40, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1285,37 +1286,37 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha39, preview)"
+VERSION="Marsh 2.0.0 (alpha40, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
-VERSION_ID=44
+VERSION_ID=45
 VERSION_CODENAME=marsh
-PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha39, preview)"
+PLATFORM_ID="platform:f45"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha40, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
-CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
+CPE_NAME="cpe:/o:capivaraos:capivaraos:45"
 DEFAULT_HOSTNAME=capivaraos
 HOME_URL="https://capivaraos.org"
 DOCUMENTATION_URL="https://capivaraos.org"
 SUPPORT_URL="https://capivaraos.org"
 BUG_REPORT_URL="https://capivaraos.org"
 REDHAT_BUGZILLA_PRODUCT="Fedora"
-REDHAT_BUGZILLA_PRODUCT_VERSION=44
+REDHAT_BUGZILLA_PRODUCT_VERSION=45
 REDHAT_SUPPORT_PRODUCT="Fedora"
-REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha39, preview)"
+REDHAT_SUPPORT_PRODUCT_VERSION=45
+VARIANT="Marsh 2.0.0 (alpha40, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha39, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha40, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha39, preview)
+CapivaraOS Marsh 2.0.0 (alpha40, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1421,6 +1422,18 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Mon Sep 21 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.40.alpha40
+- REBASE F45 (PROD-113): os-release agora declara Fedora 45 (VERSION_ID/PLATFORM_ID/
+  CPE_NAME/REDHAT_*_PRODUCT_VERSION 44->45, nos 2 blocos). O rebase tinha trocado só
+  os rótulos alpha e deixado platform:f44. CONSEQUÊNCIA GRAVE: o Anaconda escolhe a
+  versão de comandos de kickstart pelo PLATFORM_ID do os-release; com f44 ele montava
+  o conjunto do F44 (sem o comando 'stratisfs' que o pyanaconda 45 referencia) ->
+  KeyError em pyanaconda/core/kickstart/commands.py -> TODO módulo do backend (Timezone,
+  Localization, Network, Security, Runtime, Payloads) falhava ao iniciar -> instalador
+  travado eternamente em "Initializing...". Corrigido = instalador volta a subir.
+- Limpeza f44->f45 do mesmo rebase: seletor remove também a entrada "F45" do Fedora
+  (era só "F44"); comentários do default.jxl/f45-backgrounds-kde atualizados.
+
 * Mon Sep 21 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.39.alpha39
 - Wallpaper "CapivaraOS Série 2" (capivaraos-wp-serie2.png, 3840x2160) somado ao
   conjunto da marca (agora 9 pacotes KDE). Hero da linha 2.0 (capivara + "2" de
