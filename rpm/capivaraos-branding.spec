@@ -18,7 +18,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.38.alpha38%{?dist}.marsh
+Release:        0.39.alpha39%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -189,9 +189,9 @@ METAEOF
 # Wallpapers EXCLUSIVOS da marca CapivaraOS (linha 2.x, FEAT-105). Todos usam o
 # LICENSE default da funcao (LicenseRef-CapivaraOS-Trademark) -- arte propria,
 # NAO CC. As antigas (7 de cor solida + 6 fotos CC do Wikimedia) foram removidas:
-# o conjunto do Marsh 2.x passa a ser exatamente estes 8. As 3 cenas (luar/por-do-
+# o conjunto do Marsh 2.x passa a ser exatamente estes 9. As 3 cenas (luar/por-do-
 # sol/dev) levam a logo branca padronizada no canto; as abstratas ja trazem a
-# marca no proprio desenho.
+# marca no proprio desenho; o "serie2" e o hero de marca da linha 2.0.
 create_kde_wallpaper_pkg "capivaraos-luar"       "CapivaraOS Luar"       backgrounds/capivaraos-wp-moonlight.png
 create_kde_wallpaper_pkg "capivaraos-por-do-sol" "CapivaraOS Pôr do Sol" backgrounds/capivaraos-wp-sunset.png
 create_kde_wallpaper_pkg "capivaraos-dev"        "CapivaraOS Dev"        backgrounds/capivaraos-wp-dev.png
@@ -200,6 +200,9 @@ create_kde_wallpaper_pkg "capivaraos-abstrato-2" "CapivaraOS Abstrato 2" backgro
 create_kde_wallpaper_pkg "capivaraos-abstrato-3" "CapivaraOS Abstrato 3" backgrounds/capivaraos-wp-abstract-3.png
 create_kde_wallpaper_pkg "capivaraos-abstrato-4" "CapivaraOS Abstrato 4" backgrounds/capivaraos-wp-abstract-4.png
 create_kde_wallpaper_pkg "capivaraos-comics"     "CapivaraOS Comics"     backgrounds/capivaraos-wp-comics.png
+# Hero da Série 2 (capivara + "2" de circuito + "CapivaraOS"). Asset comum as 3
+# spins, criado no Pup 2.x e propagado (ver project_brand_assets_2x). 3840x2160.
+create_kde_wallpaper_pkg "capivaraos-serie2"     "CapivaraOS Série 2"    backgrounds/capivaraos-wp-serie2.png
 
 %install
 set -e
@@ -220,7 +223,7 @@ install -m0644 fonts/FiraCodeNerdFontMono-Regular.ttf fonts/FiraCodeNerdFontMono
     %{buildroot}%{_datadir}/fonts/capivaraos-firacode-nerd/
 
 # ── Wallpapers ──────────────────────────────────────────────────────────────
-# Os 8 wallpapers da marca sao instalados APENAS como pacotes KDE (bloco
+# Os 9 wallpapers da marca sao instalados APENAS como pacotes KDE (bloco
 # "Pacotes de wallpaper KDE" abaixo), em %{_datadir}/wallpapers/capivaraos-*/.
 # NAO instalamos mais os arquivos soltos em %{_datadir}/backgrounds/capivaraos/:
 # (1) o seletor do Plasma lista TANTO os pacotes KDE (com nome bonito, ex.
@@ -229,7 +232,7 @@ install -m0644 fonts/FiraCodeNerdFontMono-Regular.ttf fonts/FiraCodeNerdFontMono
 # (2) o arquivo solto era uma copia identica da imagem que ja vai dentro do
 #     pacote (contents/images/1920x1080.png) -> ~69 MB duplicados no sistema.
 # Eliminando os soltos, cada wallpaper aparece 1x (o pacote) e some a duplicata,
-# mantendo os 8 do CapivaraOS + os wallpapers padrao do KDE. Login/bloqueio/
+# mantendo os 9 do CapivaraOS + os wallpapers padrao do KDE. Login/bloqueio/
 # desktop/SDDM apontam para a imagem DENTRO do pacote (DEFAULT_WP_PKG/IMG).
 # A arte-mestre backgrounds/CapivaraOS_Logo.png nunca foi wallpaper (e a fonte
 # 1536x1024 dos icones/plymouth) e continua fora do sistema instalado.
@@ -1191,14 +1194,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha38, preview)"
+VERSION="Marsh 2.0.0 (alpha39, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha38, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha39, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1211,24 +1214,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha38, preview)"
+VARIANT="Marsh 2.0.0 (alpha39, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha38, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha39, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha38, preview)
+CapivaraOS Marsh 2.0.0 (alpha39, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha38, preview)
+Variant=Marsh 2.0.0 (alpha39, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1282,14 +1285,14 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha38, preview)"
+VERSION="Marsh 2.0.0 (alpha39, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=44
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha38, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha39, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
@@ -1302,17 +1305,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=44
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha38, preview)"
+VARIANT="Marsh 2.0.0 (alpha39, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha38, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha39, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha38, preview)
+CapivaraOS Marsh 2.0.0 (alpha39, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1418,6 +1421,12 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Mon Sep 21 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.39.alpha39
+- Wallpaper "CapivaraOS Série 2" (capivaraos-wp-serie2.png, 3840x2160) somado ao
+  conjunto da marca (agora 9 pacotes KDE). Hero da linha 2.0 (capivara + "2" de
+  circuito). Asset comum às 3 spins, criado no Pup 2.x e propagado (padrão segue
+  o "Luar"). Ver project_brand_assets_2x.
+
 * Sat Sep 19 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.38.alpha38
 - snapper: cria a config 'root' no 1o boot do sistema instalado (PROD-118). Novo
   /usr/libexec/capivaraos/snapper-firstboot + capivaraos-snapper-setup.service
