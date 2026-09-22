@@ -18,7 +18,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.41.alpha41%{?dist}.marsh
+Release:        0.42.alpha42%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -665,13 +665,14 @@ cat > "$LNF/metadata.json" << 'LNFMETA'
     "KPlugin": {
         "Authors": [
             {
-                "Name": "CapivaraOS"
+                "Name": "CapivaraOS Project"
             }
         ],
-        "Description": "Tema global do CapivaraOS Marsh: paleta verde, tema Plasma proprio, decoracao de janelas e layout estilo macOS.",
+        "Description": "Tema global do CapivaraOS Marsh (verde-Pantanal, painel + dock)",
         "Id": "org.capivaraos.desktop",
-        "License": "LicenseRef-CapivaraOS-Trademark",
+        "License": "GPL-3.0-or-later",
         "Name": "CapivaraOS",
+        "Name[pt_BR]": "CapivaraOS",
         "Version": "%{version}",
         "Website": "https://capivaraos.org"
     }
@@ -700,6 +701,9 @@ library=org.kde.kwin.aurorae.v2
 theme=__aurorae__svg__CapivaraOS
 ButtonsOnLeft=XIA
 ButtonsOnRight=
+
+[kscreenlockerrc][Greeter]
+Theme=org.kde.breeze
 LNFDEF
 # Layout = MESMO macos-layout.js (fonte unica). Presente aqui, o KCM oferece a
 # opcao "usar o layout da area de trabalho" -> reconstroi painel superior + dock.
@@ -1269,14 +1273,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha41, preview)"
+VERSION="Marsh 2.0.0 (alpha42, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=45
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f45"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha41, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha42, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:45"
@@ -1289,24 +1293,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=45
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=45
-VARIANT="Marsh 2.0.0 (alpha41, preview)"
+VARIANT="Marsh 2.0.0 (alpha42, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha41, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha42, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha41, preview)
+CapivaraOS Marsh 2.0.0 (alpha42, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha41, preview)
+Variant=Marsh 2.0.0 (alpha42, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1360,14 +1364,14 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha41, preview)"
+VERSION="Marsh 2.0.0 (alpha42, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=45
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f45"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha41, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha42, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:45"
@@ -1380,17 +1384,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=45
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=45
-VARIANT="Marsh 2.0.0 (alpha41, preview)"
+VARIANT="Marsh 2.0.0 (alpha42, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha41, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha42, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha41, preview)
+CapivaraOS Marsh 2.0.0 (alpha42, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1497,6 +1501,12 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Tue Sep 22 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.42.alpha42
+- Look-and-Feel org.capivaraos.desktop alinhado ao hand-off da PROD-130: metadata
+  License=GPL-3.0-or-later, Authors "CapivaraOS Project", + Name[pt_BR]; defaults
+  ganham [kscreenlockerrc][Greeter] Theme=org.kde.breeze. (Mantidos como melhoria:
+  ButtonsOnLeft=XIA no defaults e Version=%%{version}.)
+
 * Tue Sep 22 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.41.alpha41
 - Tema Global proprio (PROD-130): novo Look-and-Feel org.capivaraos.desktop em
   /usr/share/plasma/look-and-feel/. Agora "CapivaraOS" aparece como o Tema Global
