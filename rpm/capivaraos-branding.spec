@@ -18,7 +18,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.42.alpha42%{?dist}.marsh
+Release:        0.43.alpha43%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -145,12 +145,12 @@ convert backgrounds/capivaraos-wp-moonlight.png build/backgrounds/capivaraos-def
 convert backgrounds/capivaraos-wp-moonlight.png -resize 1920x1080 \
     build/backgrounds/capivaraos-sddm-1080.png
 
-# Spinner VERDE da marca (arco girando) exibido logo abaixo da logo no splash.
-# Cor #15B22C = accent do CapivaraOS (FEAT-91 frente C: boot coerente com a
-# paleta). A logo continua branca; o arco verde e o sinal de marca em movimento.
+# Spinner BRANCO padrao (arco girando) exibido logo abaixo da logo no splash --
+# igual ao Pup e ao Snout. Decisao do dono (2026-09-22, "muito verde"): a rodinha
+# volta ao branco (antes era verde #15B22C). A logo ja era branca.
 # Geramos 30 quadros, cada um girado 12°, e o script do Plymouth os cicla.
 mkdir -p build/plymouth/spinner
-convert -size 64x64 xc:none -stroke '#15B22C' -strokewidth 5 \
+convert -size 64x64 xc:none -stroke white -strokewidth 5 \
     -fill none -draw "stroke-linecap round arc 12,12 52,52 0,300" \
     build/plymouth/spinner-base.png
 for i in $(seq 0 29); do
@@ -353,10 +353,10 @@ ScriptFile=/usr/share/plymouth/themes/capivaraos/capivaraos.script
 EOF
 
 cat > %{buildroot}%{_datadir}/plymouth/themes/capivaraos/capivaraos.script << 'EOF'
-# Fundo = tom escuro da paleta CapivaraOS (#12160F, verde-quase-preto),
-# alinhado ao "dark ground" do desktop (FEAT-91 frente C).
-Window.SetBackgroundTopColor(0.071, 0.086, 0.059);
-Window.SetBackgroundBottomColor(0.071, 0.086, 0.059);
+# Fundo = azul-escuro neutro (mesmo do Pup e do Snout), no lugar do verde-escuro
+# antigo (#12160F). Decisao do dono (2026-09-22, "muito verde").
+Window.SetBackgroundTopColor(0.07, 0.09, 0.13);
+Window.SetBackgroundBottomColor(0.07, 0.09, 0.13);
 
 # ── Logo branca (acima do spinner) ──────────────────────────────────────────
 logo.image = Image("logo.png");
@@ -465,14 +465,16 @@ EOF
 
 cat > %{buildroot}%{_sysconfdir}/skel/.config/kdeglobals << 'EOF'
 [General]
-# ESQUEMA DE CORES PROPRIO CapivaraOS (FEAT-91 frente D, D1): paleta verde da
-# marca no lugar do Breeze/WhiteSur. Instalado por este pacote em
-# /usr/share/color-schemes/CapivaraOS.colors; reforcado no /etc/xdg (%posttrans).
-ColorScheme=CapivaraOS
-# PALETA VERDE CapivaraOS (FEAT-91 frente B): accent verde da marca #15B22C
-# (RGB 21,178,44). Baseline em /etc/skel; reforcado no /etc/xdg (%posttrans) p/ a
-# sessao LIVE. REVERSIVEL: ver docs/REVERT-CORES-VERDE.md
-AccentColor=21,178,44
+# ESQUEMA DE CORES = AZUL PADRAO (Breeze Dark). Decisao do dono (2026-09-22):
+# "muito verde" -> o esquema/accent voltam ao azul padrao (botoes, selecao, cor
+# de pasta). O esquema verde proprio (CapivaraOS.colors) continua INSTALADO e
+# selecionavel em Aparencia > Cores -- so deixa de ser o padrao. O tema Plasma
+# (painel/menus), a decoracao Aurorae e o Konsole SEGUEM verdes (escopo do dono:
+# so cores/accent). Ver docs/REVERT-CORES-VERDE.md.
+ColorScheme=BreezeDark
+# Sem AccentColor proprio -> o accent segue o azul padrao do esquema.
+# accentColorFromWallpaper=false garante o azul (senao viria do wallpaper, que e
+# esverdeado).
 accentColorFromWallpaper=false
 
 [KDE]
@@ -686,8 +688,7 @@ cat > "$LNF/contents/defaults" << 'LNFDEF'
 widgetStyle=Breeze
 
 [kdeglobals][General]
-ColorScheme=CapivaraOS
-AccentColor=21,178,44
+ColorScheme=BreezeDark
 accentColorFromWallpaper=false
 
 [kdeglobals][Icons]
@@ -1181,20 +1182,17 @@ if [ -f "$PLD" ]; then
         "$PLD"
 fi
 
-# ── Accent verde no login (greeter do plasma-login-manager) — FEAT-91 frente C
-# O greeter roda como o usuario "plasmalogin" (home /var/lib/plasmalogin) e le a
-# aparencia de um kdeglobals (o .kcfg do greeter aponta p/ kdeglobals, grupo
-# [KDE]); o accent do Plasma 6 vem de [General] AccentColor. Como o usuario
-# plasmalogin NAO tem AccentColor proprio, o fallback do sistema
-# /etc/xdg/kdeglobals prevalece. Gravamos as MESMAS chaves do desktop la, via
-# kwriteconfig (MERGE: nao apaga outras chaves do kde-settings; cria o arquivo se
-# faltar). ESTATICO/reversivel. Seguro: valor nao-reconhecido nao faz efeito e
-# NUNCA da tela preta (o preto do BUG-43 era o wallpaper apontando p/ diretorio
-# removido, nao o accent). Ver docs/REVERT-CORES-VERDE.md.
+# ── Accent do login (greeter do plasma-login-manager) — AZUL PADRAO ──────────
+# O greeter roda como o usuario "plasmalogin" e le o accent do fallback do
+# sistema /etc/xdg/kdeglobals ([General] AccentColor). Decisao do dono (2026-09-22,
+# "muito verde"): sem AccentColor proprio -> o greeter usa o azul padrao do
+# esquema. REMOVEMOS ativamente qualquer AccentColor verde que uma versao anterior
+# tenha gravado no /etc/xdg. Mantemos accentColorFromWallpaper=false para o accent
+# NAO vir do wallpaper (esverdeado). Ver docs/REVERT-CORES-VERDE.md.
 XDGKG=%{_sysconfdir}/xdg/kdeglobals
 install -d %{_sysconfdir}/xdg
-kwriteconfig6 --file "$XDGKG" --group General --key AccentColor "21,178,44" 2>/dev/null || \
-    kwriteconfig5 --file "$XDGKG" --group General --key AccentColor "21,178,44" 2>/dev/null || true
+kwriteconfig6 --file "$XDGKG" --group General --key AccentColor --delete 2>/dev/null || \
+    kwriteconfig5 --file "$XDGKG" --group General --key AccentColor --delete 2>/dev/null || true
 kwriteconfig6 --file "$XDGKG" --group General --key accentColorFromWallpaper "false" 2>/dev/null || \
     kwriteconfig5 --file "$XDGKG" --group General --key accentColorFromWallpaper "false" 2>/dev/null || true
 
@@ -1206,8 +1204,8 @@ kwriteconfig6 --file "$XDGKG" --group General --key accentColorFromWallpaper "fa
 # decoracao de janela e o perfil do Konsole no /etc/xdg (fallback do sistema,
 # lido por TODOS os usuarios sem override -- live e instalado). Merge via
 # kwriteconfig; reversivel. Ver docs/REVERT-CORES-VERDE.md.
-kwriteconfig6 --file "$XDGKG" --group General --key ColorScheme "CapivaraOS" 2>/dev/null || \
-    kwriteconfig5 --file "$XDGKG" --group General --key ColorScheme "CapivaraOS" 2>/dev/null || true
+kwriteconfig6 --file "$XDGKG" --group General --key ColorScheme "BreezeDark" 2>/dev/null || \
+    kwriteconfig5 --file "$XDGKG" --group General --key ColorScheme "BreezeDark" 2>/dev/null || true
 # Tema Global = nosso Look-and-Feel org.capivaraos.desktop (PROD-130). Reforcado
 # aqui no /etc/xdg para a sessao LIVE (que nao herda o /etc/skel/.config/kdeglobals)
 # mostrar "CapivaraOS" como tema ativo em Aparencia. Reversivel (troca pelo KCM).
@@ -1273,14 +1271,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha42, preview)"
+VERSION="Marsh 2.0.0 (alpha43, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=45
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f45"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha42, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha43, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:45"
@@ -1293,24 +1291,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=45
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=45
-VARIANT="Marsh 2.0.0 (alpha42, preview)"
+VARIANT="Marsh 2.0.0 (alpha43, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha42, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha43, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha42, preview)
+CapivaraOS Marsh 2.0.0 (alpha43, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha42, preview)
+Variant=Marsh 2.0.0 (alpha43, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1364,14 +1362,14 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha42, preview)"
+VERSION="Marsh 2.0.0 (alpha43, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=45
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f45"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha42, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha43, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:45"
@@ -1384,17 +1382,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=45
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=45
-VARIANT="Marsh 2.0.0 (alpha42, preview)"
+VARIANT="Marsh 2.0.0 (alpha43, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha42, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha43, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha42, preview)
+CapivaraOS Marsh 2.0.0 (alpha43, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1501,6 +1499,18 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Tue Sep 22 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.43.alpha43
+- De-green parcial (decisao do dono: "muito verde"). Escopo = SÓ cores/accent:
+  - Esquema de cores/accent volta ao AZUL padrao (Breeze Dark): botoes, selecao e
+    cor de pasta. kdeglobals do skel, defaults do Look-and-Feel e o /etc/xdg
+    (%posttrans) passam a ColorScheme=BreezeDark e SEM AccentColor verde (accent =
+    azul padrao do esquema; greeter idem, via --delete do AccentColor no /etc/xdg).
+    O esquema verde CapivaraOS.colors continua INSTALADO e selecionavel (só nao e
+    mais o padrao). Tema Plasma (painel/menus), decoracao Aurorae e Konsole SEGUEM
+    verdes (fora do escopo pedido).
+  - Plymouth: spinner do splash volta ao BRANCO padrao (era verde #15B22C) e o
+    fundo ao azul-escuro neutro (0.07,0.09,0.13), igual ao Pup e ao Snout.
+
 * Tue Sep 22 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.42.alpha42
 - Look-and-Feel org.capivaraos.desktop alinhado ao hand-off da PROD-130: metadata
   License=GPL-3.0-or-later, Authors "CapivaraOS Project", + Name[pt_BR]; defaults
