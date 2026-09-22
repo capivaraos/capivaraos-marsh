@@ -18,7 +18,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.40.alpha40%{?dist}.marsh
+Release:        0.41.alpha41%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -476,7 +476,10 @@ AccentColor=21,178,44
 accentColorFromWallpaper=false
 
 [KDE]
-LookAndFeelPackage=org.kde.breezedark.desktop
+# Tema Global = o nosso Look-and-Feel org.capivaraos.desktop (PROD-130), para que
+# "CapivaraOS" apareca como o tema ATIVO em Aparencia (no lugar de "Breeze Dark").
+# O usuario pode trocar para Breeze e voltar quando quiser (nao bloqueia nada).
+LookAndFeelPackage=org.capivaraos.desktop
 SingleClick=false
 
 [Icons]
@@ -642,6 +645,72 @@ tasks.writeConfig("launchers", [
     "applications:libreoffice-writer.desktop"
 ]);
 EOF
+
+# ── Tema Global (Look-and-Feel) proprio: org.capivaraos.desktop (PROD-130) ───
+# Empacota a identidade do desktop num Look-and-Feel do KDE para que "CapivaraOS"
+# apareca como o Tema Global ATIVO em Ajustes do Sistema > Aparencia (no lugar de
+# "Breeze Dark") e o usuario possa experimentar o Breeze e VOLTAR para
+# "CapivaraOS" -- marcando "usar o layout da area de trabalho" ele reconstroi
+# painel superior + dock. Nao bloqueia nada (e so mais um tema selecionavel).
+# REUSA os nomes exatos ja instalados por este pacote e reforcados no %posttrans:
+# esquema de cores CapivaraOS, desktoptheme CapivaraOS, decoracao
+# __aurorae__svg__CapivaraOS (lib org.kde.kwin.aurorae.v2), icones breeze-dark,
+# accent 21,178,44. O layout e o MESMO macos-layout.js (copiado -> fonte unica,
+# sem divergencia). Nao se aplica a Snout/Pup (desktops diferentes).
+LNF=%{buildroot}%{_datadir}/plasma/look-and-feel/org.capivaraos.desktop
+install -d "$LNF/contents/layouts" "$LNF/contents/previews"
+cat > "$LNF/metadata.json" << 'LNFMETA'
+{
+    "KPackageStructure": "Plasma/LookAndFeel",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "CapivaraOS"
+            }
+        ],
+        "Description": "Tema global do CapivaraOS Marsh: paleta verde, tema Plasma proprio, decoracao de janelas e layout estilo macOS.",
+        "Id": "org.capivaraos.desktop",
+        "License": "LicenseRef-CapivaraOS-Trademark",
+        "Name": "CapivaraOS",
+        "Version": "%{version}",
+        "Website": "https://capivaraos.org"
+    }
+}
+LNFMETA
+# 'defaults': o que o KCM aplica ao selecionar o tema. Formato [arquivo][grupo].
+# Os MESMOS valores dos blocos de skel/%posttrans -- selecionar "CapivaraOS"
+# reaplica a nossa identidade; selecionar "Breeze" volta ao padrao do KDE.
+cat > "$LNF/contents/defaults" << 'LNFDEF'
+[kdeglobals][KDE]
+widgetStyle=Breeze
+
+[kdeglobals][General]
+ColorScheme=CapivaraOS
+AccentColor=21,178,44
+accentColorFromWallpaper=false
+
+[kdeglobals][Icons]
+Theme=breeze-dark
+
+[plasmarc][Theme]
+name=CapivaraOS
+
+[kwinrc][org.kde.kdecoration2]
+library=org.kde.kwin.aurorae.v2
+theme=__aurorae__svg__CapivaraOS
+ButtonsOnLeft=XIA
+ButtonsOnRight=
+LNFDEF
+# Layout = MESMO macos-layout.js (fonte unica). Presente aqui, o KCM oferece a
+# opcao "usar o layout da area de trabalho" -> reconstroi painel superior + dock.
+cp %{buildroot}%{_datadir}/capivaraos/macos-layout.js \
+    "$LNF/contents/layouts/org.kde.plasma.desktop-layout.js"
+# Preview do cartao do KCM: a cena "Luar" (wallpaper padrao).
+convert backgrounds/capivaraos-wp-moonlight.png -resize 400x250^ -gravity center \
+    -extent 400x250 "$LNF/contents/previews/preview.png" 2>/dev/null || \
+    cp backgrounds/capivaraos-wp-moonlight.png "$LNF/contents/previews/preview.png"
+find "$LNF" -type d -exec chmod 0755 {} \;
+find "$LNF" -type f -exec chmod 0644 {} \;
 
 install -d %{buildroot}%{_bindir}
 cat > %{buildroot}%{_bindir}/capivaraos-set-layout << 'EOF'
@@ -1135,6 +1204,11 @@ kwriteconfig6 --file "$XDGKG" --group General --key accentColorFromWallpaper "fa
 # kwriteconfig; reversivel. Ver docs/REVERT-CORES-VERDE.md.
 kwriteconfig6 --file "$XDGKG" --group General --key ColorScheme "CapivaraOS" 2>/dev/null || \
     kwriteconfig5 --file "$XDGKG" --group General --key ColorScheme "CapivaraOS" 2>/dev/null || true
+# Tema Global = nosso Look-and-Feel org.capivaraos.desktop (PROD-130). Reforcado
+# aqui no /etc/xdg para a sessao LIVE (que nao herda o /etc/skel/.config/kdeglobals)
+# mostrar "CapivaraOS" como tema ativo em Aparencia. Reversivel (troca pelo KCM).
+kwriteconfig6 --file "$XDGKG" --group KDE --key LookAndFeelPackage "org.capivaraos.desktop" 2>/dev/null || \
+    kwriteconfig5 --file "$XDGKG" --group KDE --key LookAndFeelPackage "org.capivaraos.desktop" 2>/dev/null || true
 # Icones Breeze Dark (antes fixados no capivaraos-post-theme.ks, agora aposentado).
 kwriteconfig6 --file "$XDGKG" --group Icons --key Theme "breeze-dark" 2>/dev/null || \
     kwriteconfig5 --file "$XDGKG" --group Icons --key Theme "breeze-dark" 2>/dev/null || true
@@ -1195,14 +1269,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha40, preview)"
+VERSION="Marsh 2.0.0 (alpha41, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=45
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f45"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha40, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha41, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:45"
@@ -1215,24 +1289,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=45
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=45
-VARIANT="Marsh 2.0.0 (alpha40, preview)"
+VARIANT="Marsh 2.0.0 (alpha41, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha40, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha41, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha40, preview)
+CapivaraOS Marsh 2.0.0 (alpha41, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha40, preview)
+Variant=Marsh 2.0.0 (alpha41, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1286,14 +1360,14 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha40, preview)"
+VERSION="Marsh 2.0.0 (alpha41, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=45
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f45"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha40, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha41, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:45"
@@ -1306,17 +1380,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=45
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=45
-VARIANT="Marsh 2.0.0 (alpha40, preview)"
+VARIANT="Marsh 2.0.0 (alpha41, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha40, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha41, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha40, preview)
+CapivaraOS Marsh 2.0.0 (alpha41, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1385,6 +1459,7 @@ sed -i -E \
 %{_datadir}/color-schemes/CapivaraOS.colors
 %{_datadir}/aurorae/themes/CapivaraOS/
 %{_datadir}/plasma/desktoptheme/CapivaraOS/
+%{_datadir}/plasma/look-and-feel/org.capivaraos.desktop/
 %{_datadir}/konsole/CapivaraOS.colorscheme
 %{_datadir}/konsole/CapivaraOS.profile
 %{_datadir}/plymouth/themes/capivaraos/
@@ -1422,6 +1497,17 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Tue Sep 22 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.41.alpha41
+- Tema Global proprio (PROD-130): novo Look-and-Feel org.capivaraos.desktop em
+  /usr/share/plasma/look-and-feel/. Agora "CapivaraOS" aparece como o Tema Global
+  ATIVO em Ajustes do Sistema > Aparencia (no lugar de "Breeze Dark"); o usuario
+  pode experimentar o Breeze e VOLTAR para "CapivaraOS" (com a opcao de layout,
+  reconstroi painel superior + dock). Nao bloqueia nada. metadata.json + contents/
+  defaults (reusa os nomes exatos: ColorScheme/desktoptheme CapivaraOS, decoracao
+  __aurorae__svg__CapivaraOS lib aurorae.v2, icones breeze-dark, accent 21,178,44)
+  + contents/layouts (= macos-layout.js, fonte unica) + preview. LookAndFeelPackage
+  do skel e do /etc/xdg apontam para ele. So Marsh (KDE).
+
 * Mon Sep 21 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.40.alpha40
 - REBASE F45 (PROD-113): os-release agora declara Fedora 45 (VERSION_ID/PLATFORM_ID/
   CPE_NAME/REDHAT_*_PRODUCT_VERSION 44->45, nos 2 blocos). O rebase tinha trocado só
