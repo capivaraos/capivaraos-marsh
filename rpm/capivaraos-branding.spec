@@ -18,7 +18,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.44.alpha44%{?dist}.marsh
+Release:        0.45.alpha45%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -87,14 +87,16 @@ mkdir -p build/pixmaps
 convert icons/capivaraos-logo.png -fill white -colorize 100% \
     -resize 256x256 build/pixmaps/capivaraos-white.png
 
-# ── 4. Avatar padrão (.face): capivara BRANCA sobre fundo VERDE da marca ─────
-# (pedido do usuario: avatar do live user / SDDM = fundo verde + logo branca,
-# no lugar da capivara marrom sobre branco). Recorta so a capivara da arte-
-# mestre, pinta de branco (colorize preservando o alfa) e poe sobre quadrado
-# verde #15B22C. Exibido em circulo pelo greeter -> o quadrado verde preenche.
+# ── 4. Avatar padrão (.face): capivara BRANCA sobre fundo AZUL-MARINHO ────────
+# Decisao do dono (2026-09-23, de-green): avatar do usuario/greeter = fundo navy
+# #1E2F4E (o azul-marinho da logo do CapivaraOS) + capivara branca, no lugar do
+# verde. Recorta so a capivara da arte-mestre, pinta de branco (colorize
+# preservando o alfa) e poe sobre quadrado navy. Exibido em circulo pelo greeter
+# -> o quadrado navy preenche. Sem o texto "CapivaraOS" (seria cortado no circulo)
+# -- mesmo estilo "so capivara" do avatar anterior, so trocando verde por navy.
 convert backgrounds/CapivaraOS_Logo.png -crop 1536x600+0+0 +repage -trim +repage \
     -colorspace sRGB -fill white -colorize 100% \
-    -gravity center -background '#15B22C' -extent 1700x1700 \
+    -gravity center -background '#1E2F4E' -extent 1700x1700 \
     -resize 256x256 build/pixmaps/capivaraos-face.png
 
 # ── 5. Logo BRANCA para o splash do Plymouth (boot/desligamento) ────────────
@@ -1271,14 +1273,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha44, preview)"
+VERSION="Marsh 2.0.0 (alpha45, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=45
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f45"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha44, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha45, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:45"
@@ -1291,24 +1293,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=45
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=45
-VARIANT="Marsh 2.0.0 (alpha44, preview)"
+VARIANT="Marsh 2.0.0 (alpha45, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha44, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha45, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha44, preview)
+CapivaraOS Marsh 2.0.0 (alpha45, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha44, preview)
+Variant=Marsh 2.0.0 (alpha45, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1362,14 +1364,14 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha44, preview)"
+VERSION="Marsh 2.0.0 (alpha45, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=45
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f45"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha44, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha45, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:45"
@@ -1382,17 +1384,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=45
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=45
-VARIANT="Marsh 2.0.0 (alpha44, preview)"
+VARIANT="Marsh 2.0.0 (alpha45, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha44, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha45, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha44, preview)
+CapivaraOS Marsh 2.0.0 (alpha45, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1499,6 +1501,11 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Wed Sep 23 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.45.alpha45
+- Avatar de usuário (.face / greeter): fundo verde #15B22C → azul-marinho #1E2F4E
+  (navy da logo do CapivaraOS), capivara branca mantida. Continuação do de-green
+  (decisão do dono). Sem texto (o círculo do greeter cortaria).
+
 * Wed Sep 23 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.44.alpha44
 - De-green (2ª rodada, decisão do dono: ainda "muito verde"). Escopo escolhido =
   TAMBÉM o painel/menus: o tema Plasma (desktoptheme) volta ao Breeze padrão
