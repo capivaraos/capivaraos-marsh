@@ -18,7 +18,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.43.alpha43%{?dist}.marsh
+Release:        0.44.alpha44%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -494,12 +494,12 @@ EOF
 
 cat > %{buildroot}%{_sysconfdir}/skel/.config/plasmarc << 'EOF'
 [Theme]
-# TEMA PLASMA PROPRIO CapivaraOS (FEAT-91 frente D, D4): formas proprias
-# (barra/menus/dialogos/dica) na paleta verde. Instalado por este pacote em
-# /usr/share/plasma/desktoptheme/CapivaraOS; reforcado no /etc/xdg/plasmarc
-# (%posttrans) para valer tambem na sessao LIVE. O que nao redesenhamos cai no
-# Breeze recolorido pela nossa paleta (arquivo "colors" do tema).
-name=CapivaraOS
+# TEMA PLASMA = Breeze padrao (default). Decisao do dono (2026-09-23): tirar o
+# verde do painel/menus tambem. O tema Plasma proprio CapivaraOS continua
+# INSTALADO em /usr/share/plasma/desktoptheme/CapivaraOS e selecionavel em
+# Aparencia > Tema do Plasma -- so deixa de ser o padrao (nao-destrutivo). A
+# decoracao de janela (Aurorae) e o Konsole SEGUEM verdes (escopo do dono).
+name=default
 EOF
 
 # Desativa o assistente de primeiro boot do Plasma (plasma-welcome / tela
@@ -695,7 +695,7 @@ accentColorFromWallpaper=false
 Theme=breeze-dark
 
 [plasmarc][Theme]
-name=CapivaraOS
+name=default
 
 [kwinrc][org.kde.kdecoration2]
 library=org.kde.kwin.aurorae.v2
@@ -1229,12 +1229,12 @@ XDGKONSOLE=%{_sysconfdir}/xdg/konsolerc
 kwriteconfig6 --file "$XDGKONSOLE" --group "Desktop Entry" --key DefaultProfile "CapivaraOS.profile" 2>/dev/null || \
     kwriteconfig5 --file "$XDGKONSOLE" --group "Desktop Entry" --key DefaultProfile "CapivaraOS.profile" 2>/dev/null || true
 
-# Tema Plasma proprio (FEAT-91 frente D, D4) como padrao do sistema: painel/
-# menus/dialogos/dica com as formas CapivaraOS. Mesmo motivo do bloco acima -- a
-# live nao herda o /etc/skel/.config/plasmarc, entao gravamos tambem no /etc/xdg.
+# Tema Plasma = Breeze padrao (default) tambem no fallback do sistema /etc/xdg
+# (a live nao herda /etc/skel/.config/plasmarc). Decisao do dono (2026-09-23):
+# sem verde no painel/menus. O desktoptheme CapivaraOS segue instalado/selecionavel.
 XDGPLASMA=%{_sysconfdir}/xdg/plasmarc
-kwriteconfig6 --file "$XDGPLASMA" --group Theme --key name "CapivaraOS" 2>/dev/null || \
-    kwriteconfig5 --file "$XDGPLASMA" --group Theme --key name "CapivaraOS" 2>/dev/null || true
+kwriteconfig6 --file "$XDGPLASMA" --group Theme --key name "default" 2>/dev/null || \
+    kwriteconfig5 --file "$XDGPLASMA" --group Theme --key name "default" 2>/dev/null || true
 
 # ── Remove os wallpapers de marca Fedora do seletor do Plasma ────────────────
 # O seletor deve listar so os 9 do CapivaraOS + os neutros do KDE
@@ -1271,14 +1271,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha43, preview)"
+VERSION="Marsh 2.0.0 (alpha44, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=45
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f45"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha43, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha44, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:45"
@@ -1291,24 +1291,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=45
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=45
-VARIANT="Marsh 2.0.0 (alpha43, preview)"
+VARIANT="Marsh 2.0.0 (alpha44, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha43, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha44, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha43, preview)
+CapivaraOS Marsh 2.0.0 (alpha44, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha43, preview)
+Variant=Marsh 2.0.0 (alpha44, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1362,14 +1362,14 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha43, preview)"
+VERSION="Marsh 2.0.0 (alpha44, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=45
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f45"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha43, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha44, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:45"
@@ -1382,17 +1382,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=45
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=45
-VARIANT="Marsh 2.0.0 (alpha43, preview)"
+VARIANT="Marsh 2.0.0 (alpha44, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha43, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha44, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha43, preview)
+CapivaraOS Marsh 2.0.0 (alpha44, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1499,6 +1499,14 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Wed Sep 23 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.44.alpha44
+- De-green (2ª rodada, decisão do dono: ainda "muito verde"). Escopo escolhido =
+  TAMBÉM o painel/menus: o tema Plasma (desktoptheme) volta ao Breeze padrão
+  (`plasmarc [Theme] name` CapivaraOS → default) nos 3 pontos: /etc/skel/plasmarc,
+  defaults do Look-and-Feel e /etc/xdg (%posttrans). O desktoptheme CapivaraOS
+  segue INSTALADO e selecionável (só não é mais o padrão). Decoração de janela
+  (Aurorae) e Konsole SEGUEM verdes (fora do escopo pedido nesta rodada).
+
 * Tue Sep 22 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.43.alpha43
 - De-green parcial (decisao do dono: "muito verde"). Escopo = SÓ cores/accent:
   - Esquema de cores/accent volta ao AZUL padrao (Breeze Dark): botoes, selecao e
