@@ -195,9 +195,10 @@ Kirigami.ScrollablePage {
 
         Components.ActionCard {
             Layout.fillWidth: true
-            heading: qsTr("Ligar GPU")
-            description: qsTr("Acelere a IA local com sua placa de vídeo: ROCm (AMD) ou "
-                            + "CUDA (NVIDIA). Sem GPU dedicada, a IA continua rodando na CPU.")
+            heading: qsTr("Ligar GPU (NVIDIA)")
+            description: qsTr("Acelere a IA local com uma placa NVIDIA (driver + CUDA, via "
+                            + "RPM Fusion). Em placas AMD, a aceleração (ROCm) já vem junto "
+                            + "da IA local no Fedora 45. Sem GPU dedicada, roda na CPU.")
             iconName: "preferences-desktop-display"
             actionText: qsTr("Ativar GPU")
             installed: page.gpuEnabled
