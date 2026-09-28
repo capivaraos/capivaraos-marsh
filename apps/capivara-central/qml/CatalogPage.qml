@@ -162,7 +162,9 @@ Kirigami.ScrollablePage {
             Layout.fillWidth: true
             heading: qsTr("IA local")
             description: qsTr("Rode modelos de IA na sua máquina, sem nuvem: Ollama (motor), "
-                            + "Alpaca (interface) e a extensão Continue no VSCodium.")
+                            + "Alpaca (interface) e a extensão Continue no VSCodium. "
+                            + "Atenção: baixa vários GB — no Fedora 45 o Ollama já inclui o "
+                            + "suporte a GPU AMD (ROCm).")
             iconName: "system-run"
             actionText: qsTr("Instalar IA local")
             installed: page.aiInstalled
