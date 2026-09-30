@@ -18,7 +18,7 @@ Name:           capivaraos-upgrade
 Version:        1.0.0
 # Sufixo ".marsh": convenção das outras spins (evita colisão de NEVRA em
 # ~/rpmbuild compartilhado — BUG-30).
-Release:        2%{?dist}.marsh
+Release:        3%{?dist}.marsh
 Summary:        Upgrade de versão in-place (dnf5 system-upgrade) do CapivaraOS
 
 License:        GPL-3.0-or-later
@@ -53,6 +53,11 @@ install -D -m 0755 %{SOURCE0} %{buildroot}%{_bindir}/capivaraos-upgrade
 %{_bindir}/capivaraos-upgrade
 
 %changelog
+* Wed Sep 30 2026 CapivaraOS <capivaraos-bot@users.noreply.github.com> - 1.0.0-3.marsh
+- Sub-versão de validação da UX de atualização (FEAT-143): sem mudança funcional.
+  Usada para confirmar que os nossos updates aparecem no updater NATIVO do desktop
+  (Discover/KDE), ao lado dos do Fedora, via PackageKit — sem updater próprio.
+
 * Tue Sep 29 2026 CapivaraOS <capivaraos-bot@users.noreply.github.com> - 1.0.0-2.marsh
 - Sub-versão de validação do pipeline de update in-place (FEAT-142): sem mudança
   funcional. Usada para provar, ponta a ponta e ao vivo, o update contínuo assinado
