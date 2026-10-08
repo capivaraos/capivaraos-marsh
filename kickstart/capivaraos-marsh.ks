@@ -153,6 +153,10 @@ distrobox
 # OPCIONAIS em 1 clique (IA local etc.). Vem do repo local capivaraos-local
 # (buildado por build-all.sh). FEAT-90. Ver apps/capivara-central/.
 capivara-central
+# -- COS Config Center: central de configuracao (codecs, firewall, discos, rede,
+# idioma...). Pacote ja assinado, baixado do nosso repositorio pelo build-all.sh
+# para o repo local capivaraos-local.
+cos-config
 # -- Gerenciador de senhas (pegada de seguranca) --
 keepassxc
 # -- Snapshots "atualize sem medo" (Btrfs nativo do Fedora) --
