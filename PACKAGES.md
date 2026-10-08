@@ -120,6 +120,20 @@ Convenções do kickstart Fedora:
 | cups | `cups` |
 | system-config-printer | `system-config-printer` |
 
+## ===== APLICATIVOS PRÓPRIOS DO CAPIVARAOS =====
+
+Pacotes feitos pelo projeto — não têm equivalente Debian (são próprios do CapivaraOS).
+
+| Pacote | Versão | O que é / como entra na ISO |
+|---|---|---|
+| `capivaraos-branding` | 2.0.0 (série alpha) | Identidade visual: wallpapers, ícones (inclui o ícone do lançador adaptável), tema Plasma/Aurorae, Plymouth, greeter, os-release. Buildado localmente no `build-all.sh`. |
+| `capivara-central` | 0.2.x | **COS Dev Center** — onboarding de 1º boot da estação de dev (cards: IA local, trilhas de linguagem, ferramentas de dev, Ligar GPU). QML/Kirigami + PySide6. Buildado localmente. |
+| `cos-config` | **0.11.1** | **COS Config Center** — central de configuração do sistema. 9 módulos: codecs/RPM Fusion/Flathub, limpeza de disco, discos ao ligar, tamanho dos logs, diagnóstico, teclado, idioma, firewall, acesso remoto e rede. GTK4. **NÃO é buildado aqui:** vem JÁ ASSINADO do repositório (`repo.capivaraos.org/marsh/f45/x86_64/${COS_CONFIG_CHANNEL}`, padrão `testing`), baixado e verificado (assinatura) no `build-all.sh` passo 3. Épico PROD-5; inclusão na ISO em PROD-141. |
+| `capivaraos-repos` | 1.0.0 | Configura o repo de updates assinado (.repo + chave pública em /etc/pki/rpm-gpg). Update in-place (FEAT-111). |
+| `capivaraos-upgrade` | 1.0.0 | Motor de upgrade de versão (invólucro auditável do `dnf5 system-upgrade`, com snapshot snapper antes). FEAT-111. |
+
+> O `cos-config` é o único que entra **assinado do repositório** (o mesmo pacote que o usuário recebe por update), em vez de buildado na ISO — a confiança vem da **assinatura verificada** no build. Para promover à produção, trocar `COS_CONFIG_CHANNEL=stable` (gated no PROD-165).
+
 ## ===== TEMA MACOS (WHITESUR) =====
 
 | Debian (Marsh) | Fedora 44 | Observações |
