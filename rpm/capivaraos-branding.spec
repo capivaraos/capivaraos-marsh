@@ -18,7 +18,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.48.alpha48%{?dist}.marsh
+Release:        0.49.alpha49%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -1279,14 +1279,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha48, preview)"
+VERSION="Marsh 2.0.0 (alpha49, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=45
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f45"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha48, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha49, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:45"
@@ -1299,24 +1299,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=45
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=45
-VARIANT="Marsh 2.0.0 (alpha48, preview)"
+VARIANT="Marsh 2.0.0 (alpha49, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha48, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha49, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha48, preview)
+CapivaraOS Marsh 2.0.0 (alpha49, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha48, preview)
+Variant=Marsh 2.0.0 (alpha49, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1370,14 +1370,14 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha48, preview)"
+VERSION="Marsh 2.0.0 (alpha49, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=45
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f45"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha48, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha49, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:45"
@@ -1390,17 +1390,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=45
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=45
-VARIANT="Marsh 2.0.0 (alpha48, preview)"
+VARIANT="Marsh 2.0.0 (alpha49, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha48, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha49, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha48, preview)
+CapivaraOS Marsh 2.0.0 (alpha49, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1507,6 +1507,13 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Thu Oct 08 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.49.alpha49
+- A ISO passa a incluir o COS Config Center (pacote cos-config 0.11.1, central de
+  configuração do CapivaraOS): adicionado ao %packages do kickstart e baixado+verificado
+  (assinatura) do canal testing no build-all.sh (PR #7). Bump de versão porque o conteúdo
+  da ISO mudou. Rastreio: PROD-141 (inclusão nas ISOs) / PROD-5 (épico do app). Sem
+  mudança no pacote de branding em si (só o número de versão).
+
 * Sun Oct 04 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.48.alpha48
 - Ícone do lançador (kickoff no dock) agora é ADAPTÁVEL: virou um SVG simbólico
   monocromático (classe ColorScheme-Text) que o Plasma recolore pelo tema — escuro
