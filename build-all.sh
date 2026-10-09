@@ -132,36 +132,12 @@ else
     echo "==> OK: ISO com kernel ${ISO_KERNEL} (bate com o repo updates)."
 fi
 
-# ── Título do menu de boot da mídia live (grub) ─────────────────────────────
-# O lorax gera "CapivaraOS Marsh 45" (@PRODUCT@ + @VERSION@=releasever). Trocamos
-# pela versão real (ex.: "CapivaraOS Marsh 2.0.0 (alpha6)"). Edita os dois
-# grub.cfg (BIOS em /boot/grub2, UEFI em /EFI/BOOT) dentro da ISO com xorriso e
-# reimplanta o checksum (implantisomd5) — senão a opção "Test this media" falha.
-# Só cosmético (aparece no boot do pendrive live); passo NÃO-fatal.
-ISO_PATH="${RESULT_DIR}/${ISO_NAME}"
-MENU_TITLE="CapivaraOS Marsh $(echo "$ISO_NAME" | sed -E 's/^CapivaraOS-Marsh-//; s/-x86_64\.iso$//; s/^([0-9.]+)-(.+)$/\1 (\2)/')"
-echo
-echo "==> Ajustando o título do menu de boot da mídia para: ${MENU_TITLE}"
-if command -v xorriso >/dev/null 2>&1; then
-    _GW=$(mktemp -d)
-    for GCFG in /EFI/BOOT/grub.cfg /boot/grub2/grub.cfg; do
-        _b="${_GW}/$(echo "$GCFG" | tr '/' '_')"
-        xorriso -osirrox on -indev "$ISO_PATH" -extract "$GCFG" "$_b" 2>/dev/null || continue
-        sed -i "s|CapivaraOS Marsh 45|${MENU_TITLE}|g" "$_b"
-    done
-    if xorriso -indev "$ISO_PATH" -outdev "${ISO_PATH}.new" -boot_image any replay \
-            -update "${_GW}/_EFI_BOOT_grub.cfg"   /EFI/BOOT/grub.cfg \
-            -update "${_GW}/_boot_grub2_grub.cfg" /boot/grub2/grub.cfg \
-            -commit >/dev/null 2>&1 && [ -s "${ISO_PATH}.new" ]; then
-        mv "${ISO_PATH}.new" "$ISO_PATH"
-        command -v implantisomd5 >/dev/null 2>&1 && implantisomd5 --force "$ISO_PATH" >/dev/null 2>&1
-        echo "==> Título do menu de boot ajustado."
-    else
-        rm -f "${ISO_PATH}.new"
-        echo "AVISO: não consegui reescrever o grub.cfg da ISO; o menu fica '...44' (só cosmético)." >&2
-    fi
-    rm -rf "$_GW"
-fi
+# NOTA: o título do menu de boot ("Start CapivaraOS Marsh 2 45") vem do próprio
+# --project acima + @VERSION@ (releasever) que o lorax grava no grub.cfg no
+# COMPOSE. É o jeito que funciona no F45 (o retítulo PÓS-build via xorriso NÃO
+# pega no F45 — dava sempre o "AVISO: não consegui reescrever o grub.cfg"; bloco
+# removido por isso). Para mudar a série, editar o --project; o "45" acompanha o
+# releasever sozinho. (Mesmo approach do Pup e do Snout.)
 
 echo
 echo "==> Concluído! ISO em: ${RESULT_DIR}/${ISO_NAME}"
