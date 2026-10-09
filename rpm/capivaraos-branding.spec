@@ -1510,8 +1510,10 @@ sed -i -E \
 * Fri Oct 09 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.50.alpha50
 - Rótulo do menu de boot da mídia: "Start CapivaraOS Marsh 45" → "Start CapivaraOS
   Marsh 2 45" (agora mostra a versão do CapivaraOS **2** + a do Fedora **45**). Feito
-  via --project="CapivaraOS Marsh 2" no livemedia-creator (build-all.sh), espelhado do
-  Pup (commit 8475bfb). Bump porque a ISO muda; sem mudança no pacote de branding.
+  via --project="CapivaraOS Marsh 2" no livemedia-creator (grava no COMPOSE), espelhado
+  do Pup (8475bfb)/Snout. REMOVIDO também o bloco xorriso pós-build que tentava reescrever
+  o grub.cfg — NÃO funciona no F45 (dava sempre "AVISO: não consegui reescrever") e virou
+  redundante com o --project. Bump porque a ISO muda; sem mudança no pacote de branding.
 
 * Thu Oct 08 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.49.alpha49
 - A ISO passa a incluir o COS Config Center (pacote cos-config 0.11.1, central de
