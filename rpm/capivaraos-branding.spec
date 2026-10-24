@@ -18,7 +18,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.51.alpha51%{?dist}.marsh
+Release:        0.52.alpha52%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -434,6 +434,50 @@ fun refresh_callback() {
     spinner.sprite.SetY(spinner.cy - img.GetHeight() / 2);
 }
 Plymouth.SetRefreshFunction(refresh_callback);
+
+# ── Campo de senha do LUKS (disco criptografado) ────────────────────────────
+# Sem um callback de senha, com LUKS o Plymouth nao desenha campo de senha
+# nenhum e o splash da capivara PARECE travado (a senha so aparece em texto ao
+# apertar ESC). Reproduzido em 2 maquinas. Ver reference_plymouth_luks_password
+# (afeta as 3 spins; Pup foi primeiro, PR #7).
+fun display_password_callback(prompt_string, bullets) {
+    # esconde a mensagem "Inicializando…" enquanto pede a senha
+    message.sprite.SetOpacity(0);
+
+    pw_prompt.image = Image.Text("Digite a senha para desbloquear o disco", 1, 1, 1, 1, "Sans 12");
+    if (pw_prompt.sprite)
+        pw_prompt.sprite.SetImage(pw_prompt.image);
+    else
+        pw_prompt.sprite = Sprite(pw_prompt.image);
+    pw_prompt.sprite.SetPosition(Window.GetWidth() / 2 - pw_prompt.image.GetWidth() / 2,
+                                 spinner.cy + 70, 1);
+    pw_prompt.sprite.SetOpacity(1);
+
+    # um asterisco por caractere digitado
+    bullet_text = "";
+    for (i = 0; i < bullets; i++)
+        bullet_text += "*";
+    if (bullet_text == "")
+        bullet_text = " ";
+    pw_entry.image = Image.Text(bullet_text, 1, 1, 1, 1, "Sans 18");
+    if (pw_entry.sprite)
+        pw_entry.sprite.SetImage(pw_entry.image);
+    else
+        pw_entry.sprite = Sprite(pw_entry.image);
+    pw_entry.sprite.SetPosition(Window.GetWidth() / 2 - pw_entry.image.GetWidth() / 2,
+                                spinner.cy + 100, 1);
+    pw_entry.sprite.SetOpacity(1);
+}
+Plymouth.SetDisplayPasswordFunction(display_password_callback);
+
+fun display_normal_callback() {
+    message.sprite.SetOpacity(1);
+    if (pw_prompt.sprite)
+        pw_prompt.sprite.SetOpacity(0);
+    if (pw_entry.sprite)
+        pw_entry.sprite.SetOpacity(0);
+}
+Plymouth.SetDisplayNormalFunction(display_normal_callback);
 EOF
 
 # NOTA CapivaraOS: /etc/os-release, /etc/issue, /etc/issue.net e
@@ -1279,14 +1323,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha51, preview)"
+VERSION="Marsh 2.0.0 (alpha52, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=45
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f45"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha51, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha52, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:45"
@@ -1299,24 +1343,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=45
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=45
-VARIANT="Marsh 2.0.0 (alpha51, preview)"
+VARIANT="Marsh 2.0.0 (alpha52, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha51, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha52, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha51, preview)
+CapivaraOS Marsh 2.0.0 (alpha52, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha51, preview)
+Variant=Marsh 2.0.0 (alpha52, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1370,14 +1414,14 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha51, preview)"
+VERSION="Marsh 2.0.0 (alpha52, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=45
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f45"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha51, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha52, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:45"
@@ -1390,17 +1434,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=45
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=45
-VARIANT="Marsh 2.0.0 (alpha51, preview)"
+VARIANT="Marsh 2.0.0 (alpha52, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha51, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha52, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha51, preview)
+CapivaraOS Marsh 2.0.0 (alpha52, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1507,6 +1551,14 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Sat Oct 24 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.52.alpha52
+- Plymouth (disco criptografado/LUKS): o capivaraos.script não tinha callback de senha
+  (só SetRefreshFunction/SetSystemUpdateFunction). Com LUKS, o Plymouth não desenhava
+  campo de senha nenhum → o splash da capivara PARECIA travado (senha só via ESC, em
+  texto). Reproduzido em 2 máquinas. Adicionados SetDisplayPasswordFunction (prompt
+  "Digite a senha para desbloquear o disco" + asteriscos) e SetDisplayNormalFunction.
+  NÃO é o BUG-40 (storage). Espelhado do fix do Pup (PR #7, alpha13).
+
 * Wed Oct 14 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.51.alpha51
 - fastfetch: o config.jsonc só definia "logo" — no fastfetch 2.69 isso imprime APENAS
   a capivara, sem as infos (OS/kernel/CPU…). Adicionada a seção "modules" (lista padrão
