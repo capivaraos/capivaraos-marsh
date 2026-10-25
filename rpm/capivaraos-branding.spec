@@ -18,7 +18,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.52.alpha52%{?dist}.marsh
+Release:        0.53.alpha53%{?dist}.marsh
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -161,6 +161,25 @@ for i in $(seq 0 29); do
     convert build/plymouth/spinner-base.png -background none \
         -distort SRT ${ANG} +repage "build/plymouth/spinner/${i}.png"
 done
+
+# PNGs do prompt de senha do LUKS (disco cifrado). CRITICO: o pedido de senha
+# roda no INITRAMFS, que NAO embarca libpango/libcairo -> o Image.Text() do
+# Plymouth nao renderiza texto nenhum ali (fica invisivel). A logo e o spinner
+# aparecem porque sao PNG. Por isso o prompt, o campo e a bolinha sao PNGs
+# pre-renderizados aqui. Texto em INGLES (identidade global 2.0). Espelhado do
+# fix validado do Snout (PR #11); ver reference_plymouth_luks_password / BUG-45.
+# %%{file} com % duplicado senao o rpm come o %.
+PWFONT=$(fc-match -f '%%{file}' sans-serif 2>/dev/null || true)
+case "$PWFONT" in *'['*|'') PWFONT= ;; esac
+[ -n "$PWFONT" ] && [ -f "$PWFONT" ] || PWFONT=/usr/share/fonts/liberation-sans-fonts/LiberationSans-Regular.ttf
+[ -f "$PWFONT" ] || PWFONT=
+PWFONTOPT=""; [ -n "$PWFONT" ] && PWFONTOPT="-font $PWFONT"
+convert -background none -fill white $PWFONTOPT -pointsize 26 \
+    label:"Type password to unlock disk" build/plymouth/password_prompt.png
+convert -size 360x48 xc:none -stroke 'rgba(255,255,255,0.55)' -strokewidth 2 \
+    -fill 'rgba(255,255,255,0.07)' -draw "roundrectangle 1,1 358,46 12,12" \
+    build/plymouth/password_field.png
+convert -size 18x18 xc:none -fill white -draw "circle 9,9 9,2" build/plymouth/bullet.png
 
 # ── 6. Pacotes de wallpaper no formato KDE (aparecem no seletor do Plasma) ──
 # Cada wallpaper "capivaraos-*" do live-build vira um pacote
@@ -349,6 +368,12 @@ install -d %{buildroot}%{_datadir}/plymouth/themes/capivaraos/spinner
 install -m 0644 build/plymouth/spinner/*.png \
     %{buildroot}%{_datadir}/plymouth/themes/capivaraos/spinner/
 
+# PNGs do prompt de senha do LUKS (ver %build). O %files pega o diretorio
+# inteiro do tema, entao estes tres entram sem precisar de linha propria la.
+install -m 0644 build/plymouth/password_prompt.png build/plymouth/password_field.png \
+    build/plymouth/bullet.png \
+    %{buildroot}%{_datadir}/plymouth/themes/capivaraos/
+
 cat > %{buildroot}%{_datadir}/plymouth/themes/capivaraos/capivaraos.plymouth << 'EOF'
 [Plymouth Theme]
 Name=CapivaraOS
@@ -390,11 +415,11 @@ spinner.frame = 0;
 is_updates = (Plymouth.GetMode() == "updates" || Plymouth.GetMode() == "system-upgrade");
 
 if (Plymouth.GetMode() == "shutdown" || Plymouth.GetMode() == "reboot") {
-    message_text = "Encerrando o CapivaraOS";
+    message_text = "Shutting down CapivaraOS";
 } else if (is_updates) {
-    message_text = "Instalando atualizações";
+    message_text = "Installing updates";
 } else {
-    message_text = "Inicializando o CapivaraOS";
+    message_text = "Starting CapivaraOS";
 }
 
 message.image = Image.Text(message_text, 1, 1, 1, 1, "Sans 14");
@@ -404,7 +429,7 @@ message.sprite.SetPosition(Window.GetWidth() / 2 - message.image.GetWidth() / 2,
 
 # ── Aviso + percentual, somente durante atualizacao offline ────────────────
 if (is_updates) {
-    warning.image = Image.Text("Não desligue o computador", 0.8, 0.8, 0.8, 1, "Sans 11");
+    warning.image = Image.Text("Don't turn off your computer", 0.8, 0.8, 0.8, 1, "Sans 11");
     warning.sprite = Sprite(warning.image);
     warning.sprite.SetPosition(Window.GetWidth() / 2 - warning.image.GetWidth() / 2,
                                 spinner.cy + 95, 1);
@@ -435,47 +460,53 @@ fun refresh_callback() {
 }
 Plymouth.SetRefreshFunction(refresh_callback);
 
-# ── Campo de senha do LUKS (disco criptografado) ────────────────────────────
-# Sem um callback de senha, com LUKS o Plymouth nao desenha campo de senha
-# nenhum e o splash da capivara PARECE travado (a senha so aparece em texto ao
-# apertar ESC). Reproduzido em 2 maquinas. Ver reference_plymouth_luks_password
-# (afeta as 3 spins; Pup foi primeiro, PR #7).
+# ── Campo de senha do LUKS (disco cifrado) ──────────────────────────────────
+# O pedido de senha roda no INITRAMFS, que NAO tem libpango/libcairo -> o
+# Image.Text() nao renderiza nada ali (so PNG aparece, como a logo/o spinner).
+# Por isso prompt, campo e bolinha sao PNGs pre-renderizados (ver %build).
+# Detalhe que faz funcionar: o refresh_callback do spinner nao mexe em opacity,
+# entao o SetOpacity(0) persiste durante a digitacao. Espelhado do fix validado
+# do Snout (PR #11). Ver reference_plymouth_luks_password / BUG-45 (cross-spin).
+pw_prompt.image = Image("password_prompt.png");
+pw_field.image  = Image("password_field.png");
+pw_bullet.image = Image("bullet.png");
+pw_bullet_gap = 10;
+pw_bullet_max = 64;
+
 fun display_password_callback(prompt_string, bullets) {
-    # esconde a mensagem "Inicializando…" enquanto pede a senha
     message.sprite.SetOpacity(0);
-
-    pw_prompt.image = Image.Text("Digite a senha para desbloquear o disco", 1, 1, 1, 1, "Sans 12");
-    if (pw_prompt.sprite)
-        pw_prompt.sprite.SetImage(pw_prompt.image);
-    else
-        pw_prompt.sprite = Sprite(pw_prompt.image);
+    spinner.sprite.SetOpacity(0);                 # esconde o spinner na digitacao
+    if (!pw_prompt.sprite) pw_prompt.sprite = Sprite(pw_prompt.image);
     pw_prompt.sprite.SetPosition(Window.GetWidth() / 2 - pw_prompt.image.GetWidth() / 2,
-                                 spinner.cy + 70, 1);
+                                 spinner.cy - 36, 10);
     pw_prompt.sprite.SetOpacity(1);
-
-    # um asterisco por caractere digitado
-    bullet_text = "";
-    for (i = 0; i < bullets; i++)
-        bullet_text += "*";
-    if (bullet_text == "")
-        bullet_text = " ";
-    pw_entry.image = Image.Text(bullet_text, 1, 1, 1, 1, "Sans 18");
-    if (pw_entry.sprite)
-        pw_entry.sprite.SetImage(pw_entry.image);
-    else
-        pw_entry.sprite = Sprite(pw_entry.image);
-    pw_entry.sprite.SetPosition(Window.GetWidth() / 2 - pw_entry.image.GetWidth() / 2,
-                                spinner.cy + 100, 1);
-    pw_entry.sprite.SetOpacity(1);
+    if (!pw_field.sprite) pw_field.sprite = Sprite(pw_field.image);
+    field_top = spinner.cy + 6;
+    pw_field.sprite.SetPosition(Window.GetWidth() / 2 - pw_field.image.GetWidth() / 2,
+                                field_top, 9);
+    pw_field.sprite.SetOpacity(1);
+    bw = pw_bullet.image.GetWidth();
+    total = bullets * bw + (bullets - 1) * pw_bullet_gap;
+    if (bullets < 1) total = 0;
+    start_x = Window.GetWidth() / 2 - total / 2;
+    by = field_top + (pw_field.image.GetHeight() - pw_bullet.image.GetHeight()) / 2;
+    for (i = 0; i < bullets && i < pw_bullet_max; i++) {
+        if (!pw_bullet[i].sprite) pw_bullet[i].sprite = Sprite(pw_bullet.image);
+        pw_bullet[i].sprite.SetPosition(start_x + i * (bw + pw_bullet_gap), by, 11);
+        pw_bullet[i].sprite.SetOpacity(1);
+    }
+    for (i = bullets; i < pw_bullet_max; i++)
+        if (pw_bullet[i].sprite) pw_bullet[i].sprite.SetOpacity(0);
 }
 Plymouth.SetDisplayPasswordFunction(display_password_callback);
 
 fun display_normal_callback() {
     message.sprite.SetOpacity(1);
-    if (pw_prompt.sprite)
-        pw_prompt.sprite.SetOpacity(0);
-    if (pw_entry.sprite)
-        pw_entry.sprite.SetOpacity(0);
+    spinner.sprite.SetOpacity(1);                 # spinner volta quando a senha e aceita
+    if (pw_prompt.sprite) pw_prompt.sprite.SetOpacity(0);
+    if (pw_field.sprite) pw_field.sprite.SetOpacity(0);
+    for (i = 0; i < pw_bullet_max; i++)
+        if (pw_bullet[i].sprite) pw_bullet[i].sprite.SetOpacity(0);
 }
 Plymouth.SetDisplayNormalFunction(display_normal_callback);
 EOF
@@ -1323,14 +1354,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha52, preview)"
+VERSION="Marsh 2.0.0 (alpha53, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=45
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f45"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha52, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha53, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:45"
@@ -1343,24 +1374,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=45
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=45
-VARIANT="Marsh 2.0.0 (alpha52, preview)"
+VARIANT="Marsh 2.0.0 (alpha53, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha52, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha53, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha52, preview)
+CapivaraOS Marsh 2.0.0 (alpha53, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha52, preview)
+Variant=Marsh 2.0.0 (alpha53, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1414,14 +1445,14 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha52, preview)"
+VERSION="Marsh 2.0.0 (alpha53, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=45
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f45"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha52, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha53, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:45"
@@ -1434,17 +1465,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=45
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=45
-VARIANT="Marsh 2.0.0 (alpha52, preview)"
+VARIANT="Marsh 2.0.0 (alpha53, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha52, preview) \n \l
+CapivaraOS Marsh 2.0.0 (alpha53, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha52, preview)
+CapivaraOS Marsh 2.0.0 (alpha53, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1551,6 +1582,15 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Sun Oct 25 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.53.alpha53
+- Plymouth/LUKS (refaz o alpha52): o callback do alpha52 usava Image.Text, que NÃO
+  renderiza no initramfs (sem libpango/libcairo) — o prompt ficaria invisível, só a
+  logo/spinner (PNG) apareceriam. Refeito como o Snout validou em VM (PR #11): prompt,
+  campo e bolinha agora são PNGs pré-renderizados no %build (password_prompt/field/bullet);
+  na digitação esconde o spinner e mostra campo + bolinhas, e o spinner volta ao aceitar.
+  Textos do splash passam para INGLÊS (identidade global 2.0): "Starting CapivaraOS",
+  "Shutting down CapivaraOS", "Installing updates", "Don't turn off your computer". BUG-45.
+
 * Sat Oct 24 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.52.alpha52
 - Plymouth (disco criptografado/LUKS): o capivaraos.script não tinha callback de senha
   (só SetRefreshFunction/SetSystemUpdateFunction). Com LUKS, o Plymouth não desenhava
