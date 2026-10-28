@@ -19,6 +19,10 @@ Version:        2.0.0
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
 Release:        0.53.alpha53%{?dist}.marsh
+# Rotulo da pre-release (alphaN) usado no os-release/issue/VARIANT. Macro unico
+# p/ nao esquecer de subir junto com o Release. Ao subir o Release, suba isto
+# tambem.
+%global cos_label alpha53
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -1165,6 +1169,13 @@ cat > %{buildroot}%{_datadir}/cockpit/branding/capivaraos/branding.css << 'EOF'
     --pf-t--global--color--brand--default: var(--brand-default-light);
     --pf-t--global--color--brand--hover: var(--brand-default);
 }
+
+/* Esconde o bloco "Send us feedback" (QR + link fixo pro Ask Fedora) da tela
+   final do Anaconda WebUI -- hardcoded no anaconda-webui (Feedback.jsx). Nao e
+   o nosso canal; so ocultamos (FEAT-145, plano C). Idem Snout/Pup. */
+.feedback-section {
+    display: none !important;
+}
 EOF
 # NOTA: Spotify foi DESCARTADO (decisao do usuario 2026-08-20 — nao vale o
 # esforco: flatpak de extra-data nao instala no compose e exigia oneshot de 1o
@@ -1354,14 +1365,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha53, preview)"
+VERSION="Marsh 2.0.0 (%{cos_label}, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=45
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f45"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha53, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (%{cos_label}, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:45"
@@ -1374,24 +1385,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=45
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=45
-VARIANT="Marsh 2.0.0 (alpha53, preview)"
+VARIANT="Marsh 2.0.0 (%{cos_label}, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha53, preview) \n \l
+CapivaraOS Marsh 2.0.0 (%{cos_label}, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha53, preview)
+CapivaraOS Marsh 2.0.0 (%{cos_label}, preview)
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha53, preview)
+Variant=Marsh 2.0.0 (%{cos_label}, preview)
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1445,14 +1456,14 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha53, preview)"
+VERSION="Marsh 2.0.0 (%{cos_label}, preview)"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=45
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f45"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha53, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0 (%{cos_label}, preview)"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:45"
@@ -1465,17 +1476,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=45
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=45
-VARIANT="Marsh 2.0.0 (alpha53, preview)"
+VARIANT="Marsh 2.0.0 (%{cos_label}, preview)"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha53, preview) \n \l
+CapivaraOS Marsh 2.0.0 (%{cos_label}, preview) \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha53, preview)
+CapivaraOS Marsh 2.0.0 (%{cos_label}, preview)
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
