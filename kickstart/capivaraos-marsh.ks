@@ -53,6 +53,20 @@ network --hostname=capivaraos
 -fedora-release-kde-desktop
 capivaraos-branding
 
+# ── Repositório de atualizações assinado (FEAT-111): instala o
+# /etc/yum.repos.d/capivaraos.repo (canais stable + testing) + a chave pública,
+# para a ISO 2.0 nascer já recebendo os nossos updates (branding, COS Dev/Config,
+# correções) sem esperar uma ISO nova. Buildado localmente pelo build-all.sh e
+# servido pelo repo local do compose. Ver rpm/capivaraos-repos.spec e docs/repo/.
+capivaraos-repos
+
+# ── Motor de upgrade de versão in-place (FEAT-111): invólucro auditável do
+# `dnf5 system-upgrade` (transação offline no reboot) com pré-voo e snapshot
+# snapper, para saltos de versão (ex. 2.0 → próxima) SEM reinstalar. Requer
+# capivaraos-repos (já acima). Buildado localmente pelo build-all.sh.
+# Ver rpm/capivaraos-upgrade.spec.
+capivaraos-upgrade
+
 # Tema e config do greeter SDDM. sddm-breeze provê os temas QML (breeze e
 # 01-breeze-fedora) e kde-settings-sddm põe "Current=01-breeze-fedora". São
 # dependências FRACAS (Recommends) que vinham via fedora-release-kde-desktop
