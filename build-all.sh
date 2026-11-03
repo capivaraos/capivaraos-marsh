@@ -22,10 +22,11 @@ ISO_NAME=CapivaraOS-Marsh-2.0.0-x86_64.iso
 echo "==> 1/4: Instalando dependências (lorax, rpm-build, ImageMagick, git, createrepo_c)..."
 sudo dnf install -y lorax rpm-build ImageMagick git createrepo_c
 
-echo "==> 2/4: Construindo RPMs (capivaraos-branding + capivara-central + capivaraos-repos)..."
+echo "==> 2/4: Construindo RPMs (capivaraos-branding + capivara-central + capivaraos-repos + capivaraos-upgrade)..."
 "$SCRIPT_DIR/rpm/build-rpm.sh"
 "$SCRIPT_DIR/apps/capivara-central/rpm/build-rpm.sh"
 "$SCRIPT_DIR/rpm/build-rpm-repos.sh"
+"$SCRIPT_DIR/rpm/build-rpm-upgrade.sh"
 
 echo "==> 3/4: Criando repositório local em ${REPO_DIR}..."
 # BUG CORRIGIDO (2026-06-25): ~/rpmbuild/RPMS/noarch/ acumula RPMs
@@ -42,7 +43,8 @@ mkdir -p "$REPO_DIR"
 # desta spin — ~/rpmbuild/RPMS/noarch é compartilhado pelas 3 spins.
 for SPEC in "$SCRIPT_DIR/rpm/capivaraos-branding.spec" \
             "$SCRIPT_DIR/apps/capivara-central/rpm/capivara-central.spec" \
-            "$SCRIPT_DIR/rpm/capivaraos-repos.spec"; do
+            "$SCRIPT_DIR/rpm/capivaraos-repos.spec" \
+            "$SCRIPT_DIR/rpm/capivaraos-upgrade.spec"; do
     NEVRA=$(rpmspec -q --qf '%{name}-%{version}-%{release}.%{arch}\n' "$SPEC" | head -1)
     RPM_FILE="$HOME/rpmbuild/RPMS/noarch/${NEVRA}.rpm"
     [ -f "$RPM_FILE" ] || { echo "ERRO: RPM esperado não encontrado: ${RPM_FILE}" >&2; exit 1; }
