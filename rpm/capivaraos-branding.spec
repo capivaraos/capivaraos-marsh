@@ -18,7 +18,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        2%{?dist}.marsh
+Release:        3%{?dist}.marsh
 # Rotulo de pre-release (alphaN) no os-release/issue/VARIANT. As strings abaixo
 # usam a condicional "cos_label" (ver reference osrelease_alpha_label): se o
 # macro cos_label estiver DEFINIDO, elas viram "2.0.0 (<valor>, preview)"; se
@@ -1069,6 +1069,28 @@ ExecStart=/usr/libexec/capivaraos/snapper-firstboot
 WantedBy=multi-user.target
 EOF
 
+# ── Hostname da marca: impede o NetworkManager de sobrescrever "capivaraos" ───
+# O /etc/os-release traz DEFAULT_HOSTNAME=capivaraos, que o systemd-hostnamed usa
+# como hostname efetivo quando o /etc/hostname (static) está vazio — e no boot do
+# sistema instalado ele REALMENTE começa como "capivaraos". Porém o NetworkManager,
+# no hostname-mode padrão, faz um reverse-DNS do IP do lease DHCP ("set-hostname:
+# ... from address lookup") e sobrescreve o transient. Em VM (libvirt/Boxes) e em
+# roteadores que registram o hostname do DHCP no DNS local, esse lookup devolve
+# "localhost-live" (o nome que a mídia live mandou no DHCP, reusando a mesma MAC no
+# install) → o terminal instalado nasce "dp@localhost-live" em vez de "capivaraos".
+# Fix: hostname-mode=none → o NM não mexe no hostname; o DEFAULT_HOSTNAME prevalece,
+# e um hostname escolhido pelo usuário (hostnamectl / static) continua respeitado.
+# Arquivo estático (empacotado em %files), não %posttrans. O diretório conf.d é do
+# pacote NetworkManager (dependência sempre presente no Marsh), por isso só
+# empacotamos o arquivo, não o %dir. Marsh-only aqui; vale portar p/ Pup/Snout.
+install -d %{buildroot}%{_sysconfdir}/NetworkManager/conf.d
+cat > %{buildroot}%{_sysconfdir}/NetworkManager/conf.d/00-capivaraos-hostname.conf << 'EOF'
+# CapivaraOS: não deixar o NetworkManager sobrescrever o hostname da marca
+# (capivaraos, de DEFAULT_HOSTNAME no os-release) com o nome do lease DHCP.
+[main]
+hostname-mode=none
+EOF
+
 # ── Perfil do Anaconda: faz o instalador reconhecer o CapivaraOS (BUG-38) ────
 # O Anaconda casa o perfil de instalacao pelo os_id do /etc/os-release. Como o
 # nosso ID e "capivaraos" (nao "fedora"), NENHUM perfil casava e o instalador
@@ -1588,6 +1610,7 @@ sed -i -E \
 %{_bindir}/capivaraos-relabel-root
 %{_unitdir}/capivaraos-relabel-root.service
 %{_unitdir}/capivaraos-snapper-setup.service
+%{_sysconfdir}/NetworkManager/conf.d/00-capivaraos-hostname.conf
 %dir %{_libexecdir}/capivaraos
 %{_libexecdir}/capivaraos/snapper-firstboot
 %{_sysconfdir}/xdg/autostart/capivaraos-wallpaper.desktop
@@ -1614,6 +1637,15 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Tue Nov 03 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-3
+- Hostname da marca: drop-in /etc/NetworkManager/conf.d/00-capivaraos-hostname.conf
+  com hostname-mode=none. O sistema instalado nascia "dp@localhost-live": o
+  NetworkManager, no modo padrao, faz reverse-DNS do lease DHCP e sobrescrevia o
+  "capivaraos" (vindo de DEFAULT_HOSTNAME no os-release) com o nome que a mídia live
+  registrou no DHCP para a mesma MAC. Com hostname-mode=none o NM nao mexe no
+  hostname e o DEFAULT_HOSTNAME prevalece. Hostname escolhido pelo usuario continua
+  respeitado. Marsh-only (vale portar p/ Pup/Snout).
+
 * Tue Nov 03 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-2
 - Wallpaper padrao (CapivaraOS Luar) agora e setado pelo macos-layout.js via
   desktops(), nao mais so pelo skel [Containments][1]. No F45 GA o Plasma passou
