@@ -18,11 +18,15 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.53.alpha53%{?dist}.marsh
-# Rotulo da pre-release (alphaN) usado no os-release/issue/VARIANT. Macro unico
-# p/ nao esquecer de subir junto com o Release. Ao subir o Release, suba isto
-# tambem.
-%global cos_label alpha53
+Release:        1%{?dist}.marsh
+# Rotulo de pre-release (alphaN) no os-release/issue/VARIANT. As strings abaixo
+# usam a condicional "cos_label" (ver reference osrelease_alpha_label): se o
+# macro cos_label estiver DEFINIDO, elas viram "2.0.0 (<valor>, preview)"; se
+# NAO estiver (caso ATUAL, release estavel), viram "2.0.0" limpo.
+# Para um build ALPHA/BETA: defina o macro cos_label = alphaN numa linha de
+# macro global logo abaixo do Release (FORA de comentario!). ATENCAO: o rpm
+# processa a definicao de macro ATE em linha comentada -- por isso aqui so ha
+# prosa, nenhuma diretiva.
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -1365,14 +1369,14 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (%{cos_label}, preview)"
+VERSION="Marsh 2.0.0%{?cos_label: (%{cos_label}, preview)}"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=45
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f45"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (%{cos_label}, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0%{?cos_label: (%{cos_label}, preview)}"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:45"
@@ -1385,24 +1389,24 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=45
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=45
-VARIANT="Marsh 2.0.0 (%{cos_label}, preview)"
+VARIANT="Marsh 2.0.0%{?cos_label: (%{cos_label}, preview)}"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (%{cos_label}, preview) \n \l
+CapivaraOS Marsh 2.0.0%{?cos_label: (%{cos_label}, preview)} \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (%{cos_label}, preview)
+CapivaraOS Marsh 2.0.0%{?cos_label: (%{cos_label}, preview)}
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (%{cos_label}, preview)
+Variant=Marsh 2.0.0%{?cos_label: (%{cos_label}, preview)}
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1456,14 +1460,14 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (%{cos_label}, preview)"
+VERSION="Marsh 2.0.0%{?cos_label: (%{cos_label}, preview)}"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
 VERSION_ID=45
 VERSION_CODENAME=marsh
 PLATFORM_ID="platform:f45"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (%{cos_label}, preview)"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0%{?cos_label: (%{cos_label}, preview)}"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
 CPE_NAME="cpe:/o:capivaraos:capivaraos:45"
@@ -1476,17 +1480,17 @@ REDHAT_BUGZILLA_PRODUCT="Fedora"
 REDHAT_BUGZILLA_PRODUCT_VERSION=45
 REDHAT_SUPPORT_PRODUCT="Fedora"
 REDHAT_SUPPORT_PRODUCT_VERSION=45
-VARIANT="Marsh 2.0.0 (%{cos_label}, preview)"
+VARIANT="Marsh 2.0.0%{?cos_label: (%{cos_label}, preview)}"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (%{cos_label}, preview) \n \l
+CapivaraOS Marsh 2.0.0%{?cos_label: (%{cos_label}, preview)} \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (%{cos_label}, preview)
+CapivaraOS Marsh 2.0.0%{?cos_label: (%{cos_label}, preview)}
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1593,6 +1597,11 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Tue Nov 03 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-1
+- Corte estável 2.0.0 (GA do Fedora 45): rótulo alphaN removido — os-release/issue/
+  issue.net/VARIANT agora "CapivaraOS Marsh 2.0.0" limpo (macro cos_label desativado,
+  via condicional %%{?cos_label}); Release 0.53.alpha53 -> 1.
+
 * Sun Oct 25 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.53.alpha53
 - Plymouth/LUKS (refaz o alpha52): o callback do alpha52 usava Image.Text, que NÃO
   renderiza no initramfs (sem libpango/libcairo) — o prompt ficaria invisível, só a
