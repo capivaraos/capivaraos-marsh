@@ -18,7 +18,7 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        1%{?dist}.marsh
+Release:        2%{?dist}.marsh
 # Rotulo de pre-release (alphaN) no os-release/issue/VARIANT. As strings abaixo
 # usam a condicional "cos_label" (ver reference osrelease_alpha_label): se o
 # macro cos_label estiver DEFINIDO, elas viram "2.0.0 (<valor>, preview)"; se
@@ -737,6 +737,23 @@ tasks.writeConfig("launchers", [
     "applications:org.kde.kcalc.desktop",
     "applications:libreoffice-writer.desktop"
 ]);
+
+// ── Wallpaper padrao da marca (CapivaraOS Luar) ─────────────────────────────
+// Setamos o wallpaper nos DESKTOPS reais via desktops(), em vez de confiar num
+// ID fixo de containment no skel. Dependendo do Plasma / ordem de criacao dos
+// paineis, o [Containments][1] do skel pode ser um PAINEL (nao o desktop) -- foi
+// o que aconteceu no F45 GA: o skel gravava o Luar num painel e o desktop caia
+// no padrao do Plasma (Hanabi). desktops() retorna so os containments de area de
+// trabalho (nunca paineis), entao forcamos o plugin e a imagem no lugar certo.
+// Roda no 1o login (o layout e aplicado pelo Look-and-Feel org.capivaraos.desktop).
+var capDesktops = desktops();
+for (var di = 0; di < capDesktops.length; di++) {
+    var cd = capDesktops[di];
+    cd.wallpaperPlugin = "org.kde.image";
+    cd.currentConfigGroup = ["Wallpaper", "org.kde.image", "General"];
+    cd.writeConfig("Image", "/usr/share/wallpapers/capivaraos-luar/");
+    cd.writeConfig("FillMode", 2);
+}
 EOF
 
 # ── Tema Global (Look-and-Feel) proprio: org.capivaraos.desktop (PROD-130) ───
@@ -1597,6 +1614,13 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Tue Nov 03 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-2
+- Wallpaper padrao (CapivaraOS Luar) agora e setado pelo macos-layout.js via
+  desktops(), nao mais so pelo skel [Containments][1]. No F45 GA o Plasma passou
+  a numerar o containment 1 como um PAINEL (o dock), entao o Luar do skel caia num
+  painel e o desktop ficava no padrao do Plasma (Hanabi). Corrigido no containment
+  certo, independente de ID. Marsh-only (KDE).
+
 * Tue Nov 03 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-1
 - Corte estável 2.0.0 (GA do Fedora 45): rótulo alphaN removido — os-release/issue/
   issue.net/VARIANT agora "CapivaraOS Marsh 2.0.0" limpo (macro cos_label desativado,
