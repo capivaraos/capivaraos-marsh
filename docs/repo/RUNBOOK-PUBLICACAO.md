@@ -10,7 +10,7 @@ lançamento do 2.0/F45. Tudo já está construído e mesclado; falta só esta se
 > `75FA334040FD01504AAD9337E07F78EA407011BD`.
 
 ## Pré-requisitos
-- Chave **privada** de assinatura no Bitwarden (tem passphrase).
+- Chave **privada** de assinatura no cofre de senhas (tem passphrase).
 - `capivaraos-bot` é colaborador (write) do repo `capivaraos/repo` (Pages) — ok.
 - `repo.capivaraos.org` no ar (GitHub Pages, HTTPS). Confirmar:
   `curl -sI https://repo.capivaraos.org/RPM-GPG-KEY-capivaraos` → **200**.
@@ -31,7 +31,7 @@ curl -sI https://repo.capivaraos.org/RPM-GPG-KEY-capivaraos   # espera 200
 ```
 
 ### 1. Reimportar a chave privada (temporária)
-Do Bitwarden (Secure Note, texto armored) → importar no gpg:
+Do cofre de senhas (nota segura, texto armored) → importar no gpg:
 ```
 gpg --import /caminho/para/CHAVE-PRIVADA.asc     # pede a passphrase
 gpg --list-secret-keys 75FA334040FD01504AAD9337E07F78EA407011BD
@@ -92,6 +92,6 @@ gpg --delete-secret-keys 75FA334040FD01504AAD9337E07F78EA407011BD
 Mover FEAT-112/113/114/115/116 → **Done** e atualizar a memória.
 
 ## Alternativa futura de host
-`publish-repo.sh upload` (object storage/R2 + CDN) substitui o passo `pages`
+`publish-repo.sh upload` (object storage + CDN) substitui o passo `pages`
 repointando o CNAME — **sem tocar nos pacotes** (a assinatura é a mesma). Só
 quando os limites do Pages apertarem.
