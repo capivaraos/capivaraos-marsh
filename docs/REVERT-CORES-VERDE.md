@@ -1,6 +1,6 @@
 # Mapa das trocas — paleta verde (FEAT-91, frente B)
 
-> **ATUALIZAÇÃO 2026-09-22 (Marsh 2.x, alpha43, PROD-131):** o dono achou "muito
+> **ATUALIZAÇÃO 2026-09-22 (Marsh 2.x, alpha43, PROD-131):** a comunidade achou "muito
 > verde" e pediu para reverter **só cores/accent** ao azul padrão (Breeze Dark).
 > Feito: `ColorScheme=BreezeDark` + **sem** `AccentColor` verde no `/etc/skel`
 > kdeglobals, nos `defaults` do Look-and-Feel `org.capivaraos.desktop` e no

@@ -103,7 +103,7 @@ install -Dm0644 data/org.capivaraos.Central-autostart.desktop \
   exigir `ollama-rocm` (dep dura) -> `dnf install ollama` baixa vários GB de ROCm
   mesmo em CPU. O card "IA local" agora avisa ("baixa vários GB — inclui o suporte
   a GPU AMD/ROCm no F45") e o passo do install-ai-system reflete isso. Decisão do
-  dono: aceitar (sem bloquear). Ver reference_ollama_rocm_f45.
+  comunidade: aceitar (sem bloquear). Ver reference_ollama_rocm_f45.
 
 * Mon Sep 21 2026 CapivaraOS Bot <capivaraos-bot@users.noreply.github.com> - 0.2.0-2.marsh
 - Icone do COS Dev regenerado do master transparente (brand-assets/cos-dev-icon.png):

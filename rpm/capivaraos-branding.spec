@@ -97,7 +97,7 @@ convert icons/capivaraos-logo.png -fill white -colorize 100% \
     -resize 256x256 build/pixmaps/capivaraos-white.png
 
 # ── 4. Avatar padrão (.face): capivara BRANCA sobre fundo AZUL-MARINHO ────────
-# Decisao do dono (2026-09-23, de-green): avatar do usuario/greeter = fundo navy
+# Decisao da comunidade (2026-09-23, de-green): avatar do usuario/greeter = fundo navy
 # #1E2F4E (o azul-marinho da logo do CapivaraOS) + capivara branca, no lugar do
 # verde. Recorta so a capivara da arte-mestre, pinta de branco (colorize
 # preservando o alfa) e poe sobre quadrado navy. Exibido em circulo pelo greeter
@@ -157,7 +157,7 @@ convert backgrounds/capivaraos-wp-moonlight.png -resize 1920x1080 \
     build/backgrounds/capivaraos-sddm-1080.png
 
 # Spinner BRANCO padrao (arco girando) exibido logo abaixo da logo no splash --
-# igual ao Pup e ao Snout. Decisao do dono (2026-09-22, "muito verde"): a rodinha
+# igual ao Pup e ao Snout. Decisao da comunidade (2026-09-22, "muito verde"): a rodinha
 # volta ao branco (antes era verde #15B22C). A logo ja era branca.
 # Geramos 30 quadros, cada um girado 12°, e o script do Plymouth os cicla.
 mkdir -p build/plymouth/spinner
@@ -395,7 +395,7 @@ EOF
 
 cat > %{buildroot}%{_datadir}/plymouth/themes/capivaraos/capivaraos.script << 'EOF'
 # Fundo = azul-escuro neutro (mesmo do Pup e do Snout), no lugar do verde-escuro
-# antigo (#12160F). Decisao do dono (2026-09-22, "muito verde").
+# antigo (#12160F). Decisao da comunidade (2026-09-22, "muito verde").
 Window.SetBackgroundTopColor(0.07, 0.09, 0.13);
 Window.SetBackgroundBottomColor(0.07, 0.09, 0.13);
 
@@ -556,11 +556,11 @@ EOF
 
 cat > %{buildroot}%{_sysconfdir}/skel/.config/kdeglobals << 'EOF'
 [General]
-# ESQUEMA DE CORES = AZUL PADRAO (Breeze Dark). Decisao do dono (2026-09-22):
+# ESQUEMA DE CORES = AZUL PADRAO (Breeze Dark). Decisao da comunidade (2026-09-22):
 # "muito verde" -> o esquema/accent voltam ao azul padrao (botoes, selecao, cor
 # de pasta). O esquema verde proprio (CapivaraOS.colors) continua INSTALADO e
 # selecionavel em Aparencia > Cores -- so deixa de ser o padrao. O tema Plasma
-# (painel/menus), a decoracao Aurorae e o Konsole SEGUEM verdes (escopo do dono:
+# (painel/menus), a decoracao Aurorae e o Konsole SEGUEM verdes (escopo da comunidade:
 # so cores/accent). Ver docs/REVERT-CORES-VERDE.md.
 ColorScheme=BreezeDark
 # Sem AccentColor proprio -> o accent segue o azul padrao do esquema.
@@ -585,11 +585,11 @@ EOF
 
 cat > %{buildroot}%{_sysconfdir}/skel/.config/plasmarc << 'EOF'
 [Theme]
-# TEMA PLASMA = Breeze padrao (default). Decisao do dono (2026-09-23): tirar o
+# TEMA PLASMA = Breeze padrao (default). Decisao da comunidade (2026-09-23): tirar o
 # verde do painel/menus tambem. O tema Plasma proprio CapivaraOS continua
 # INSTALADO em /usr/share/plasma/desktoptheme/CapivaraOS e selecionavel em
 # Aparencia > Tema do Plasma -- so deixa de ser o padrao (nao-destrutivo). A
-# decoracao de janela (Aurorae) e o Konsole SEGUEM verdes (escopo do dono).
+# decoracao de janela (Aurorae) e o Konsole SEGUEM verdes (escopo da comunidade).
 name=default
 EOF
 
@@ -1321,7 +1321,7 @@ fi
 
 # ── Accent do login (greeter do plasma-login-manager) — AZUL PADRAO ──────────
 # O greeter roda como o usuario "plasmalogin" e le o accent do fallback do
-# sistema /etc/xdg/kdeglobals ([General] AccentColor). Decisao do dono (2026-09-22,
+# sistema /etc/xdg/kdeglobals ([General] AccentColor). Decisao da comunidade (2026-09-22,
 # "muito verde"): sem AccentColor proprio -> o greeter usa o azul padrao do
 # esquema. REMOVEMOS ativamente qualquer AccentColor verde que uma versao anterior
 # tenha gravado no /etc/xdg. Mantemos accentColorFromWallpaper=false para o accent
@@ -1367,7 +1367,7 @@ kwriteconfig6 --file "$XDGKONSOLE" --group "Desktop Entry" --key DefaultProfile 
     kwriteconfig5 --file "$XDGKONSOLE" --group "Desktop Entry" --key DefaultProfile "CapivaraOS.profile" 2>/dev/null || true
 
 # Tema Plasma = Breeze padrao (default) tambem no fallback do sistema /etc/xdg
-# (a live nao herda /etc/skel/.config/plasmarc). Decisao do dono (2026-09-23):
+# (a live nao herda /etc/skel/.config/plasmarc). Decisao da comunidade (2026-09-23):
 # sem verde no painel/menus. O desktoptheme CapivaraOS segue instalado/selecionavel.
 XDGPLASMA=%{_sysconfdir}/xdg/plasmarc
 kwriteconfig6 --file "$XDGPLASMA" --group Theme --key name "default" 2>/dev/null || \
@@ -1467,7 +1467,7 @@ done
 # ── Reaplica os-release apos qualquer atualizacao futura do sistema ────────
 # Nao declaramos /etc/os-release em %files (evita conflito na transacao da
 # ISO), so sobrescrevemos o conteudo. Logo o arquivo continua pertencendo ao
-# Fedora no rpmdb, e um "dnf update" que toque o pacote dono reescreve tudo de
+# Fedora no rpmdb, e um "dnf update" que toque o pacote comunidade reescreve tudo de
 # volta para o padrao do Fedora. Se isso acontecer na MESMA transacao em que
 # um kernel novo e instalado, o titulo GRUB/BLS desse kernel (que o
 # kernel-install gera a partir de NAME/VERSION do os-release) fica gravado
@@ -1702,7 +1702,7 @@ sed -i -E \
   no tema claro, claro no escuro. Antes era PNG branco e sumia no Breeze claro.
   Fonte vetorial icons/capivaraos-head.svg (traçada da silhueta); substitui os PNGs
   hicolor da cabeça. PNG da cabeça segue como fonte do avatar. (Enhancement pedido
-  pelo dono; cor padrão clara como rede de segurança p/ o tema escuro default.)
+  pela comunidade; cor padrão clara como rede de segurança p/ o tema escuro default.)
 
 * Tue Sep 29 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.47.alpha47
 - Sub-versão de validação do update in-place (FEAT-142): sem mudança funcional além
@@ -1725,10 +1725,10 @@ sed -i -E \
 * Wed Sep 23 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.45.alpha45
 - Avatar de usuário (.face / greeter): fundo verde #15B22C → azul-marinho #1E2F4E
   (navy da logo do CapivaraOS), capivara branca mantida. Continuação do de-green
-  (decisão do dono). Sem texto (o círculo do greeter cortaria).
+  (decisão da comunidade). Sem texto (o círculo do greeter cortaria).
 
 * Wed Sep 23 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.44.alpha44
-- De-green (2ª rodada, decisão do dono: ainda "muito verde"). Escopo escolhido =
+- De-green (2ª rodada, decisão da comunidade: ainda "muito verde"). Escopo escolhido =
   TAMBÉM o painel/menus: o tema Plasma (desktoptheme) volta ao Breeze padrão
   (`plasmarc [Theme] name` CapivaraOS → default) nos 3 pontos: /etc/skel/plasmarc,
   defaults do Look-and-Feel e /etc/xdg (%posttrans). O desktoptheme CapivaraOS
@@ -1736,7 +1736,7 @@ sed -i -E \
   (Aurorae) e Konsole SEGUEM verdes (fora do escopo pedido nesta rodada).
 
 * Tue Sep 22 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.43.alpha43
-- De-green parcial (decisao do dono: "muito verde"). Escopo = SÓ cores/accent:
+- De-green parcial (decisao da comunidade: "muito verde"). Escopo = SÓ cores/accent:
   - Esquema de cores/accent volta ao AZUL padrao (Breeze Dark): botoes, selecao e
     cor de pasta. kdeglobals do skel, defaults do Look-and-Feel e o /etc/xdg
     (%posttrans) passam a ColorScheme=BreezeDark e SEM AccentColor verde (accent =
