@@ -80,7 +80,8 @@ class Backend(QObject):
     @Slot()
     def installAiLocal(self):
         """Instala o pacote de IA local: Ollama + Alpaca + extensão Continue."""
-        self._run(_helper("setup-ai"), step="Preparando instalação da IA local…")
+        self._run(_helper("setup-ai"), step="Preparando instalação da IA local…",
+                  guard_dnf=True)
 
     @Slot()
     def openAiLocal(self):
@@ -103,7 +104,8 @@ class Backend(QObject):
     @Slot()
     def enableGpu(self):
         """Liga a aceleração por GPU (ROCm/AMD ou CUDA/NVIDIA) para o Ollama."""
-        self._run(_helper("setup-gpu"), step="Preparando a ativação da GPU…")
+        self._run(_helper("setup-gpu"), step="Preparando a ativação da GPU…",
+                  guard_dnf=True)
 
     @Slot("QVariantList")
     def installDevTools(self, tools):
@@ -114,12 +116,13 @@ class Backend(QObject):
             self.finished.emit(False, "Nenhuma ferramenta selecionada.")
             return
         self._run(_helper("setup-devtools"),
-                  step="Preparando ferramentas de dev…", args=picks)
+                  step="Preparando ferramentas de dev…", args=picks, guard_dnf=True)
 
     @Slot()
     def setupGh(self):
         """Instala/configura gh + pre-commit (template global de hooks)."""
-        self._run(_helper("setup-gh"), step="Configurando gh + pre-commit…")
+        self._run(_helper("setup-gh"), step="Configurando gh + pre-commit…",
+                  guard_dnf=True)
 
     @Slot()
     def openGhLogin(self):
@@ -195,7 +198,7 @@ class Backend(QObject):
         system-upgrade download). Não reinicia."""
         self._run(_helper("setup-upgrade"),
                   step="Baixando a atualização do CapivaraOS…",
-                  args=["download"], kind="upgrade-download")
+                  args=["download"], kind="upgrade-download", guard_dnf=True)
 
     @Slot()
     def rebootUpgrade(self):
@@ -206,9 +209,29 @@ class Backend(QObject):
                   args=["reboot"], kind="upgrade-reboot")
 
     # ---- Execução com streaming ------------------------------------------
-    def _run(self, program: str, step: str = "", args=None, kind: str = ""):
+    @staticmethod
+    def _dnf_busy() -> bool:
+        """True se já houver uma transação dnf de sistema em curso. Evita disparar
+        um segundo install que ficaria preso em 'Waiting for a lock' — a IA local,
+        pesada por causa do ROCm no F45, ainda pode estar rodando. Ver
+        reference_ollama_rocm_f45."""
+        try:
+            r = subprocess.run(
+                ["pgrep", "-f", r"dnf.*(install|upgrade|remove|reinstall|system-upgrade)"],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5)
+            return r.returncode == 0
+        except (OSError, subprocess.SubprocessError):
+            return False
+
+    def _run(self, program: str, step: str = "", args=None, kind: str = "",
+             guard_dnf: bool = False):
         if self._busy:
             self.logLine.emit("Já há uma tarefa em andamento; aguarde terminar.")
+            return
+        if guard_dnf and self._dnf_busy():
+            self.logLine.emit("Já há uma instalação de sistema (dnf) em andamento; "
+                              "aguarde terminar (a IA local é pesada por causa do ROCm).")
+            self.finished.emit(False, "Há uma instalação em andamento no sistema.")
             return
         self._action = kind
         if step:

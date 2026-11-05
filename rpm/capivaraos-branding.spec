@@ -18,7 +18,15 @@ Version:        2.0.0
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        0.36.alpha36%{?dist}.marsh
+Release:        3%{?dist}.marsh
+# Rotulo de pre-release (alphaN) no os-release/issue/VARIANT. As strings abaixo
+# usam a condicional "cos_label" (ver reference osrelease_alpha_label): se o
+# macro cos_label estiver DEFINIDO, elas viram "2.0.0 (<valor>, preview)"; se
+# NAO estiver (caso ATUAL, release estavel), viram "2.0.0" limpo.
+# Para um build ALPHA/BETA: defina o macro cos_label = alphaN numa linha de
+# macro global logo abaixo do Release (FORA de comentario!). ATENCAO: o rpm
+# processa a definicao de macro ATE em linha comentada -- por isso aqui so ha
+# prosa, nenhuma diretiva.
 Summary:        Identidade visual, wallpapers e tema padrão do CapivaraOS Marsh
 
 License:        GPL-3.0-or-later AND LicenseRef-CapivaraOS-Trademark AND OFL-1.1
@@ -72,29 +80,32 @@ for SIZE in 16 22 24 32 48 64 96 128 256 512; do
         "build/icons/hicolor/${SIZE}x${SIZE}/apps/capivaraos-full-logo.png"
 done
 
-# ── 2b. Ícones hicolor "capivaraos-head" (só a cabeça da capivara) ──────────
-# Usado como ícone do lançador de aplicativos (kickoff) no dock, no lugar do
-# logo do KDE. Fonte: icons/capivaraos-head.png (215x215, canvas quadrado) —
-# silhueta BRANCA, para combinar com o painel/dock escuro do Breeze Dark.
-for SIZE in 16 22 24 32 48 64 96 128 256 512; do
-    mkdir -p "build/icons/hicolor/${SIZE}x${SIZE}/apps"
-    convert icons/capivaraos-head.png -resize "${SIZE}x${SIZE}" \
-        "build/icons/hicolor/${SIZE}x${SIZE}/apps/capivaraos-head.png"
-done
+# ── 2b. Ícone "capivaraos-head" (só a cabeça) — SIMBÓLICO/ADAPTÁVEL ──────────
+# Ícone do lançador de aplicativos (kickoff) no dock, no lugar do logo do KDE.
+# Agora é um SVG MONOCROMÁTICO simbólico (classe ColorScheme-Text), que o Plasma
+# RECOLORE pelo tema: ESCURO no tema claro, CLARO no escuro — visível nos dois.
+# Antes era PNG branco, que sumia no Breeze claro (painel claro). Fonte vetorial:
+# icons/capivaraos-head.svg (traçada da silhueta com potrace; cor padrão CLARA
+# #eff0f1 como rede de segurança: se o Plasma não recolorir, fica claro = visível
+# no nosso painel escuro padrão, sem regressão). Instalado como 'scalable' em
+# %install — o scalable serve todos os tamanhos no hicolor. O PNG
+# icons/capivaraos-head.png continua existindo como FONTE do avatar (abaixo).
 
 # ── 3. Ícone branco para a área de trabalho ("Instalar CapivaraOS" etc) ─────
 mkdir -p build/pixmaps
 convert icons/capivaraos-logo.png -fill white -colorize 100% \
     -resize 256x256 build/pixmaps/capivaraos-white.png
 
-# ── 4. Avatar padrão (.face): capivara BRANCA sobre fundo VERDE da marca ─────
-# (pedido do usuario: avatar do live user / SDDM = fundo verde + logo branca,
-# no lugar da capivara marrom sobre branco). Recorta so a capivara da arte-
-# mestre, pinta de branco (colorize preservando o alfa) e poe sobre quadrado
-# verde #15B22C. Exibido em circulo pelo greeter -> o quadrado verde preenche.
+# ── 4. Avatar padrão (.face): capivara BRANCA sobre fundo AZUL-MARINHO ────────
+# Decisao da comunidade (2026-09-23, de-green): avatar do usuario/greeter = fundo navy
+# #1E2F4E (o azul-marinho da logo do CapivaraOS) + capivara branca, no lugar do
+# verde. Recorta so a capivara da arte-mestre, pinta de branco (colorize
+# preservando o alfa) e poe sobre quadrado navy. Exibido em circulo pelo greeter
+# -> o quadrado navy preenche. Sem o texto "CapivaraOS" (seria cortado no circulo)
+# -- mesmo estilo "so capivara" do avatar anterior, so trocando verde por navy.
 convert backgrounds/CapivaraOS_Logo.png -crop 1536x600+0+0 +repage -trim +repage \
     -colorspace sRGB -fill white -colorize 100% \
-    -gravity center -background '#15B22C' -extent 1700x1700 \
+    -gravity center -background '#1E2F4E' -extent 1700x1700 \
     -resize 256x256 build/pixmaps/capivaraos-face.png
 
 # ── 5. Logo BRANCA para o splash do Plymouth (boot/desligamento) ────────────
@@ -145,12 +156,12 @@ convert backgrounds/capivaraos-wp-moonlight.png build/backgrounds/capivaraos-def
 convert backgrounds/capivaraos-wp-moonlight.png -resize 1920x1080 \
     build/backgrounds/capivaraos-sddm-1080.png
 
-# Spinner VERDE da marca (arco girando) exibido logo abaixo da logo no splash.
-# Cor #15B22C = accent do CapivaraOS (FEAT-91 frente C: boot coerente com a
-# paleta). A logo continua branca; o arco verde e o sinal de marca em movimento.
+# Spinner BRANCO padrao (arco girando) exibido logo abaixo da logo no splash --
+# igual ao Pup e ao Snout. Decisao da comunidade (2026-09-22, "muito verde"): a rodinha
+# volta ao branco (antes era verde #15B22C). A logo ja era branca.
 # Geramos 30 quadros, cada um girado 12°, e o script do Plymouth os cicla.
 mkdir -p build/plymouth/spinner
-convert -size 64x64 xc:none -stroke '#15B22C' -strokewidth 5 \
+convert -size 64x64 xc:none -stroke white -strokewidth 5 \
     -fill none -draw "stroke-linecap round arc 12,12 52,52 0,300" \
     build/plymouth/spinner-base.png
 for i in $(seq 0 29); do
@@ -158,6 +169,25 @@ for i in $(seq 0 29); do
     convert build/plymouth/spinner-base.png -background none \
         -distort SRT ${ANG} +repage "build/plymouth/spinner/${i}.png"
 done
+
+# PNGs do prompt de senha do LUKS (disco cifrado). CRITICO: o pedido de senha
+# roda no INITRAMFS, que NAO embarca libpango/libcairo -> o Image.Text() do
+# Plymouth nao renderiza texto nenhum ali (fica invisivel). A logo e o spinner
+# aparecem porque sao PNG. Por isso o prompt, o campo e a bolinha sao PNGs
+# pre-renderizados aqui. Texto em INGLES (identidade global 2.0). Espelhado do
+# fix validado do Snout (PR #11); ver reference_plymouth_luks_password / BUG-45.
+# %%{file} com % duplicado senao o rpm come o %.
+PWFONT=$(fc-match -f '%%{file}' sans-serif 2>/dev/null || true)
+case "$PWFONT" in *'['*|'') PWFONT= ;; esac
+[ -n "$PWFONT" ] && [ -f "$PWFONT" ] || PWFONT=/usr/share/fonts/liberation-sans-fonts/LiberationSans-Regular.ttf
+[ -f "$PWFONT" ] || PWFONT=
+PWFONTOPT=""; [ -n "$PWFONT" ] && PWFONTOPT="-font $PWFONT"
+convert -background none -fill white $PWFONTOPT -pointsize 26 \
+    label:"Type password to unlock disk" build/plymouth/password_prompt.png
+convert -size 360x48 xc:none -stroke 'rgba(255,255,255,0.55)' -strokewidth 2 \
+    -fill 'rgba(255,255,255,0.07)' -draw "roundrectangle 1,1 358,46 12,12" \
+    build/plymouth/password_field.png
+convert -size 18x18 xc:none -fill white -draw "circle 9,9 9,2" build/plymouth/bullet.png
 
 # ── 6. Pacotes de wallpaper no formato KDE (aparecem no seletor do Plasma) ──
 # Cada wallpaper "capivaraos-*" do live-build vira um pacote
@@ -189,9 +219,9 @@ METAEOF
 # Wallpapers EXCLUSIVOS da marca CapivaraOS (linha 2.x, FEAT-105). Todos usam o
 # LICENSE default da funcao (LicenseRef-CapivaraOS-Trademark) -- arte propria,
 # NAO CC. As antigas (7 de cor solida + 6 fotos CC do Wikimedia) foram removidas:
-# o conjunto do Marsh 2.x passa a ser exatamente estes 8. As 3 cenas (luar/por-do-
+# o conjunto do Marsh 2.x passa a ser exatamente estes 9. As 3 cenas (luar/por-do-
 # sol/dev) levam a logo branca padronizada no canto; as abstratas ja trazem a
-# marca no proprio desenho.
+# marca no proprio desenho; o "serie2" e o hero de marca da linha 2.0.
 create_kde_wallpaper_pkg "capivaraos-luar"       "CapivaraOS Luar"       backgrounds/capivaraos-wp-moonlight.png
 create_kde_wallpaper_pkg "capivaraos-por-do-sol" "CapivaraOS Pôr do Sol" backgrounds/capivaraos-wp-sunset.png
 create_kde_wallpaper_pkg "capivaraos-dev"        "CapivaraOS Dev"        backgrounds/capivaraos-wp-dev.png
@@ -200,6 +230,9 @@ create_kde_wallpaper_pkg "capivaraos-abstrato-2" "CapivaraOS Abstrato 2" backgro
 create_kde_wallpaper_pkg "capivaraos-abstrato-3" "CapivaraOS Abstrato 3" backgrounds/capivaraos-wp-abstract-3.png
 create_kde_wallpaper_pkg "capivaraos-abstrato-4" "CapivaraOS Abstrato 4" backgrounds/capivaraos-wp-abstract-4.png
 create_kde_wallpaper_pkg "capivaraos-comics"     "CapivaraOS Comics"     backgrounds/capivaraos-wp-comics.png
+# Hero da Série 2 (capivara + "2" de circuito + "CapivaraOS"). Asset comum as 3
+# spins, criado no Pup 2.x e propagado (ver project_brand_assets_2x). 3840x2160.
+create_kde_wallpaper_pkg "capivaraos-serie2"     "CapivaraOS Série 2"    backgrounds/capivaraos-wp-serie2.png
 
 %install
 set -e
@@ -220,7 +253,7 @@ install -m0644 fonts/FiraCodeNerdFontMono-Regular.ttf fonts/FiraCodeNerdFontMono
     %{buildroot}%{_datadir}/fonts/capivaraos-firacode-nerd/
 
 # ── Wallpapers ──────────────────────────────────────────────────────────────
-# Os 8 wallpapers da marca sao instalados APENAS como pacotes KDE (bloco
+# Os 9 wallpapers da marca sao instalados APENAS como pacotes KDE (bloco
 # "Pacotes de wallpaper KDE" abaixo), em %{_datadir}/wallpapers/capivaraos-*/.
 # NAO instalamos mais os arquivos soltos em %{_datadir}/backgrounds/capivaraos/:
 # (1) o seletor do Plasma lista TANTO os pacotes KDE (com nome bonito, ex.
@@ -229,7 +262,7 @@ install -m0644 fonts/FiraCodeNerdFontMono-Regular.ttf fonts/FiraCodeNerdFontMono
 # (2) o arquivo solto era uma copia identica da imagem que ja vai dentro do
 #     pacote (contents/images/1920x1080.png) -> ~69 MB duplicados no sistema.
 # Eliminando os soltos, cada wallpaper aparece 1x (o pacote) e some a duplicata,
-# mantendo os 8 do CapivaraOS + os wallpapers padrao do KDE. Login/bloqueio/
+# mantendo os 9 do CapivaraOS + os wallpapers padrao do KDE. Login/bloqueio/
 # desktop/SDDM apontam para a imagem DENTRO do pacote (DEFAULT_WP_PKG/IMG).
 # A arte-mestre backgrounds/CapivaraOS_Logo.png nunca foi wallpaper (e a fonte
 # 1536x1024 dos icones/plymouth) e continua fora do sistema instalado.
@@ -247,9 +280,14 @@ for SIZE in 16 22 24 32 48 64 96 128 256 512; do
         %{buildroot}%{_datadir}/icons/hicolor/${SIZE}x${SIZE}/apps/
     install -m 0644 "build/icons/hicolor/${SIZE}x${SIZE}/apps/capivaraos-full-logo.png" \
         %{buildroot}%{_datadir}/icons/hicolor/${SIZE}x${SIZE}/apps/
-    install -m 0644 "build/icons/hicolor/${SIZE}x${SIZE}/apps/capivaraos-head.png" \
-        %{buildroot}%{_datadir}/icons/hicolor/${SIZE}x${SIZE}/apps/
 done
+
+# Ícone do lançador (kickoff) = SVG SIMBÓLICO adaptável, instalado só em 'scalable'
+# (o scalable serve todos os tamanhos no hicolor; o Plasma recolore pelo tema).
+# Substitui os PNGs brancos da cabeça. Ver a nota em %build (seção 2b).
+install -d %{buildroot}%{_datadir}/icons/hicolor/scalable/apps
+install -m 0644 icons/capivaraos-head.svg \
+    %{buildroot}%{_datadir}/icons/hicolor/scalable/apps/capivaraos-head.svg
 
 # ── Pacotes de wallpaper KDE ─────────────────────────────────────────────────
 install -d %{buildroot}%{_datadir}/wallpapers
@@ -338,6 +376,12 @@ install -d %{buildroot}%{_datadir}/plymouth/themes/capivaraos/spinner
 install -m 0644 build/plymouth/spinner/*.png \
     %{buildroot}%{_datadir}/plymouth/themes/capivaraos/spinner/
 
+# PNGs do prompt de senha do LUKS (ver %build). O %files pega o diretorio
+# inteiro do tema, entao estes tres entram sem precisar de linha propria la.
+install -m 0644 build/plymouth/password_prompt.png build/plymouth/password_field.png \
+    build/plymouth/bullet.png \
+    %{buildroot}%{_datadir}/plymouth/themes/capivaraos/
+
 cat > %{buildroot}%{_datadir}/plymouth/themes/capivaraos/capivaraos.plymouth << 'EOF'
 [Plymouth Theme]
 Name=CapivaraOS
@@ -350,10 +394,10 @@ ScriptFile=/usr/share/plymouth/themes/capivaraos/capivaraos.script
 EOF
 
 cat > %{buildroot}%{_datadir}/plymouth/themes/capivaraos/capivaraos.script << 'EOF'
-# Fundo = tom escuro da paleta CapivaraOS (#12160F, verde-quase-preto),
-# alinhado ao "dark ground" do desktop (FEAT-91 frente C).
-Window.SetBackgroundTopColor(0.071, 0.086, 0.059);
-Window.SetBackgroundBottomColor(0.071, 0.086, 0.059);
+# Fundo = azul-escuro neutro (mesmo do Pup e do Snout), no lugar do verde-escuro
+# antigo (#12160F). Decisao da comunidade (2026-09-22, "muito verde").
+Window.SetBackgroundTopColor(0.07, 0.09, 0.13);
+Window.SetBackgroundBottomColor(0.07, 0.09, 0.13);
 
 # ── Logo branca (acima do spinner) ──────────────────────────────────────────
 logo.image = Image("logo.png");
@@ -379,11 +423,11 @@ spinner.frame = 0;
 is_updates = (Plymouth.GetMode() == "updates" || Plymouth.GetMode() == "system-upgrade");
 
 if (Plymouth.GetMode() == "shutdown" || Plymouth.GetMode() == "reboot") {
-    message_text = "Encerrando o CapivaraOS";
+    message_text = "Shutting down CapivaraOS";
 } else if (is_updates) {
-    message_text = "Instalando atualizações";
+    message_text = "Installing updates";
 } else {
-    message_text = "Inicializando o CapivaraOS";
+    message_text = "Starting CapivaraOS";
 }
 
 message.image = Image.Text(message_text, 1, 1, 1, 1, "Sans 14");
@@ -393,7 +437,7 @@ message.sprite.SetPosition(Window.GetWidth() / 2 - message.image.GetWidth() / 2,
 
 # ── Aviso + percentual, somente durante atualizacao offline ────────────────
 if (is_updates) {
-    warning.image = Image.Text("Não desligue o computador", 0.8, 0.8, 0.8, 1, "Sans 11");
+    warning.image = Image.Text("Don't turn off your computer", 0.8, 0.8, 0.8, 1, "Sans 11");
     warning.sprite = Sprite(warning.image);
     warning.sprite.SetPosition(Window.GetWidth() / 2 - warning.image.GetWidth() / 2,
                                 spinner.cy + 95, 1);
@@ -423,6 +467,56 @@ fun refresh_callback() {
     spinner.sprite.SetY(spinner.cy - img.GetHeight() / 2);
 }
 Plymouth.SetRefreshFunction(refresh_callback);
+
+# ── Campo de senha do LUKS (disco cifrado) ──────────────────────────────────
+# O pedido de senha roda no INITRAMFS, que NAO tem libpango/libcairo -> o
+# Image.Text() nao renderiza nada ali (so PNG aparece, como a logo/o spinner).
+# Por isso prompt, campo e bolinha sao PNGs pre-renderizados (ver %build).
+# Detalhe que faz funcionar: o refresh_callback do spinner nao mexe em opacity,
+# entao o SetOpacity(0) persiste durante a digitacao. Espelhado do fix validado
+# do Snout (PR #11). Ver reference_plymouth_luks_password / BUG-45 (cross-spin).
+pw_prompt.image = Image("password_prompt.png");
+pw_field.image  = Image("password_field.png");
+pw_bullet.image = Image("bullet.png");
+pw_bullet_gap = 10;
+pw_bullet_max = 64;
+
+fun display_password_callback(prompt_string, bullets) {
+    message.sprite.SetOpacity(0);
+    spinner.sprite.SetOpacity(0);                 # esconde o spinner na digitacao
+    if (!pw_prompt.sprite) pw_prompt.sprite = Sprite(pw_prompt.image);
+    pw_prompt.sprite.SetPosition(Window.GetWidth() / 2 - pw_prompt.image.GetWidth() / 2,
+                                 spinner.cy - 36, 10);
+    pw_prompt.sprite.SetOpacity(1);
+    if (!pw_field.sprite) pw_field.sprite = Sprite(pw_field.image);
+    field_top = spinner.cy + 6;
+    pw_field.sprite.SetPosition(Window.GetWidth() / 2 - pw_field.image.GetWidth() / 2,
+                                field_top, 9);
+    pw_field.sprite.SetOpacity(1);
+    bw = pw_bullet.image.GetWidth();
+    total = bullets * bw + (bullets - 1) * pw_bullet_gap;
+    if (bullets < 1) total = 0;
+    start_x = Window.GetWidth() / 2 - total / 2;
+    by = field_top + (pw_field.image.GetHeight() - pw_bullet.image.GetHeight()) / 2;
+    for (i = 0; i < bullets && i < pw_bullet_max; i++) {
+        if (!pw_bullet[i].sprite) pw_bullet[i].sprite = Sprite(pw_bullet.image);
+        pw_bullet[i].sprite.SetPosition(start_x + i * (bw + pw_bullet_gap), by, 11);
+        pw_bullet[i].sprite.SetOpacity(1);
+    }
+    for (i = bullets; i < pw_bullet_max; i++)
+        if (pw_bullet[i].sprite) pw_bullet[i].sprite.SetOpacity(0);
+}
+Plymouth.SetDisplayPasswordFunction(display_password_callback);
+
+fun display_normal_callback() {
+    message.sprite.SetOpacity(1);
+    spinner.sprite.SetOpacity(1);                 # spinner volta quando a senha e aceita
+    if (pw_prompt.sprite) pw_prompt.sprite.SetOpacity(0);
+    if (pw_field.sprite) pw_field.sprite.SetOpacity(0);
+    for (i = 0; i < pw_bullet_max; i++)
+        if (pw_bullet[i].sprite) pw_bullet[i].sprite.SetOpacity(0);
+}
+Plymouth.SetDisplayNormalFunction(display_normal_callback);
 EOF
 
 # NOTA CapivaraOS: /etc/os-release, /etc/issue, /etc/issue.net e
@@ -462,18 +556,23 @@ EOF
 
 cat > %{buildroot}%{_sysconfdir}/skel/.config/kdeglobals << 'EOF'
 [General]
-# ESQUEMA DE CORES PROPRIO CapivaraOS (FEAT-91 frente D, D1): paleta verde da
-# marca no lugar do Breeze/WhiteSur. Instalado por este pacote em
-# /usr/share/color-schemes/CapivaraOS.colors; reforcado no /etc/xdg (%posttrans).
-ColorScheme=CapivaraOS
-# PALETA VERDE CapivaraOS (FEAT-91 frente B): accent verde da marca #15B22C
-# (RGB 21,178,44). Baseline em /etc/skel; reforcado no /etc/xdg (%posttrans) p/ a
-# sessao LIVE. REVERSIVEL: ver docs/REVERT-CORES-VERDE.md
-AccentColor=21,178,44
+# ESQUEMA DE CORES = AZUL PADRAO (Breeze Dark). Decisao da comunidade (2026-09-22):
+# "muito verde" -> o esquema/accent voltam ao azul padrao (botoes, selecao, cor
+# de pasta). O esquema verde proprio (CapivaraOS.colors) continua INSTALADO e
+# selecionavel em Aparencia > Cores -- so deixa de ser o padrao. O tema Plasma
+# (painel/menus), a decoracao Aurorae e o Konsole SEGUEM verdes (escopo da comunidade:
+# so cores/accent). Ver docs/REVERT-CORES-VERDE.md.
+ColorScheme=BreezeDark
+# Sem AccentColor proprio -> o accent segue o azul padrao do esquema.
+# accentColorFromWallpaper=false garante o azul (senao viria do wallpaper, que e
+# esverdeado).
 accentColorFromWallpaper=false
 
 [KDE]
-LookAndFeelPackage=org.kde.breezedark.desktop
+# Tema Global = o nosso Look-and-Feel org.capivaraos.desktop (PROD-130), para que
+# "CapivaraOS" apareca como o tema ATIVO em Aparencia (no lugar de "Breeze Dark").
+# O usuario pode trocar para Breeze e voltar quando quiser (nao bloqueia nada).
+LookAndFeelPackage=org.capivaraos.desktop
 SingleClick=false
 
 [Icons]
@@ -486,12 +585,12 @@ EOF
 
 cat > %{buildroot}%{_sysconfdir}/skel/.config/plasmarc << 'EOF'
 [Theme]
-# TEMA PLASMA PROPRIO CapivaraOS (FEAT-91 frente D, D4): formas proprias
-# (barra/menus/dialogos/dica) na paleta verde. Instalado por este pacote em
-# /usr/share/plasma/desktoptheme/CapivaraOS; reforcado no /etc/xdg/plasmarc
-# (%posttrans) para valer tambem na sessao LIVE. O que nao redesenhamos cai no
-# Breeze recolorido pela nossa paleta (arquivo "colors" do tema).
-name=CapivaraOS
+# TEMA PLASMA = Breeze padrao (default). Decisao da comunidade (2026-09-23): tirar o
+# verde do painel/menus tambem. O tema Plasma proprio CapivaraOS continua
+# INSTALADO em /usr/share/plasma/desktoptheme/CapivaraOS e selecionavel em
+# Aparencia > Tema do Plasma -- so deixa de ser o padrao (nao-destrutivo). A
+# decoracao de janela (Aurorae) e o Konsole SEGUEM verdes (escopo da comunidade).
+name=default
 EOF
 
 # Desativa o assistente de primeiro boot do Plasma (plasma-welcome / tela
@@ -638,7 +737,93 @@ tasks.writeConfig("launchers", [
     "applications:org.kde.kcalc.desktop",
     "applications:libreoffice-writer.desktop"
 ]);
+
+// ── Wallpaper padrao da marca (CapivaraOS Luar) ─────────────────────────────
+// Setamos o wallpaper nos DESKTOPS reais via desktops(), em vez de confiar num
+// ID fixo de containment no skel. Dependendo do Plasma / ordem de criacao dos
+// paineis, o [Containments][1] do skel pode ser um PAINEL (nao o desktop) -- foi
+// o que aconteceu no F45 GA: o skel gravava o Luar num painel e o desktop caia
+// no padrao do Plasma (Hanabi). desktops() retorna so os containments de area de
+// trabalho (nunca paineis), entao forcamos o plugin e a imagem no lugar certo.
+// Roda no 1o login (o layout e aplicado pelo Look-and-Feel org.capivaraos.desktop).
+var capDesktops = desktops();
+for (var di = 0; di < capDesktops.length; di++) {
+    var cd = capDesktops[di];
+    cd.wallpaperPlugin = "org.kde.image";
+    cd.currentConfigGroup = ["Wallpaper", "org.kde.image", "General"];
+    cd.writeConfig("Image", "/usr/share/wallpapers/capivaraos-luar/");
+    cd.writeConfig("FillMode", 2);
+}
 EOF
+
+# ── Tema Global (Look-and-Feel) proprio: org.capivaraos.desktop (PROD-130) ───
+# Empacota a identidade do desktop num Look-and-Feel do KDE para que "CapivaraOS"
+# apareca como o Tema Global ATIVO em Ajustes do Sistema > Aparencia (no lugar de
+# "Breeze Dark") e o usuario possa experimentar o Breeze e VOLTAR para
+# "CapivaraOS" -- marcando "usar o layout da area de trabalho" ele reconstroi
+# painel superior + dock. Nao bloqueia nada (e so mais um tema selecionavel).
+# REUSA os nomes exatos ja instalados por este pacote e reforcados no %posttrans:
+# esquema de cores CapivaraOS, desktoptheme CapivaraOS, decoracao
+# __aurorae__svg__CapivaraOS (lib org.kde.kwin.aurorae.v2), icones breeze-dark,
+# accent 21,178,44. O layout e o MESMO macos-layout.js (copiado -> fonte unica,
+# sem divergencia). Nao se aplica a Snout/Pup (desktops diferentes).
+LNF=%{buildroot}%{_datadir}/plasma/look-and-feel/org.capivaraos.desktop
+install -d "$LNF/contents/layouts" "$LNF/contents/previews"
+cat > "$LNF/metadata.json" << 'LNFMETA'
+{
+    "KPackageStructure": "Plasma/LookAndFeel",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "CapivaraOS Project"
+            }
+        ],
+        "Description": "Tema global do CapivaraOS Marsh (verde-Pantanal, painel + dock)",
+        "Id": "org.capivaraos.desktop",
+        "License": "GPL-3.0-or-later",
+        "Name": "CapivaraOS",
+        "Name[pt_BR]": "CapivaraOS",
+        "Version": "%{version}",
+        "Website": "https://capivaraos.org"
+    }
+}
+LNFMETA
+# 'defaults': o que o KCM aplica ao selecionar o tema. Formato [arquivo][grupo].
+# Os MESMOS valores dos blocos de skel/%posttrans -- selecionar "CapivaraOS"
+# reaplica a nossa identidade; selecionar "Breeze" volta ao padrao do KDE.
+cat > "$LNF/contents/defaults" << 'LNFDEF'
+[kdeglobals][KDE]
+widgetStyle=Breeze
+
+[kdeglobals][General]
+ColorScheme=BreezeDark
+accentColorFromWallpaper=false
+
+[kdeglobals][Icons]
+Theme=breeze-dark
+
+[plasmarc][Theme]
+name=default
+
+[kwinrc][org.kde.kdecoration2]
+library=org.kde.kwin.aurorae.v2
+theme=__aurorae__svg__CapivaraOS
+ButtonsOnLeft=XIA
+ButtonsOnRight=
+
+[kscreenlockerrc][Greeter]
+Theme=org.kde.breeze
+LNFDEF
+# Layout = MESMO macos-layout.js (fonte unica). Presente aqui, o KCM oferece a
+# opcao "usar o layout da area de trabalho" -> reconstroi painel superior + dock.
+cp %{buildroot}%{_datadir}/capivaraos/macos-layout.js \
+    "$LNF/contents/layouts/org.kde.plasma.desktop-layout.js"
+# Preview do cartao do KCM: a cena "Luar" (wallpaper padrao).
+convert backgrounds/capivaraos-wp-moonlight.png -resize 400x250^ -gravity center \
+    -extent 400x250 "$LNF/contents/previews/preview.png" 2>/dev/null || \
+    cp backgrounds/capivaraos-wp-moonlight.png "$LNF/contents/previews/preview.png"
+find "$LNF" -type d -exec chmod 0755 {} \;
+find "$LNF" -type f -exec chmod 0644 {} \;
 
 install -d %{buildroot}%{_bindir}
 cat > %{buildroot}%{_bindir}/capivaraos-set-layout << 'EOF'
@@ -839,6 +1024,73 @@ RemainAfterExit=yes
 WantedBy=multi-user.target
 EOF
 
+# ── Snapshots pré-upgrade: config 'root' do snapper no 1º boot (PROD-118) ────
+# O capivaraos-upgrade (FEAT-115) só tira o snapshot de segurança ANTES do
+# upgrade in-place se a raiz for btrfs E existir a config 'root' do snapper
+# (snapper list-configs | grep -qw root). O Marsh instala snapper +
+# btrfs-assistant, mas nem o pacote nem o Anaconda criam essa config — então o
+# upgrade caía no caminho "sem snapshot" (sem rollback automático). Este
+# serviço a cria uma única vez no 1º boot do sistema instalado (idempotente,
+# DE-agnóstico). Portado do Snout (PROD-116, commit 5ac5b59). Sem '%' nos
+# heredocs (o rpm come '%' no %install mesmo com << 'EOF' -- ver
+# reference_rpm_percent_heredoc): o script/unit abaixo não usa nenhum.
+install -d %{buildroot}%{_libexecdir}/capivaraos
+cat > %{buildroot}%{_libexecdir}/capivaraos/snapper-firstboot << 'EOF'
+#!/bin/bash
+# Cria a config 'root' do snapper se a raiz for btrfs e ainda não existir.
+# Idempotente; pensado para rodar uma vez no 1o boot do sistema instalado.
+set -e
+[ "$(findmnt -no FSTYPE /)" = btrfs ] || exit 0
+command -v snapper >/dev/null 2>&1 || exit 0
+snapper list-configs 2>/dev/null | grep -qw root && exit 0
+snapper -c root create-config /
+# Limites conservadores: sem timeline automática (não encher o disco); mantém
+# os snapshots numerados (pré/pós de transação e o do capivaraos-upgrade).
+snapper -c root set-config TIMELINE_CREATE=no NUMBER_CLEANUP=yes NUMBER_LIMIT=10 NUMBER_LIMIT_IMPORTANT=10 || true
+systemctl enable --now snapper-cleanup.timer >/dev/null 2>&1 || true
+EOF
+chmod 0755 %{buildroot}%{_libexecdir}/capivaraos/snapper-firstboot
+
+cat > %{buildroot}%{_unitdir}/capivaraos-snapper-setup.service << 'EOF'
+[Unit]
+Description=CapivaraOS: cria a configuracao snapper 'root' no 1o boot (btrfs)
+Documentation=https://capivaraos.org
+# Pula assim que a config existir (nao roda de novo); e so em raiz btrfs.
+ConditionPathExists=!/etc/snapper/configs/root
+After=local-fs.target
+Before=multi-user.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/libexec/capivaraos/snapper-firstboot
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# ── Hostname da marca: impede o NetworkManager de sobrescrever "capivaraos" ───
+# O /etc/os-release traz DEFAULT_HOSTNAME=capivaraos, que o systemd-hostnamed usa
+# como hostname efetivo quando o /etc/hostname (static) está vazio — e no boot do
+# sistema instalado ele REALMENTE começa como "capivaraos". Porém o NetworkManager,
+# no hostname-mode padrão, faz um reverse-DNS do IP do lease DHCP ("set-hostname:
+# ... from address lookup") e sobrescreve o transient. Em VM (libvirt/Boxes) e em
+# roteadores que registram o hostname do DHCP no DNS local, esse lookup devolve
+# "localhost-live" (o nome que a mídia live mandou no DHCP, reusando a mesma MAC no
+# install) → o terminal instalado nasce "dp@localhost-live" em vez de "capivaraos".
+# Fix: hostname-mode=none → o NM não mexe no hostname; o DEFAULT_HOSTNAME prevalece,
+# e um hostname escolhido pelo usuário (hostnamectl / static) continua respeitado.
+# Arquivo estático (empacotado em %files), não %posttrans. O diretório conf.d é do
+# pacote NetworkManager (dependência sempre presente no Marsh), por isso só
+# empacotamos o arquivo, não o %dir. Marsh-only aqui; vale portar p/ Pup/Snout.
+install -d %{buildroot}%{_sysconfdir}/NetworkManager/conf.d
+cat > %{buildroot}%{_sysconfdir}/NetworkManager/conf.d/00-capivaraos-hostname.conf << 'EOF'
+# CapivaraOS: não deixar o NetworkManager sobrescrever o hostname da marca
+# (capivaraos, de DEFAULT_HOSTNAME no os-release) com o nome do lease DHCP.
+[main]
+hostname-mode=none
+EOF
+
 # ── Perfil do Anaconda: faz o instalador reconhecer o CapivaraOS (BUG-38) ────
 # O Anaconda casa o perfil de instalacao pelo os_id do /etc/os-release. Como o
 # nosso ID e "capivaraos" (nao "fedora"), NENHUM perfil casava e o instalador
@@ -960,6 +1212,13 @@ cat > %{buildroot}%{_datadir}/cockpit/branding/capivaraos/branding.css << 'EOF'
     --pf-t--global--color--brand--default: var(--brand-default-light);
     --pf-t--global--color--brand--hover: var(--brand-default);
 }
+
+/* Esconde o bloco "Send us feedback" (QR + link fixo pro Ask Fedora) da tela
+   final do Anaconda WebUI -- hardcoded no anaconda-webui (Feedback.jsx). Nao e
+   o nosso canal; so ocultamos (FEAT-145, plano C). Idem Snout/Pup. */
+.feedback-section {
+    display: none !important;
+}
 EOF
 # NOTA: Spotify foi DESCARTADO (decisao do usuario 2026-08-20 — nao vale o
 # esforco: flatpak de extra-data nao instala no compose e exigia oneshot de 1o
@@ -973,6 +1232,11 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # (nao roda na live -- ver a unit). Habilitado aqui, no compose, para o
 # sistema instalado herdar o servico ligado.
 systemctl enable capivaraos-relabel-root.service >/dev/null 2>&1 || true
+
+# Cria a config 'root' do snapper no 1o boot (btrfs) -> habilita o snapshot/
+# rollback automático do capivaraos-upgrade. PROD-118. Habilitado aqui (compose)
+# para o sistema instalado herdar o serviço ligado, igual ao relabel-root acima.
+systemctl enable capivaraos-snapper-setup.service >/dev/null 2>&1 || true
 
 # Pula o OOBE de 1o boot do Plasma (plasma-setup.service: assistente de idioma/
 # teclado/usuario com fundo do mapa 3D, que "abre no inicio do KDE"). E
@@ -1027,8 +1291,8 @@ done
 # que a tela de bloqueio do Plasma mostra. Sobrescrevemos com o luar (JXL). Feito
 # no %posttrans (depois do desktop-backgrounds-compat instalar) e reaplicado por
 # %transfiletriggerin quando esse pacote atualizar (que reverteria o arquivo).
-# IMPORTANTE: default.jxl e um SYMLINK -> ./f44/default/f44-01-day.jxl (idem o
-# -dark, -> f44-01-night.jxl). Um "cp -f" escreve ATRAVES do link e sobrescreve a
+# IMPORTANTE: default.jxl e um SYMLINK -> ./f45/default/f45-01-day.jxl (idem o
+# -dark, -> f45-01-night.jxl) no Fedora 45. Um "cp -f" escreve ATRAVES do link e sobrescreve a
 # arte REAL do Fedora (era o que fazia o wallpaper "Fedora Forty-Four" aparecer
 # com o luar). "cp --remove-destination" apaga o link antes e grava um arquivo
 # real -> os originais do Fedora ficam intactos.
@@ -1055,20 +1319,17 @@ if [ -f "$PLD" ]; then
         "$PLD"
 fi
 
-# ── Accent verde no login (greeter do plasma-login-manager) — FEAT-91 frente C
-# O greeter roda como o usuario "plasmalogin" (home /var/lib/plasmalogin) e le a
-# aparencia de um kdeglobals (o .kcfg do greeter aponta p/ kdeglobals, grupo
-# [KDE]); o accent do Plasma 6 vem de [General] AccentColor. Como o usuario
-# plasmalogin NAO tem AccentColor proprio, o fallback do sistema
-# /etc/xdg/kdeglobals prevalece. Gravamos as MESMAS chaves do desktop la, via
-# kwriteconfig (MERGE: nao apaga outras chaves do kde-settings; cria o arquivo se
-# faltar). ESTATICO/reversivel. Seguro: valor nao-reconhecido nao faz efeito e
-# NUNCA da tela preta (o preto do BUG-43 era o wallpaper apontando p/ diretorio
-# removido, nao o accent). Ver docs/REVERT-CORES-VERDE.md.
+# ── Accent do login (greeter do plasma-login-manager) — AZUL PADRAO ──────────
+# O greeter roda como o usuario "plasmalogin" e le o accent do fallback do
+# sistema /etc/xdg/kdeglobals ([General] AccentColor). Decisao da comunidade (2026-09-22,
+# "muito verde"): sem AccentColor proprio -> o greeter usa o azul padrao do
+# esquema. REMOVEMOS ativamente qualquer AccentColor verde que uma versao anterior
+# tenha gravado no /etc/xdg. Mantemos accentColorFromWallpaper=false para o accent
+# NAO vir do wallpaper (esverdeado). Ver docs/REVERT-CORES-VERDE.md.
 XDGKG=%{_sysconfdir}/xdg/kdeglobals
 install -d %{_sysconfdir}/xdg
-kwriteconfig6 --file "$XDGKG" --group General --key AccentColor "21,178,44" 2>/dev/null || \
-    kwriteconfig5 --file "$XDGKG" --group General --key AccentColor "21,178,44" 2>/dev/null || true
+kwriteconfig6 --file "$XDGKG" --group General --key AccentColor --delete 2>/dev/null || \
+    kwriteconfig5 --file "$XDGKG" --group General --key AccentColor --delete 2>/dev/null || true
 kwriteconfig6 --file "$XDGKG" --group General --key accentColorFromWallpaper "false" 2>/dev/null || \
     kwriteconfig5 --file "$XDGKG" --group General --key accentColorFromWallpaper "false" 2>/dev/null || true
 
@@ -1080,8 +1341,13 @@ kwriteconfig6 --file "$XDGKG" --group General --key accentColorFromWallpaper "fa
 # decoracao de janela e o perfil do Konsole no /etc/xdg (fallback do sistema,
 # lido por TODOS os usuarios sem override -- live e instalado). Merge via
 # kwriteconfig; reversivel. Ver docs/REVERT-CORES-VERDE.md.
-kwriteconfig6 --file "$XDGKG" --group General --key ColorScheme "CapivaraOS" 2>/dev/null || \
-    kwriteconfig5 --file "$XDGKG" --group General --key ColorScheme "CapivaraOS" 2>/dev/null || true
+kwriteconfig6 --file "$XDGKG" --group General --key ColorScheme "BreezeDark" 2>/dev/null || \
+    kwriteconfig5 --file "$XDGKG" --group General --key ColorScheme "BreezeDark" 2>/dev/null || true
+# Tema Global = nosso Look-and-Feel org.capivaraos.desktop (PROD-130). Reforcado
+# aqui no /etc/xdg para a sessao LIVE (que nao herda o /etc/skel/.config/kdeglobals)
+# mostrar "CapivaraOS" como tema ativo em Aparencia. Reversivel (troca pelo KCM).
+kwriteconfig6 --file "$XDGKG" --group KDE --key LookAndFeelPackage "org.capivaraos.desktop" 2>/dev/null || \
+    kwriteconfig5 --file "$XDGKG" --group KDE --key LookAndFeelPackage "org.capivaraos.desktop" 2>/dev/null || true
 # Icones Breeze Dark (antes fixados no capivaraos-post-theme.ks, agora aposentado).
 kwriteconfig6 --file "$XDGKG" --group Icons --key Theme "breeze-dark" 2>/dev/null || \
     kwriteconfig5 --file "$XDGKG" --group Icons --key Theme "breeze-dark" 2>/dev/null || true
@@ -1100,22 +1366,23 @@ XDGKONSOLE=%{_sysconfdir}/xdg/konsolerc
 kwriteconfig6 --file "$XDGKONSOLE" --group "Desktop Entry" --key DefaultProfile "CapivaraOS.profile" 2>/dev/null || \
     kwriteconfig5 --file "$XDGKONSOLE" --group "Desktop Entry" --key DefaultProfile "CapivaraOS.profile" 2>/dev/null || true
 
-# Tema Plasma proprio (FEAT-91 frente D, D4) como padrao do sistema: painel/
-# menus/dialogos/dica com as formas CapivaraOS. Mesmo motivo do bloco acima -- a
-# live nao herda o /etc/skel/.config/plasmarc, entao gravamos tambem no /etc/xdg.
+# Tema Plasma = Breeze padrao (default) tambem no fallback do sistema /etc/xdg
+# (a live nao herda /etc/skel/.config/plasmarc). Decisao da comunidade (2026-09-23):
+# sem verde no painel/menus. O desktoptheme CapivaraOS segue instalado/selecionavel.
 XDGPLASMA=%{_sysconfdir}/xdg/plasmarc
-kwriteconfig6 --file "$XDGPLASMA" --group Theme --key name "CapivaraOS" 2>/dev/null || \
-    kwriteconfig5 --file "$XDGPLASMA" --group Theme --key name "CapivaraOS" 2>/dev/null || true
+kwriteconfig6 --file "$XDGPLASMA" --group Theme --key name "default" 2>/dev/null || \
+    kwriteconfig5 --file "$XDGPLASMA" --group Theme --key name "default" 2>/dev/null || true
 
 # ── Remove os wallpapers de marca Fedora do seletor do Plasma ────────────────
-# O seletor deve listar so os 8 do CapivaraOS + os neutros do KDE
-# (plasma-workspace-wallpapers). As 3 entradas "Fedora KDE SIG" saem:
-# F44 ("Fedora Forty-Four"), Fedora e Default. NAO removemos os PACOTES:
-# kde-settings-plasma (dono de "Fedora") e essencial e desktop-backgrounds-kde
-# EXIGE f44-backgrounds-kde -> excluir no kickstart arrastaria dependencia. Entao
+# O seletor deve listar so os 9 do CapivaraOS + os neutros do KDE
+# (plasma-workspace-wallpapers). As entradas "Fedora KDE SIG" saem: a da versao
+# (F45 no Fedora 45 -- "Fedora Forty-Five"; deixamos F44 na lista por seguranca
+# entre rebases), Fedora e Default. NAO removemos os PACOTES: kde-settings-plasma
+# (dono de "Fedora") e essencial e desktop-backgrounds-kde EXIGE
+# f45-backgrounds-kde -> excluir no kickstart arrastaria dependencia. Entao
 # apagamos so os diretorios do seletor. Reaplicado por %transfiletriggerin em
 # %{_datadir}/wallpapers caso um update reinstale-os.
-for WP in F44 Fedora Default; do
+for WP in F44 F45 Fedora Default; do
     rm -rf %{_datadir}/wallpapers/"$WP"
 done
 
@@ -1141,44 +1408,44 @@ plymouth-set-default-theme capivaraos >/dev/null 2>&1 || true
 # prevalece independente da ordem de instalacao dos pacotes.
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha36, preview)"
+VERSION="Marsh 2.0.0%{?cos_label: (%{cos_label}, preview)}"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
-VERSION_ID=44
+VERSION_ID=45
 VERSION_CODENAME=marsh
-PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha36, preview)"
+PLATFORM_ID="platform:f45"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0%{?cos_label: (%{cos_label}, preview)}"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
-CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
+CPE_NAME="cpe:/o:capivaraos:capivaraos:45"
 DEFAULT_HOSTNAME=capivaraos
 HOME_URL="https://capivaraos.org"
 DOCUMENTATION_URL="https://capivaraos.org"
 SUPPORT_URL="https://capivaraos.org"
 BUG_REPORT_URL="https://capivaraos.org"
 REDHAT_BUGZILLA_PRODUCT="Fedora"
-REDHAT_BUGZILLA_PRODUCT_VERSION=44
+REDHAT_BUGZILLA_PRODUCT_VERSION=45
 REDHAT_SUPPORT_PRODUCT="Fedora"
-REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha36, preview)"
+REDHAT_SUPPORT_PRODUCT_VERSION=45
+VARIANT="Marsh 2.0.0%{?cos_label: (%{cos_label}, preview)}"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha36, preview) \n \l
+CapivaraOS Marsh 2.0.0%{?cos_label: (%{cos_label}, preview)} \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha36, preview)
+CapivaraOS Marsh 2.0.0%{?cos_label: (%{cos_label}, preview)}
 EOF
 
 install -d %{_sysconfdir}/xdg
 cat > %{_sysconfdir}/xdg/kcm-about-distrorc << 'EOF'
 [General]
 LogoPath=capivaraos-full-logo
-Variant=Marsh 2.0.0 (alpha36, preview)
+Variant=Marsh 2.0.0%{?cos_label: (%{cos_label}, preview)}
 Website=https://capivaraos.org
 UseOSReleaseVersion=true
 EOF
@@ -1200,7 +1467,7 @@ done
 # ── Reaplica os-release apos qualquer atualizacao futura do sistema ────────
 # Nao declaramos /etc/os-release em %files (evita conflito na transacao da
 # ISO), so sobrescrevemos o conteudo. Logo o arquivo continua pertencendo ao
-# Fedora no rpmdb, e um "dnf update" que toque o pacote dono reescreve tudo de
+# Fedora no rpmdb, e um "dnf update" que toque o pacote comunidade reescreve tudo de
 # volta para o padrao do Fedora. Se isso acontecer na MESMA transacao em que
 # um kernel novo e instalado, o titulo GRUB/BLS desse kernel (que o
 # kernel-install gera a partir de NAME/VERSION do os-release) fica gravado
@@ -1232,37 +1499,37 @@ done
 grep -q '^NAME="CapivaraOS"' %{_prefix}/lib/os-release 2>/dev/null && exit 0
 cat > %{_sysconfdir}/os-release << 'EOF'
 NAME="CapivaraOS"
-VERSION="Marsh 2.0.0 (alpha36, preview)"
+VERSION="Marsh 2.0.0%{?cos_label: (%{cos_label}, preview)}"
 RELEASE_TYPE=stable
 ID=capivaraos
 ID_LIKE=fedora
-VERSION_ID=44
+VERSION_ID=45
 VERSION_CODENAME=marsh
-PLATFORM_ID="platform:f44"
-PRETTY_NAME="CapivaraOS Marsh 2.0.0 (alpha36, preview)"
+PLATFORM_ID="platform:f45"
+PRETTY_NAME="CapivaraOS Marsh 2.0.0%{?cos_label: (%{cos_label}, preview)}"
 ANSI_COLOR="0;32"
 LOGO=capivaraos-logo
-CPE_NAME="cpe:/o:capivaraos:capivaraos:44"
+CPE_NAME="cpe:/o:capivaraos:capivaraos:45"
 DEFAULT_HOSTNAME=capivaraos
 HOME_URL="https://capivaraos.org"
 DOCUMENTATION_URL="https://capivaraos.org"
 SUPPORT_URL="https://capivaraos.org"
 BUG_REPORT_URL="https://capivaraos.org"
 REDHAT_BUGZILLA_PRODUCT="Fedora"
-REDHAT_BUGZILLA_PRODUCT_VERSION=44
+REDHAT_BUGZILLA_PRODUCT_VERSION=45
 REDHAT_SUPPORT_PRODUCT="Fedora"
-REDHAT_SUPPORT_PRODUCT_VERSION=44
-VARIANT="Marsh 2.0.0 (alpha36, preview)"
+REDHAT_SUPPORT_PRODUCT_VERSION=45
+VARIANT="Marsh 2.0.0%{?cos_label: (%{cos_label}, preview)}"
 VARIANT_ID=marsh
 EOF
 
 cat > %{_sysconfdir}/issue << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha36, preview) \n \l
+CapivaraOS Marsh 2.0.0%{?cos_label: (%{cos_label}, preview)} \n \l
 
 EOF
 
 cat > %{_sysconfdir}/issue.net << 'EOF'
-CapivaraOS Marsh 2.0.0 (alpha36, preview)
+CapivaraOS Marsh 2.0.0%{?cos_label: (%{cos_label}, preview)}
 EOF
 
 for kver in $(ls /lib/modules 2>/dev/null); do
@@ -1326,11 +1593,12 @@ sed -i -E \
 %{_datadir}/pixmaps/capivaraos-white.png
 %{_datadir}/icons/hicolor/*/apps/capivaraos-logo.png
 %{_datadir}/icons/hicolor/*/apps/capivaraos-full-logo.png
-%{_datadir}/icons/hicolor/*/apps/capivaraos-head.png
+%{_datadir}/icons/hicolor/scalable/apps/capivaraos-head.svg
 %{_datadir}/wallpapers/capivaraos-*/
 %{_datadir}/color-schemes/CapivaraOS.colors
 %{_datadir}/aurorae/themes/CapivaraOS/
 %{_datadir}/plasma/desktoptheme/CapivaraOS/
+%{_datadir}/plasma/look-and-feel/org.capivaraos.desktop/
 %{_datadir}/konsole/CapivaraOS.colorscheme
 %{_datadir}/konsole/CapivaraOS.profile
 %{_datadir}/plymouth/themes/capivaraos/
@@ -1341,6 +1609,10 @@ sed -i -E \
 %{_bindir}/capivaraos-set-avatar
 %{_bindir}/capivaraos-relabel-root
 %{_unitdir}/capivaraos-relabel-root.service
+%{_unitdir}/capivaraos-snapper-setup.service
+%{_sysconfdir}/NetworkManager/conf.d/00-capivaraos-hostname.conf
+%dir %{_libexecdir}/capivaraos
+%{_libexecdir}/capivaraos/snapper-firstboot
 %{_sysconfdir}/xdg/autostart/capivaraos-wallpaper.desktop
 %{_sysconfdir}/xdg/autostart/capivaraos-layout.desktop
 %{_sysconfdir}/xdg/autostart/capivaraos-avatar.desktop
@@ -1365,6 +1637,167 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Tue Nov 03 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-3
+- Hostname da marca: drop-in /etc/NetworkManager/conf.d/00-capivaraos-hostname.conf
+  com hostname-mode=none. O sistema instalado nascia "dp@localhost-live": o
+  NetworkManager, no modo padrao, faz reverse-DNS do lease DHCP e sobrescrevia o
+  "capivaraos" (vindo de DEFAULT_HOSTNAME no os-release) com o nome que a mídia live
+  registrou no DHCP para a mesma MAC. Com hostname-mode=none o NM nao mexe no
+  hostname e o DEFAULT_HOSTNAME prevalece. Hostname escolhido pelo usuario continua
+  respeitado. Marsh-only (vale portar p/ Pup/Snout).
+
+* Tue Nov 03 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-2
+- Wallpaper padrao (CapivaraOS Luar) agora e setado pelo macos-layout.js via
+  desktops(), nao mais so pelo skel [Containments][1]. No F45 GA o Plasma passou
+  a numerar o containment 1 como um PAINEL (o dock), entao o Luar do skel caia num
+  painel e o desktop ficava no padrao do Plasma (Hanabi). Corrigido no containment
+  certo, independente de ID. Marsh-only (KDE).
+
+* Tue Nov 03 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-1
+- Corte estável 2.0.0 (GA do Fedora 45): rótulo alphaN removido — os-release/issue/
+  issue.net/VARIANT agora "CapivaraOS Marsh 2.0.0" limpo (macro cos_label desativado,
+  via condicional %%{?cos_label}); Release 0.53.alpha53 -> 1.
+
+* Sun Oct 25 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.53.alpha53
+- Plymouth/LUKS (refaz o alpha52): o callback do alpha52 usava Image.Text, que NÃO
+  renderiza no initramfs (sem libpango/libcairo) — o prompt ficaria invisível, só a
+  logo/spinner (PNG) apareceriam. Refeito como o Snout validou em VM (PR #11): prompt,
+  campo e bolinha agora são PNGs pré-renderizados no %build (password_prompt/field/bullet);
+  na digitação esconde o spinner e mostra campo + bolinhas, e o spinner volta ao aceitar.
+  Textos do splash passam para INGLÊS (identidade global 2.0): "Starting CapivaraOS",
+  "Shutting down CapivaraOS", "Installing updates", "Don't turn off your computer". BUG-45.
+
+* Sat Oct 24 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.52.alpha52
+- Plymouth (disco criptografado/LUKS): o capivaraos.script não tinha callback de senha
+  (só SetRefreshFunction/SetSystemUpdateFunction). Com LUKS, o Plymouth não desenhava
+  campo de senha nenhum → o splash da capivara PARECIA travado (senha só via ESC, em
+  texto). Reproduzido em 2 máquinas. Adicionados SetDisplayPasswordFunction (prompt
+  "Digite a senha para desbloquear o disco" + asteriscos) e SetDisplayNormalFunction.
+  NÃO é o BUG-40 (storage). Espelhado do fix do Pup (PR #7, alpha13).
+
+* Wed Oct 14 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.51.alpha51
+- fastfetch: o config.jsonc só definia "logo" — no fastfetch 2.69 isso imprime APENAS
+  a capivara, sem as infos (OS/kernel/CPU…). Adicionada a seção "modules" (lista padrão
+  do fastfetch) pra mostrar o logo E as infos. Logo e cor (verde #15B22C) mantidos.
+  Espelhado do fix do Snout (alpha12). FEAT-136.
+
+* Fri Oct 09 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.50.alpha50
+- Rótulo do menu de boot da mídia: "Start CapivaraOS Marsh 45" → "Start CapivaraOS
+  Marsh 2 45" (agora mostra a versão do CapivaraOS **2** + a do Fedora **45**). Feito
+  via --project="CapivaraOS Marsh 2" no livemedia-creator (grava no COMPOSE), espelhado
+  do Pup (8475bfb)/Snout. REMOVIDO também o bloco xorriso pós-build que tentava reescrever
+  o grub.cfg — NÃO funciona no F45 (dava sempre "AVISO: não consegui reescrever") e virou
+  redundante com o --project. Bump porque a ISO muda; sem mudança no pacote de branding.
+
+* Thu Oct 08 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.49.alpha49
+- A ISO passa a incluir o COS Config Center (pacote cos-config 0.11.1, central de
+  configuração do CapivaraOS): adicionado ao %packages do kickstart e baixado+verificado
+  (assinatura) do canal testing no build-all.sh (PR #7). Bump de versão porque o conteúdo
+  da ISO mudou. Rastreio: PROD-141 (inclusão nas ISOs) / PROD-5 (épico do app). Sem
+  mudança no pacote de branding em si (só o número de versão).
+
+* Sun Oct 04 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.48.alpha48
+- Ícone do lançador (kickoff no dock) agora é ADAPTÁVEL: virou um SVG simbólico
+  monocromático (classe ColorScheme-Text) que o Plasma recolore pelo tema — escuro
+  no tema claro, claro no escuro. Antes era PNG branco e sumia no Breeze claro.
+  Fonte vetorial icons/capivaraos-head.svg (traçada da silhueta); substitui os PNGs
+  hicolor da cabeça. PNG da cabeça segue como fonte do avatar. (Enhancement pedido
+  pela comunidade; cor padrão clara como rede de segurança p/ o tema escuro default.)
+
+* Tue Sep 29 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.47.alpha47
+- Sub-versão de validação do update in-place (FEAT-142): sem mudança funcional além
+  do número de versão. Usada para provar, numa VM real, o update contínuo assinado
+  da branding (alpha46 → alpha47) pelo canal testing — `dnf update` puxa e valida
+  (gpgcheck + repo_gpgcheck), reescreve os-release/BLS no sistema em execução, e a
+  versão nova aparece em "Sobre o sistema"/fastfetch. Análogo a uma troca de logo.
+
+* Mon Sep 28 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.46.alpha46
+- BLOCKER de boot (PROD-133): a imagem live nascia com um /etc/kernel/cmdline
+  "fantasma" (UUID de raiz do ambiente de build + sem rootflags=subvol=root). O
+  liveimg copia o rootfs da live pro alvo; o Anaconda escreve as entradas BLS do
+  install certas, mas deixava esse arquivo intacto → o 1º update de kernel gerava
+  uma entrada BLS com root inexistente/sem subvol → dracut emergency mode. Fix no
+  %post do post-branding: remover /etc/kernel/cmdline (e /usr/lib/kernel/cmdline)
+  da live → o kernel-install passa a derivar do /proc/cmdline real do sistema
+  instalado (comportamento padrão do Fedora live). Só bump de versão neste pacote;
+  o conserto é no kickstart. VALIDAR em install limpo + 1 update de kernel.
+
+* Wed Sep 23 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.45.alpha45
+- Avatar de usuário (.face / greeter): fundo verde #15B22C → azul-marinho #1E2F4E
+  (navy da logo do CapivaraOS), capivara branca mantida. Continuação do de-green
+  (decisão da comunidade). Sem texto (o círculo do greeter cortaria).
+
+* Wed Sep 23 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.44.alpha44
+- De-green (2ª rodada, decisão da comunidade: ainda "muito verde"). Escopo escolhido =
+  TAMBÉM o painel/menus: o tema Plasma (desktoptheme) volta ao Breeze padrão
+  (`plasmarc [Theme] name` CapivaraOS → default) nos 3 pontos: /etc/skel/plasmarc,
+  defaults do Look-and-Feel e /etc/xdg (%posttrans). O desktoptheme CapivaraOS
+  segue INSTALADO e selecionável (só não é mais o padrão). Decoração de janela
+  (Aurorae) e Konsole SEGUEM verdes (fora do escopo pedido nesta rodada).
+
+* Tue Sep 22 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.43.alpha43
+- De-green parcial (decisao da comunidade: "muito verde"). Escopo = SÓ cores/accent:
+  - Esquema de cores/accent volta ao AZUL padrao (Breeze Dark): botoes, selecao e
+    cor de pasta. kdeglobals do skel, defaults do Look-and-Feel e o /etc/xdg
+    (%posttrans) passam a ColorScheme=BreezeDark e SEM AccentColor verde (accent =
+    azul padrao do esquema; greeter idem, via --delete do AccentColor no /etc/xdg).
+    O esquema verde CapivaraOS.colors continua INSTALADO e selecionavel (só nao e
+    mais o padrao). Tema Plasma (painel/menus), decoracao Aurorae e Konsole SEGUEM
+    verdes (fora do escopo pedido).
+  - Plymouth: spinner do splash volta ao BRANCO padrao (era verde #15B22C) e o
+    fundo ao azul-escuro neutro (0.07,0.09,0.13), igual ao Pup e ao Snout.
+
+* Tue Sep 22 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.42.alpha42
+- Look-and-Feel org.capivaraos.desktop alinhado ao hand-off da PROD-130: metadata
+  License=GPL-3.0-or-later, Authors "CapivaraOS Project", + Name[pt_BR]; defaults
+  ganham [kscreenlockerrc][Greeter] Theme=org.kde.breeze. (Mantidos como melhoria:
+  ButtonsOnLeft=XIA no defaults e Version=%%{version}.)
+
+* Tue Sep 22 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.41.alpha41
+- Tema Global proprio (PROD-130): novo Look-and-Feel org.capivaraos.desktop em
+  /usr/share/plasma/look-and-feel/. Agora "CapivaraOS" aparece como o Tema Global
+  ATIVO em Ajustes do Sistema > Aparencia (no lugar de "Breeze Dark"); o usuario
+  pode experimentar o Breeze e VOLTAR para "CapivaraOS" (com a opcao de layout,
+  reconstroi painel superior + dock). Nao bloqueia nada. metadata.json + contents/
+  defaults (reusa os nomes exatos: ColorScheme/desktoptheme CapivaraOS, decoracao
+  __aurorae__svg__CapivaraOS lib aurorae.v2, icones breeze-dark, accent 21,178,44)
+  + contents/layouts (= macos-layout.js, fonte unica) + preview. LookAndFeelPackage
+  do skel e do /etc/xdg apontam para ele. So Marsh (KDE).
+
+* Mon Sep 21 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.40.alpha40
+- REBASE F45 (PROD-113): os-release agora declara Fedora 45 (VERSION_ID/PLATFORM_ID/
+  CPE_NAME/REDHAT_*_PRODUCT_VERSION 44->45, nos 2 blocos). O rebase tinha trocado só
+  os rótulos alpha e deixado platform:f44. CONSEQUÊNCIA GRAVE: o Anaconda escolhe a
+  versão de comandos de kickstart pelo PLATFORM_ID do os-release; com f44 ele montava
+  o conjunto do F44 (sem o comando 'stratisfs' que o pyanaconda 45 referencia) ->
+  KeyError em pyanaconda/core/kickstart/commands.py -> TODO módulo do backend (Timezone,
+  Localization, Network, Security, Runtime, Payloads) falhava ao iniciar -> instalador
+  travado eternamente em "Initializing...". Corrigido = instalador volta a subir.
+- Limpeza f44->f45 do mesmo rebase: seletor remove também a entrada "F45" do Fedora
+  (era só "F44"); comentários do default.jxl/f45-backgrounds-kde atualizados.
+
+* Mon Sep 21 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.39.alpha39
+- Wallpaper "CapivaraOS Série 2" (capivaraos-wp-serie2.png, 3840x2160) somado ao
+  conjunto da marca (agora 9 pacotes KDE). Hero da linha 2.0 (capivara + "2" de
+  circuito). Asset comum às 3 spins, criado no Pup 2.x e propagado (padrão segue
+  o "Luar"). Ver project_brand_assets_2x.
+
+* Sat Sep 19 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.38.alpha38
+- snapper: cria a config 'root' no 1o boot do sistema instalado (PROD-118). Novo
+  /usr/libexec/capivaraos/snapper-firstboot + capivaraos-snapper-setup.service
+  (oneshot, ConditionPathExists=!/etc/snapper/configs/root, so em raiz btrfs),
+  habilitado no %post. Sem isso o capivaraos-upgrade (FEAT-115) caía em "sem
+  snapshot" — snapper/btrfs-assistant vêm na ISO, mas ninguém criava a config.
+  Portado do Snout (PROD-116, commit 5ac5b59); DE-agnóstico e idempotente.
+
+* Fri Sep 18 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.37.alpha37
+- Primeira build do rebase para Fedora 45 (base do 2.0) — PROD-113. O F45 Beta saiu
+  (2026-09-18); build repontado no branch rebase-f45: build-all.sh --releasever=45,
+  base fedora-repo.ks -> f45 (fedora-45/updates-released-f45), trava de updates e
+  titulo grub em 45. Só rótulo/versão aqui no branding; a base muda no compose.
+  F45 = Plasma 6.7 (revalidar Aurorae/tema Plasma/greeter/GTK) + Anaconda 45.
+  SMOKE BUILD p/ levantar quebras — NÃO cortar ISO pública do F45 antes do GA.
+
 * Fri Sep 11 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.36.alpha36
 - Logo próprio do CapivaraOS no fastfetch (FEAT-136 / FEAT-50): o painel ASCII do
   terminal deixa de mostrar o logo do Fedora (que o fastfetch escolhia por ID_LIKE

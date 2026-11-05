@@ -1,6 +1,6 @@
 Name:           capivara-central
 Version:        0.2.0
-Release:        1%{?dist}.marsh
+Release:        4%{?dist}.marsh
 Summary:        COS Dev Center — onboarding do CapivaraOS Marsh
 
 # App próprio (GPLv3); o ícone "COS Dev" (tile CapivaraOS) é marca reservada.
@@ -90,6 +90,33 @@ install -Dm0644 data/org.capivaraos.Central-autostart.desktop \
 %{_sysconfdir}/skel/.config/autostart/org.capivaraos.Central.desktop
 
 %changelog
+* Mon Sep 28 2026 CapivaraOS Bot <capivaraos-bot@users.noreply.github.com> - 0.2.0-4.marsh
+- COS Dev no F45 (PROD-113), espelha o resto da decisão do ROCm do Snout:
+  (1) card "Ligar GPU" refocado em NVIDIA ("Ligar GPU (NVIDIA)") — em AMD a
+  aceleração (ROCm) já vem junto da IA local no F45; (2) guard de lock do dnf:
+  Backend._dnf_busy() (pgrep) + guard_dnf nas 5 ações que usam dnf (ai/gpu/
+  devtools/gh/upgrade-download) — falha rápido com aviso em vez de travar em
+  "Waiting for a lock" enquanto a IA local (pesada por causa do ROCm) roda.
+
+* Mon Sep 28 2026 CapivaraOS Bot <capivaraos-bot@users.noreply.github.com> - 0.2.0-3.marsh
+- IA local no Fedora 45: aviso do ROCm (PROD-113). O `ollama` do Fedora 45 passou a
+  exigir `ollama-rocm` (dep dura) -> `dnf install ollama` baixa vários GB de ROCm
+  mesmo em CPU. O card "IA local" agora avisa ("baixa vários GB — inclui o suporte
+  a GPU AMD/ROCm no F45") e o passo do install-ai-system reflete isso. Decisão do
+  comunidade: aceitar (sem bloquear). Ver reference_ollama_rocm_f45.
+
+* Mon Sep 21 2026 CapivaraOS Bot <capivaraos-bot@users.noreply.github.com> - 0.2.0-2.marsh
+- Icone do COS Dev regenerado do master transparente (brand-assets/cos-dev-icon.png):
+  a tile branca "cos dev by CapivaraOS" com fundo alpha e cantos limpos (sem os
+  "quadradinhos" de xadrez). 5 tamanhos (48/64/128/256/512) em PNG RGBA. Asset comum
+  as 3 spins, propagado do Pup 2.x. Ver project_brand_assets_2x.
+- Docker no F45 (install-devtools-system): o repo do Docker demora a publicar o
+  diretorio de um Fedora recem-lancado (/linux/fedora/45/ = 404 no Beta) e o Fedora
+  nao empacota docker-ce -> "Ferramentas de dev" falhava. install_docker agora acha
+  a versao de Fedora mais recente ja publicada pelo Docker (F-anterior serve) e fixa
+  o baseurl nela; se nenhuma responder, avisa e segue sem derrubar o card (o usuario
+  tem podman). Portado do Pup. Revisar no GA do F45. Ver reference_docker_ce_fedora_novo.
+
 * Thu Sep 10 2026 CapivaraOS Bot <capivaraos-bot@users.noreply.github.com> - 0.2.0-1.marsh
 - Card "Atualizar o CapivaraOS" (FEAT-116): o "botao de atualizar" no modelo do
   Fedora ("nova versao disponivel"). So aparece quando ha versao nova (sonda

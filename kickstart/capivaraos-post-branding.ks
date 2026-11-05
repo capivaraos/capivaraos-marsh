@@ -13,6 +13,25 @@
 # live.
 
 %post
+# ── DM correto: forçar o plasma-login-manager (plasmalogin.service) ──────────
+# REGRESSÃO F45 (PROD-113): no F44 o DM ativo era o plasma-login-manager e toda a
+# nossa branding do greeter (defaults.conf do plasmalogin) + o autologin do live
+# (livesys escreve em /etc/plasmalogin.conf) assumem isso. No F45, os pacotes
+# SDDM que instalamos p/ o tema do greeter (sddm-breeze/kde-settings-sddm) fazem
+# o SDDM "ganhar" a eleição do display-manager → o SDDM lê /etc/sddm.conf (SEM
+# autologin) e a sessão LIVE cai na tela de senha, além de ignorar a branding do
+# greeter do plasmalogin. Este %post roda DEPOIS de todos os presets de pacote,
+# então é a palavra final: fixamos o display-manager no plasmalogin. (No F44 é
+# no-op — já era o DM.) Ver reference_plasmalogin_wallpaper / reference_sddm_theme.
+if [ -f /usr/lib/systemd/system/plasmalogin.service ]; then
+    systemctl disable sddm.service >/dev/null 2>&1 || true
+    systemctl enable plasmalogin.service >/dev/null 2>&1 || true
+    # Belt + suspenders: fixa o alias display-manager direto (o enable em chroot
+    # nem sempre grava o Alias=display-manager.service).
+    ln -sf /usr/lib/systemd/system/plasmalogin.service \
+        /etc/systemd/system/display-manager.service
+fi
+
 # ── Regera a initramfs com o tema Plymouth do CapivaraOS ────────────────────
 # O kernel-core gera /boot/initramfs-*.img durante a transacao de pacotes do
 # dnf (no %posttrans/scriptlet do proprio kernel), que roda ANTES do
@@ -37,6 +56,29 @@
 for kver in $(ls /lib/modules); do
     dracut -f --no-hostonly --no-hostonly-cmdline "/boot/initramfs-${kver}.img" "${kver}"
 done
+
+# ── Remove o /etc/kernel/cmdline "fantasma" da imagem live (PROD-133) ───────
+# BLOCKER do 2.0. Este %post roda no BUILD; o instalador live do Fedora (liveimg)
+# COPIA o rootfs da live para o alvo, arrastando junto o /etc/kernel/cmdline que
+# nasce aqui no build — com o UUID de raiz do AMBIENTE DE BUILD (inexistente no
+# disco do usuario) e SEM rootflags=subvol=root (a raiz e btrfs num subvolume).
+# O Anaconda reescreve as entradas BLS do install corretamente (por isso o kernel
+# do install boota), mas NAO corrige esse arquivo. Resultado: o kernel-install usa
+# esse /etc/kernel/cmdline como molde da linha `options` de TODO kernel novo -> o
+# 1o update de kernel gera uma entrada BLS com root inexistente e sem subvol ->
+# nao acha /sbin/init -> dracut emergency mode (root vem locked, sem shell de
+# resgate). Caso real: VM (Boxes) da comunidade, update 7.2.7 -> 7.2.8, 2026-09-28.
+#
+# Fix: eliminamos o arquivo (e a variante /usr/lib/kernel/cmdline, por seguranca).
+# Sem ele, na proxima atualizacao de kernel o kernel-install deriva a cmdline do
+# /proc/cmdline REAL do sistema JA INSTALADO -- que traz root=UUID=<real> ro
+# rootflags=subvol=root rhgb quiet corretos, para qualquer layout (btrfs/LUKS/...).
+# Ordem de precedencia do kernel-install (man kernel-install): /etc/kernel/cmdline,
+# senao /usr/lib/kernel/cmdline, senao /proc/cmdline (sem BOOT_IMAGE=/initrd=).
+# E o comportamento do Fedora live padrao, que nao embarca esse arquivo.
+# VALIDAR sempre num install limpo: instalar em VM -> rodar 1 update de kernel ->
+# conferir a entrada nova (root+rootflags) e o boot.
+rm -f /etc/kernel/cmdline /usr/lib/kernel/cmdline
 
 # ── Idioma: pt_BR com fallback para en_US (equivalente ao
 # "update-locale LANGUAGE=pt_BR:en_US" do hook 0015-locales) ────────────────

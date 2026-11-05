@@ -4,13 +4,14 @@
 # (polkit action org.capivaraos.central.setup-ai, que mapeia o caminho deste
 # arquivo). NÃO chamar direto; o app usa /usr/libexec/capivara-central/setup-ai.
 #
-# NOTA sobre GPU: instalamos só o Ollama (inferência em CPU funciona de
-# imediato). A aceleração por GPU (ROCm/CUDA, ~1,9 GB) fica para um card
-# próprio de "Ligar GPU" numa próxima leva — foi justamente o peso que tiramos
-# da ISO na Fase 1.
+# NOTA sobre GPU (Fedora 45): o pacote `ollama` do Fedora passou a EXIGIR
+# `ollama-rocm` (dependência DURA), então `dnf install ollama` puxa toda a pilha
+# ROCm (AMD) — vários GB — mesmo quem só vai usar CPU. Decisão da comunidade: aceitar
+# (o card avisa o tamanho). A aceleração NVIDIA/CUDA segue no card "Ligar GPU".
+# Ver reference_ollama_rocm_f45. (No F44 era CPU-only e bem mais leve.)
 set -uo pipefail
 
-echo ">>> Instalando o Ollama"
+echo ">>> Instalando o Ollama (no Fedora 45 inclui o suporte AMD/ROCm — vários GB)"
 dnf install -y ollama || exit 1
 
 echo ">>> Ativando o serviço do Ollama"

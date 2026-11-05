@@ -1,6 +1,6 @@
 #version=DEVEL
 # =============================================================================
-# CapivaraOS Marsh - Fedora 44 (KDE Plasma) - kickstart principal
+# CapivaraOS Marsh - Fedora 45 (KDE Plasma) - kickstart principal
 # =============================================================================
 #
 # Baseado no kickstart oficial do Fedora KDE Live (vendorizado em
@@ -52,6 +52,20 @@ network --hostname=capivaraos
 # tema "Sobre o Sistema" do Fedora). Ver rpm/capivaraos-branding.spec.
 -fedora-release-kde-desktop
 capivaraos-branding
+
+# ── Repositório de atualizações assinado (FEAT-111): instala o
+# /etc/yum.repos.d/capivaraos.repo (canais stable + testing) + a chave pública,
+# para a ISO 2.0 nascer já recebendo os nossos updates (branding, COS Dev/Config,
+# correções) sem esperar uma ISO nova. Buildado localmente pelo build-all.sh e
+# servido pelo repo local do compose. Ver rpm/capivaraos-repos.spec e docs/repo/.
+capivaraos-repos
+
+# ── Motor de upgrade de versão in-place (FEAT-111): invólucro auditável do
+# `dnf5 system-upgrade` (transação offline no reboot) com pré-voo e snapshot
+# snapper, para saltos de versão (ex. 2.0 → próxima) SEM reinstalar. Requer
+# capivaraos-repos (já acima). Buildado localmente pelo build-all.sh.
+# Ver rpm/capivaraos-upgrade.spec.
+capivaraos-upgrade
 
 # Tema e config do greeter SDDM. sddm-breeze provê os temas QML (breeze e
 # 01-breeze-fedora) e kde-settings-sddm põe "Current=01-breeze-fedora". São
@@ -153,6 +167,10 @@ distrobox
 # OPCIONAIS em 1 clique (IA local etc.). Vem do repo local capivaraos-local
 # (buildado por build-all.sh). FEAT-90. Ver apps/capivara-central/.
 capivara-central
+# -- COS Config Center: central de configuracao (codecs, firewall, discos, rede,
+# idioma...). Pacote ja assinado, baixado do nosso repositorio pelo build-all.sh
+# para o repo local capivaraos-local.
+cos-config
 # -- Gerenciador de senhas (pegada de seguranca) --
 keepassxc
 # -- Snapshots "atualize sem medo" (Btrfs nativo do Fedora) --

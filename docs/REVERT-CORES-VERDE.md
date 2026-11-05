@@ -1,5 +1,22 @@
 # Mapa das trocas — paleta verde (FEAT-91, frente B)
 
+> **ATUALIZAÇÃO 2026-09-22 (Marsh 2.x, alpha43, PROD-131):** a comunidade achou "muito
+> verde" e pediu para reverter **só cores/accent** ao azul padrão (Breeze Dark).
+> Feito: `ColorScheme=BreezeDark` + **sem** `AccentColor` verde no `/etc/skel`
+> kdeglobals, nos `defaults` do Look-and-Feel `org.capivaraos.desktop` e no
+> `/etc/xdg` (%posttrans, `AccentColor --delete`). O splash do Plymouth voltou ao
+> spinner **branco** + fundo azul-escuro (igual Pup/Snout). O esquema
+> `CapivaraOS.colors` **segue instalado e selecionável** (só não é mais o padrão).
+> **Mantidos verdes** (nesta 1ª rodada): tema Plasma/painel (item 16),
+> decoração Aurorae (item 13) e Konsole (item 14).
+>
+> **ATUALIZAÇÃO 2026-09-23 (alpha44, 2ª rodada):** ainda "muito verde" → revertido
+> também o **tema Plasma/painel** (item 16): `plasmarc [Theme] name` CapivaraOS →
+> `default` (Breeze) no skel, nos `defaults` do LnF e no `/etc/xdg`. O desktoptheme
+> `CapivaraOS` segue instalado/selecionável. **Ainda verdes:** decoração Aurorae
+> (item 13) e Konsole (item 14). REVERTIDOS no Marsh: itens 1, 2, 10, 16 e a parte
+> de `ColorScheme` do 12/15.
+
 Build de **avaliação** que troca o *accent* do desktop para o verde da marca
 **#15B22C** (RGB **21,178,44**). Objetivo: testar em VM/instalação real se o
 verde funciona como cor de acento do sistema, mantendo o restante do visual

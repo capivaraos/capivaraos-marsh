@@ -162,7 +162,9 @@ Kirigami.ScrollablePage {
             Layout.fillWidth: true
             heading: qsTr("IA local")
             description: qsTr("Rode modelos de IA na sua máquina, sem nuvem: Ollama (motor), "
-                            + "Alpaca (interface) e a extensão Continue no VSCodium.")
+                            + "Alpaca (interface) e a extensão Continue no VSCodium. "
+                            + "Atenção: baixa vários GB — no Fedora 45 o Ollama já inclui o "
+                            + "suporte a GPU AMD (ROCm).")
             iconName: "system-run"
             actionText: qsTr("Instalar IA local")
             installed: page.aiInstalled
@@ -193,9 +195,10 @@ Kirigami.ScrollablePage {
 
         Components.ActionCard {
             Layout.fillWidth: true
-            heading: qsTr("Ligar GPU")
-            description: qsTr("Acelere a IA local com sua placa de vídeo: ROCm (AMD) ou "
-                            + "CUDA (NVIDIA). Sem GPU dedicada, a IA continua rodando na CPU.")
+            heading: qsTr("Ligar GPU (NVIDIA)")
+            description: qsTr("Acelere a IA local com uma placa NVIDIA (driver + CUDA, via "
+                            + "RPM Fusion). Em placas AMD, a aceleração (ROCm) já vem junto "
+                            + "da IA local no Fedora 45. Sem GPU dedicada, roda na CPU.")
             iconName: "preferences-desktop-display"
             actionText: qsTr("Ativar GPU")
             installed: page.gpuEnabled
