@@ -59,7 +59,7 @@ body:
     attributes:
       label: Ambiente de build
       description: Só preencha se você estiver construindo a própria ISO — versão do Fedora na máquina de build e arquitetura.
-      placeholder: "Fedora 44 x86_64"
+      placeholder: "Fedora 45 x86_64"
   - type: textarea
     id: logs
     attributes:

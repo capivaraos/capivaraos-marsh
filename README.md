@@ -1,18 +1,19 @@
-# CapivaraOS Marsh — Fedora 44 (KDE Plasma)
+# CapivaraOS Marsh — Fedora 45 (KDE Plasma)
 
-Recriação do **CapivaraOS Marsh** (originalmente um remix Debian 13/trixie +
-live-build + Calamares) como uma live ISO **Fedora 44 KDE Plasma**, usando as
-ferramentas oficiais do projeto Fedora: `kickstart` + `livemedia-creator`
-(lorax) para a imagem, e **Anaconda** como instalador.
+Live ISO do **CapivaraOS Marsh**, a edição KDE Plasma da família, construída
+sobre o **Fedora 45** (Plasma 6.8) com as ferramentas oficiais do projeto
+Fedora: `kickstart` + `livemedia-creator` (lorax) para a imagem, e **Anaconda**
+como instalador.
 
-A versão Debian original fica intacta em `../capivaraos-marsh/` e serve de
-referência de identidade visual (wallpapers, ícones, lista de pacotes, tema
-"macOS"/WhiteSur).
+Este repositório é a **Série 2** (2.0.0). A Série 1, baseada no Fedora 44, está
+congelada em [`capivaraos-marsh-fedora`](https://github.com/capivaraos/capivaraos-marsh-fedora).
+Antes disso o Marsh nasceu como remix Debian 13/trixie com live-build e
+Calamares — essa encarnação foi aposentada e não tem mais repositório.
 
 ## Estrutura do projeto
 
 ```
-capivaraos-marsh-fedora/
+capivaraos-marsh/
 ├── PACKAGES.md                  # Mapeamento de pacotes Debian -> Fedora
 ├── README.md                    # Este arquivo
 ├── branding/                    # Assets de identidade visual (fonte para o RPM)
@@ -50,7 +51,7 @@ Ver `PACKAGES.md` para o mapeamento completo de pacotes Debian -> Fedora e as
 decisões/limitações conhecidas (sem RPM Fusion, sem `appmenu-gtk3-module`,
 Firefox em vez de Firefox ESR, etc.).
 
-## Pré-requisitos (máquina de build, Fedora 44 x86_64)
+## Pré-requisitos (máquina de build, Fedora 45 x86_64)
 
 ```bash
 sudo dnf install -y lorax rpm-build ImageMagick git createrepo_c
@@ -74,7 +75,7 @@ cd rpm
 ./build-rpm.sh
 ```
 
-Isso gera `~/rpmbuild/RPMS/noarch/capivaraos-branding-1.1.0-1.*.noarch.rpm`.
+Isso gera `~/rpmbuild/RPMS/noarch/capivaraos-branding-2.0.0-*.noarch.rpm`.
 
 > O script já foi validado executando a lógica de `%build`/`%install` da spec
 > diretamente (sem `rpmbuild`, que ainda não estava instalado nesta máquina) —
@@ -123,12 +124,12 @@ python3 ks-flatten.py capivaraos-marsh.ks > /var/tmp/capivaraos-marsh-flat.ks
 sudo livemedia-creator --ks=/var/tmp/capivaraos-marsh-flat.ks \
     --no-virt --resultdir=/var/tmp/capivaraos-marsh-result \
     --project="CapivaraOS Marsh" --make-iso --iso-only \
-    --iso-name=CapivaraOS-Marsh-1.1.0-x86_64.iso \
-    --volid="CapivaraOS Marsh 1.1.0" --variant="CapivaraOS Marsh" \
+    --iso-name=CapivaraOS-Marsh-2.0.0-x86_64.iso \
+    --volid="CapivaraOS Marsh 2.0.0" --variant="CapivaraOS Marsh" \
     --releasever=44
 ```
 
-A ISO final fica em `/var/tmp/capivaraos-marsh-result/CapivaraOS-Marsh-1.1.0-x86_64.iso`.
+A ISO final fica em `/var/tmp/capivaraos-marsh-result/CapivaraOS-Marsh-2.0.0-x86_64.iso`.
 
 Logs úteis em caso de problema:
 - `/var/tmp/capivaraos-marsh-result/*.log` (logs do `livemedia-creator`/lorax)
@@ -139,7 +140,7 @@ Logs úteis em caso de problema:
 
 ```bash
 qemu-system-x86_64 -m 4096 -enable-kvm \
-    -cdrom /var/tmp/capivaraos-marsh-result/CapivaraOS-Marsh-1.1.0-x86_64.iso
+    -cdrom /var/tmp/capivaraos-marsh-result/CapivaraOS-Marsh-2.0.0-x86_64.iso
 ```
 
 ## Limitações conhecidas
