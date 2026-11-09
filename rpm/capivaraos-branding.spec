@@ -13,12 +13,12 @@
 # na frente D, D5 (FEAT-91): o build nao depende mais de rede para o tema.
 
 Name:           capivaraos-branding
-Version:        2.0.0
+Version:        2.0.1
 # Sufixo ".marsh": as tres spins constroem um pacote com este MESMO Name e
 # compartilham ~/rpmbuild, entao sem ele duas spins na mesma Version-Release
 # geram nomes de arquivo identicos -- ja causou dois incidentes (ver BUG-30).
 # Com o sufixo a colisao e impossivel por construcao.
-Release:        3%{?dist}.marsh
+Release:        1%{?dist}.marsh
 # Rotulo de pre-release (alphaN) no os-release/issue/VARIANT. As strings abaixo
 # usam a condicional "cos_label" (ver reference osrelease_alpha_label): se o
 # macro cos_label estiver DEFINIDO, elas viram "2.0.0 (<valor>, preview)"; se
@@ -40,6 +40,12 @@ BuildRequires:  ImageMagick
 Requires:       plymouth
 Requires:       sddm
 Requires:       kde-settings
+# Os wallpapers saíram daqui para o capivaraos-wallpapers (PROD-187), que tem
+# Version própria. Esta dependência NÃO é opcional: o DEFAULT_WP_PKG/
+# DEFAULT_WP_IMG abaixo aponta para /usr/share/wallpapers/capivaraos-luar/, que
+# agora é servido por lá. Versão FROUXA de propósito (>=, não =) — é o que
+# permite este pacote subir de versão sem arrastar as imagens junto.
+Requires:       capivaraos-wallpapers >= 2.0.0
 
 # Fornecemos nosso próprio /etc/os-release, ícones "Sobre o Sistema" e
 # wallpapers padrão do Fedora KDE.
@@ -189,51 +195,6 @@ convert -size 360x48 xc:none -stroke 'rgba(255,255,255,0.55)' -strokewidth 2 \
     build/plymouth/password_field.png
 convert -size 18x18 xc:none -fill white -draw "circle 9,9 9,2" build/plymouth/bullet.png
 
-# ── 6. Pacotes de wallpaper no formato KDE (aparecem no seletor do Plasma) ──
-# Cada wallpaper "capivaraos-*" do live-build vira um pacote
-# /usr/share/wallpapers/<id>/{metadata.json,contents/images/*.png}
-mkdir -p build/wallpapers
-
-create_kde_wallpaper_pkg() {
-    local ID="$1" NAME="$2" FILE="$3" AUTHOR="${4:-CapivaraOS}" LICENSE="${5:-LicenseRef-CapivaraOS-Trademark}"
-    local DIR="build/wallpapers/${ID}/contents/images"
-    mkdir -p "$DIR"
-    cp "$FILE" "${DIR}/1920x1080.png"
-    convert "$FILE" -resize 400x250 "${DIR}/400x250.png" 2>/dev/null || \
-        cp "$FILE" "${DIR}/400x250.png"
-    cat > "build/wallpapers/${ID}/metadata.json" << METAEOF
-{
-    "KPlugin": {
-        "Authors": [{"Name": "${AUTHOR}"}],
-        "Id": "${ID}",
-        "License": "${LICENSE}",
-        "Name": "${NAME}",
-        "Version": "%{version}",
-        "Website": "https://capivaraos.org"
-    },
-    "X-KDE-PluginInfo-Name": "${ID}"
-}
-METAEOF
-}
-
-# Wallpapers EXCLUSIVOS da marca CapivaraOS (linha 2.x, FEAT-105). Todos usam o
-# LICENSE default da funcao (LicenseRef-CapivaraOS-Trademark) -- arte propria,
-# NAO CC. As antigas (7 de cor solida + 6 fotos CC do Wikimedia) foram removidas:
-# o conjunto do Marsh 2.x passa a ser exatamente estes 9. As 3 cenas (luar/por-do-
-# sol/dev) levam a logo branca padronizada no canto; as abstratas ja trazem a
-# marca no proprio desenho; o "serie2" e o hero de marca da linha 2.0.
-create_kde_wallpaper_pkg "capivaraos-luar"       "CapivaraOS Luar"       backgrounds/capivaraos-wp-moonlight.png
-create_kde_wallpaper_pkg "capivaraos-por-do-sol" "CapivaraOS Pôr do Sol" backgrounds/capivaraos-wp-sunset.png
-create_kde_wallpaper_pkg "capivaraos-dev"        "CapivaraOS Dev"        backgrounds/capivaraos-wp-dev.png
-create_kde_wallpaper_pkg "capivaraos-abstrato-1" "CapivaraOS Abstrato 1" backgrounds/capivaraos-wp-abstract-1.png
-create_kde_wallpaper_pkg "capivaraos-abstrato-2" "CapivaraOS Abstrato 2" backgrounds/capivaraos-wp-abstract-2.png
-create_kde_wallpaper_pkg "capivaraos-abstrato-3" "CapivaraOS Abstrato 3" backgrounds/capivaraos-wp-abstract-3.png
-create_kde_wallpaper_pkg "capivaraos-abstrato-4" "CapivaraOS Abstrato 4" backgrounds/capivaraos-wp-abstract-4.png
-create_kde_wallpaper_pkg "capivaraos-comics"     "CapivaraOS Comics"     backgrounds/capivaraos-wp-comics.png
-# Hero da Série 2 (capivara + "2" de circuito + "CapivaraOS"). Asset comum as 3
-# spins, criado no Pup 2.x e propagado (ver project_brand_assets_2x). 3840x2160.
-create_kde_wallpaper_pkg "capivaraos-serie2"     "CapivaraOS Série 2"    backgrounds/capivaraos-wp-serie2.png
-
 %install
 set -e
 # O wallpaper padrao (luar) mora APENAS dentro do pacote KDE, nao mais como
@@ -288,12 +249,6 @@ done
 install -d %{buildroot}%{_datadir}/icons/hicolor/scalable/apps
 install -m 0644 icons/capivaraos-head.svg \
     %{buildroot}%{_datadir}/icons/hicolor/scalable/apps/capivaraos-head.svg
-
-# ── Pacotes de wallpaper KDE ─────────────────────────────────────────────────
-install -d %{buildroot}%{_datadir}/wallpapers
-cp -r build/wallpapers/* %{buildroot}%{_datadir}/wallpapers/
-find %{buildroot}%{_datadir}/wallpapers -type f -exec chmod 0644 {} \;
-find %{buildroot}%{_datadir}/wallpapers -type d -exec chmod 0755 {} \;
 
 # ── Esquema de cores próprio do CapivaraOS (FEAT-91 frente D, D1) ────────────
 # Paleta verde da marca (accent #15B22C + neutros escuros ~#12160F). Substitui de
@@ -1594,7 +1549,6 @@ sed -i -E \
 %{_datadir}/icons/hicolor/*/apps/capivaraos-logo.png
 %{_datadir}/icons/hicolor/*/apps/capivaraos-full-logo.png
 %{_datadir}/icons/hicolor/scalable/apps/capivaraos-head.svg
-%{_datadir}/wallpapers/capivaraos-*/
 %{_datadir}/color-schemes/CapivaraOS.colors
 %{_datadir}/aurorae/themes/CapivaraOS/
 %{_datadir}/plasma/desktoptheme/CapivaraOS/
@@ -1637,6 +1591,10 @@ sed -i -E \
 %{_datadir}/cockpit/branding/capivaraos/
 
 %changelog
+* Mon Nov 09 2026 CapivaraOS <contato@capivaraos.org> - 2.0.1-1.marsh
+- Wallpapers movidos para o pacote capivaraos-wallpapers (PROD-187).
+- Nada muda na area de trabalho: mesmos wallpapers, mesmos caminhos, imagens
+  inalteradas. O dnf instala os dois pacotes na mesma transacao.
 * Tue Nov 03 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-3
 - Hostname da marca: drop-in /etc/NetworkManager/conf.d/00-capivaraos-hostname.conf
   com hostname-mode=none. O sistema instalado nascia "dp@localhost-live": o
