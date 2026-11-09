@@ -2,7 +2,7 @@
 
 Obrigado pelo interesse em contribuir! Este repositório contém o kickstart,
 os scripts de build e o pacote RPM de branding usados para gerar a ISO do
-**CapivaraOS Marsh** (Fedora 44 + KDE Plasma).
+**CapivaraOS Marsh** (Fedora 45 + KDE Plasma).
 
 ## Antes de abrir uma issue
 
