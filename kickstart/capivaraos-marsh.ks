@@ -52,6 +52,11 @@ network --hostname=capivaraos
 # tema "Sobre o Sistema" do Fedora). Ver rpm/capivaraos-branding.spec.
 -fedora-release-kde-desktop
 capivaraos-branding
+# Wallpapers da marca, separados do branding desde o 2.0.1 (PROD-187).
+# Explicito de proposito: o Requires ja puxaria, mas na instalacao offline quem
+# resolve e o repo local da ISO, e um pacote exigido fora do payload reprova a
+# instalacao inteira.
+capivaraos-wallpapers
 
 # ── Repositório de atualizações assinado (FEAT-111): instala o
 # /etc/yum.repos.d/capivaraos.repo (canais stable + testing) + a chave pública,
