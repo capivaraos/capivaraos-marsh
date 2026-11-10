@@ -87,7 +87,7 @@ create_kde_wallpaper_pkg "capivaraos-abstrato-3" "CapivaraOS Abstrato 3" backgro
 create_kde_wallpaper_pkg "capivaraos-abstrato-4" "CapivaraOS Abstrato 4" backgrounds/capivaraos-wp-abstract-4.png
 create_kde_wallpaper_pkg "capivaraos-comics"     "CapivaraOS Comics"     backgrounds/capivaraos-wp-comics.png
 # Hero da Série 2 (capivara + "2" de circuito + "CapivaraOS"). Asset comum as 3
-# spins, criado no Pup 2.x e propagado (ver project_brand_assets_2x). 3840x2160.
+# spins, criado no Pup 2.x e propagado. 3840x2160.
 create_kde_wallpaper_pkg "capivaraos-serie2"     "CapivaraOS Série 2"    backgrounds/capivaraos-wp-serie2.png
 
 %install

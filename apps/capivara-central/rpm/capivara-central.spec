@@ -103,19 +103,19 @@ install -Dm0644 data/org.capivaraos.Central-autostart.desktop \
   exigir `ollama-rocm` (dep dura) -> `dnf install ollama` baixa vários GB de ROCm
   mesmo em CPU. O card "IA local" agora avisa ("baixa vários GB — inclui o suporte
   a GPU AMD/ROCm no F45") e o passo do install-ai-system reflete isso. Decisão do
-  comunidade: aceitar (sem bloquear). Ver reference_ollama_rocm_f45.
+  comunidade: aceitar (sem bloquear).
 
 * Mon Sep 21 2026 CapivaraOS Bot <capivaraos-bot@users.noreply.github.com> - 0.2.0-2.marsh
 - Icone do COS Dev regenerado do master transparente (brand-assets/cos-dev-icon.png):
   a tile branca "cos dev by CapivaraOS" com fundo alpha e cantos limpos (sem os
   "quadradinhos" de xadrez). 5 tamanhos (48/64/128/256/512) em PNG RGBA. Asset comum
-  as 3 spins, propagado do Pup 2.x. Ver project_brand_assets_2x.
+  as 3 spins, propagado do Pup 2.x.
 - Docker no F45 (install-devtools-system): o repo do Docker demora a publicar o
   diretorio de um Fedora recem-lancado (/linux/fedora/45/ = 404 no Beta) e o Fedora
   nao empacota docker-ce -> "Ferramentas de dev" falhava. install_docker agora acha
   a versao de Fedora mais recente ja publicada pelo Docker (F-anterior serve) e fixa
   o baseurl nela; se nenhuma responder, avisa e segue sem derrubar o card (o usuario
-  tem podman). Portado do Pup. Revisar no GA do F45. Ver reference_docker_ce_fedora_novo.
+  tem podman). Portado do Pup. Revisar no GA do F45.
 
 * Thu Sep 10 2026 CapivaraOS Bot <capivaraos-bot@users.noreply.github.com> - 0.2.0-1.marsh
 - Card "Atualizar o CapivaraOS" (FEAT-116): o "botao de atualizar" no modelo do

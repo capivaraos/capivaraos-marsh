@@ -181,7 +181,7 @@ done
 # Plymouth nao renderiza texto nenhum ali (fica invisivel). A logo e o spinner
 # aparecem porque sao PNG. Por isso o prompt, o campo e a bolinha sao PNGs
 # pre-renderizados aqui. Texto em INGLES (identidade global 2.0). Espelhado do
-# fix validado do Snout (PR #11); ver reference_plymouth_luks_password / BUG-45.
+# fix validado do Snout (PR #11); ver BUG-45.
 # %%{file} com % duplicado senao o rpm come o %.
 PWFONT=$(fc-match -f '%%{file}' sans-serif 2>/dev/null || true)
 case "$PWFONT" in *'['*|'') PWFONT= ;; esac
@@ -429,7 +429,7 @@ Plymouth.SetRefreshFunction(refresh_callback);
 # Por isso prompt, campo e bolinha sao PNGs pre-renderizados (ver %build).
 # Detalhe que faz funcionar: o refresh_callback do spinner nao mexe em opacity,
 # entao o SetOpacity(0) persiste durante a digitacao. Espelhado do fix validado
-# do Snout (PR #11). Ver reference_plymouth_luks_password / BUG-45 (cross-spin).
+# do Snout (PR #11). Ver BUG-45 (cross-spin).
 pw_prompt.image = Image("password_prompt.png");
 pw_field.image  = Image("password_field.png");
 pw_bullet.image = Image("bullet.png");
@@ -987,8 +987,8 @@ EOF
 # upgrade caía no caminho "sem snapshot" (sem rollback automático). Este
 # serviço a cria uma única vez no 1º boot do sistema instalado (idempotente,
 # DE-agnóstico). Portado do Snout (PROD-116, commit 5ac5b59). Sem '%' nos
-# heredocs (o rpm come '%' no %install mesmo com << 'EOF' -- ver
-# reference_rpm_percent_heredoc): o script/unit abaixo não usa nenhum.
+# heredocs (o rpm come '%' no %install mesmo com << 'EOF'): o script/unit
+# abaixo não usa nenhum.
 install -d %{buildroot}%{_libexecdir}/capivaraos
 cat > %{buildroot}%{_libexecdir}/capivaraos/snapper-firstboot << 'EOF'
 #!/bin/bash
@@ -1738,7 +1738,7 @@ sed -i -E \
 - Wallpaper "CapivaraOS Série 2" (capivaraos-wp-serie2.png, 3840x2160) somado ao
   conjunto da marca (agora 9 pacotes KDE). Hero da linha 2.0 (capivara + "2" de
   circuito). Asset comum às 3 spins, criado no Pup 2.x e propagado (padrão segue
-  o "Luar"). Ver project_brand_assets_2x.
+  o "Luar").
 
 * Sat Sep 19 2026 CapivaraOS Project <capivaraos-bot@users.noreply.github.com> - 2.0.0-0.38.alpha38
 - snapper: cria a config 'root' no 1o boot do sistema instalado (PROD-118). Novo
