@@ -22,7 +22,7 @@
 # autologin) e a sessão LIVE cai na tela de senha, além de ignorar a branding do
 # greeter do plasmalogin. Este %post roda DEPOIS de todos os presets de pacote,
 # então é a palavra final: fixamos o display-manager no plasmalogin. (No F44 é
-# no-op — já era o DM.) Ver reference_plasmalogin_wallpaper / reference_sddm_theme.
+# no-op — já era o DM.) O DM do Marsh é o plasmalogin, não o SDDM.
 if [ -f /usr/lib/systemd/system/plasmalogin.service ]; then
     systemctl disable sddm.service >/dev/null 2>&1 || true
     systemctl enable plasmalogin.service >/dev/null 2>&1 || true

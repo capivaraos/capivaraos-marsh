@@ -213,8 +213,7 @@ class Backend(QObject):
     def _dnf_busy() -> bool:
         """True se já houver uma transação dnf de sistema em curso. Evita disparar
         um segundo install que ficaria preso em 'Waiting for a lock' — a IA local,
-        pesada por causa do ROCm no F45, ainda pode estar rodando. Ver
-        reference_ollama_rocm_f45."""
+        pesada por causa do ROCm no F45, ainda pode estar rodando."""
         try:
             r = subprocess.run(
                 ["pgrep", "-f", r"dnf.*(install|upgrade|remove|reinstall|system-upgrade)"],
